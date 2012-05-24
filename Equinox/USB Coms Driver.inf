@@ -100,7 +100,7 @@ ServiceBinary=%12%\%DRIVERFILENAME%.sys
 [Strings]
 MFGFILENAME="CDC_vista"
 DRIVERFILENAME ="usbser"
-MFGNAME="http://www.3dprinting-r2c2.com/"
-INSTDISK="R2C2 electronics CDC Driver Installer"
+MFGNAME="http://github.com/ggaavv/Equinox-Clock"
+INSTDISK="Equinox Clock"
 DESCRIPTION="Communications Port"
 SERVICE="USB RS-232 Emulation Driver"
