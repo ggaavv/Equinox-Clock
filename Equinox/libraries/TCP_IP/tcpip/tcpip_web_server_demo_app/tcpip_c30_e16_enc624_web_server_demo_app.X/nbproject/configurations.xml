@@ -1,0 +1,518 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="62">
+  <logicalFolder name="root" displayName="root" projectFiles="true">
+    <logicalFolder name="HeaderFiles"
+                   displayName="Header Files"
+                   projectFiles="true">
+      <logicalFolder name="bsp_profile" displayName="bsp_profile" projectFiles="true">
+        <itemPath>../configs/c30_expl16/bsp_profile/enc624/hardware_profile.h</itemPath>
+        <itemPath>../configs/c30_expl16/bsp_profile/enc624/network_profile.h</itemPath>
+        <itemPath>../configs/c30_expl16/bsp_profile/enc624/system_profile.h</itemPath>
+      </logicalFolder>
+      <logicalFolder name="common" displayName="common" projectFiles="true">
+        <itemPath>../../../microchip/include/Compiler.h</itemPath>
+        <itemPath>../../../microchip/include/common/hashes.h</itemPath>
+        <itemPath>../../../microchip/include/common/lfsr.h</itemPath>
+        <itemPath>../../../microchip/include/common/big_int.h</itemPath>
+      </logicalFolder>
+      <logicalFolder name="tcpip" displayName="tcpip" projectFiles="true">
+        <itemPath>../../../microchip/include/tcpip/xeeprom.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/_http2.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/announce.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/arcfour.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/arp.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/auto_ip.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/berkeley_api.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/dhcp.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/dns.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/dyn_dns.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/enc28j60.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/encx24j600.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/eth97j60.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/file_system.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/ftp.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/hardware_profile_template.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/http2.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/icmp.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/icmpv6.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/ip.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/mac_events.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/mpfs2.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/nbns.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/ndp.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/reboot.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/rsa.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/smtp.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/snmp.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/snmpv3.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/sntp.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/spi_flash.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/spi_ram.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/ssl.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/tcp.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/tcp_performance_test.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/tcpip.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/tcpip_events.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/tcpip_helpers.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/tcpip_mac.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/tcpip_mac_object.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/tcpip_manager.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/tcpip_storage.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/tcpip_types.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/telnet.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/tftpc.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/udp.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/udp_performance_test.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/wf_api.h</itemPath>
+        <itemPath>../../../microchip/include/tcpip/wf_config_template.h</itemPath>
+        <itemPath>../../../microchip/tcpip/wifi/wf_spi.h</itemPath>
+        <itemPath>../../../microchip/tcpip/wifi/wf_eint.h</itemPath>
+      </logicalFolder>
+      <logicalFolder name="tcpip_profile"
+                     displayName="tcpip_profile"
+                     projectFiles="true">
+        <itemPath>../configs/c30_expl16/tcpip_profile/announce_config.h</itemPath>
+        <itemPath>../configs/c30_expl16/tcpip_profile/arp_config.h</itemPath>
+        <itemPath>../configs/c30_expl16/tcpip_profile/berekely_api_config.h</itemPath>
+        <itemPath>../configs/c30_expl16/tcpip_profile/dhcp_config.h</itemPath>
+        <itemPath>../configs/c30_expl16/tcpip_profile/dhcps_config.h</itemPath>
+        <itemPath>../configs/c30_expl16/tcpip_profile/dns_config.h</itemPath>
+        <itemPath>../configs/c30_expl16/tcpip_profile/dnss_config.h</itemPath>
+        <itemPath>../configs/c30_expl16/tcpip_profile/dyndns_config.h</itemPath>
+        <itemPath>../configs/c30_expl16/tcpip_profile/ftp_config.h</itemPath>
+        <itemPath>../configs/c30_expl16/tcpip_profile/generic_tcp_example_config.h</itemPath>
+        <itemPath>../configs/c30_expl16/tcpip_profile/http2_config.h</itemPath>
+        <itemPath>../configs/c30_expl16/tcpip_profile/icmp_config.h</itemPath>
+        <itemPath>../configs/c30_expl16/tcpip_profile/icmpv6_config.h</itemPath>
+        <itemPath>../configs/c30_expl16/tcpip_profile/ip_config.h</itemPath>
+        <itemPath>../configs/c30_expl16/tcpip_profile/iperf_config.h</itemPath>
+        <itemPath>../configs/c30_expl16/tcpip_profile/mac_config.h</itemPath>
+        <itemPath>../configs/c30_expl16/tcpip_profile/mpfs2_config.h</itemPath>
+        <itemPath>../configs/c30_expl16/tcpip_profile/nbns_config.h</itemPath>
+        <itemPath>../configs/c30_expl16/tcpip_profile/ndp_config.h</itemPath>
+        <itemPath>../configs/c30_expl16/tcpip_profile/ping_config.h</itemPath>
+        <itemPath>../configs/c30_expl16/tcpip_profile/reboot_config.h</itemPath>
+        <itemPath>../configs/c30_expl16/tcpip_profile/smtp_config.h</itemPath>
+        <itemPath>../configs/c30_expl16/tcpip_profile/snmp_config.h</itemPath>
+        <itemPath>../configs/c30_expl16/tcpip_profile/snmpv3_config.h</itemPath>
+        <itemPath>../configs/c30_expl16/tcpip_profile/sntp_config.h</itemPath>
+        <itemPath>../configs/c30_expl16/tcpip_profile/ssl_config.h</itemPath>
+        <itemPath>../configs/c30_expl16/tcpip_profile/tcp_config.h</itemPath>
+        <itemPath>../configs/c30_expl16/tcpip_profile/tcp_performance_test_config.h</itemPath>
+        <itemPath>../configs/c30_expl16/tcpip_profile/tcpip_config.h</itemPath>
+        <itemPath>../configs/c30_expl16/tcpip_profile/tcpip_modules_config.h</itemPath>
+        <itemPath>../configs/c30_expl16/tcpip_profile/tcpip_storage_config.h</itemPath>
+        <itemPath>../configs/c30_expl16/tcpip_profile/telnet_config.h</itemPath>
+        <itemPath>../configs/c30_expl16/tcpip_profile/tftpc_config.h</itemPath>
+        <itemPath>../configs/c30_expl16/tcpip_profile/udp_config.h</itemPath>
+        <itemPath>../configs/c30_expl16/tcpip_profile/udp_performance_test_config.h</itemPath>
+        <itemPath>../configs/c30_expl16/tcpip_profile/wf_config.h</itemPath>
+        <itemPath>../../../microchip/tcpip/tcpip_config_private.h</itemPath>
+      </logicalFolder>
+      <itemPath>../main_demo.h</itemPath>
+    </logicalFolder>
+    <logicalFolder name="LinkerScript"
+                   displayName="Linker Files"
+                   projectFiles="true">
+    </logicalFolder>
+    <logicalFolder name="SourceFiles"
+                   displayName="Source Files"
+                   projectFiles="true">
+      <logicalFolder name="bsp" displayName="bsp" projectFiles="true">
+        <itemPath>../../../bsp/explorer16/pic24/bsp.c</itemPath>
+      </logicalFolder>
+      <logicalFolder name="common" displayName="common" projectFiles="true">
+        <itemPath>../../../microchip/common/hashes.c</itemPath>
+        <itemPath>../../../microchip/common/lfsr.c</itemPath>
+        <itemPath>../../../microchip/common/big_int.c</itemPath>
+        <itemPath>../../../microchip/common/big_int_helper.S</itemPath>
+      </logicalFolder>
+      <logicalFolder name="examples" displayName="examples" projectFiles="true">
+        <itemPath>../ping_demo.c</itemPath>
+        <itemPath>../smtp_demo.c</itemPath>
+        <itemPath>../berkeley_tcp_client_demo.c</itemPath>
+        <itemPath>../berkeley_tcp_server_demo.c</itemPath>
+        <itemPath>../berkeley_udp_client_demo.c</itemPath>
+        <itemPath>../generic_tcp_client.c</itemPath>
+        <itemPath>../generic_tcp_server.c</itemPath>
+      </logicalFolder>
+      <logicalFolder name="system" displayName="system" projectFiles="true">
+        <itemPath>../../../microchip/system/system_services.c</itemPath>
+        <itemPath>../../../microchip/system/system_debug.c</itemPath>
+        <itemPath>../../../microchip/system/system_random.c</itemPath>
+        <itemPath>../../../microchip/system/drivers/lcd.c</itemPath>
+        <itemPath>../../../microchip/system/drivers/usart.c</itemPath>
+        <itemPath>../../../microchip/system/drivers/drv_spi.c</itemPath>
+      </logicalFolder>
+      <logicalFolder name="tcpip" displayName="tcpip" projectFiles="true">
+        <itemPath>../../../microchip/tcpip/dnss.c</itemPath>
+        <itemPath>../../../microchip/tcpip/announce.c</itemPath>
+        <itemPath>../../../microchip/tcpip/arcfour.c</itemPath>
+        <itemPath>../../../microchip/tcpip/arp.c</itemPath>
+        <itemPath>../../../microchip/tcpip/auto_ip.c</itemPath>
+        <itemPath>../../../microchip/tcpip/berkeley_api.c</itemPath>
+        <itemPath>../../../microchip/tcpip/udp_performance_test.c</itemPath>
+        <itemPath>../../../microchip/tcpip/dhcp.c</itemPath>
+        <itemPath>../../../microchip/tcpip/dhcps.c</itemPath>
+        <itemPath>../../../microchip/tcpip/dns.c</itemPath>
+        <itemPath>../../../microchip/tcpip/dyn_dns.c</itemPath>
+        <itemPath>../../../microchip/tcpip/enc28_mac.c</itemPath>
+        <itemPath>../../../microchip/tcpip/enc28j60.c</itemPath>
+        <itemPath>../../../microchip/tcpip/encs24j600.c</itemPath>
+        <itemPath>../../../microchip/tcpip/encx24_mac.c</itemPath>
+        <itemPath>../../../microchip/tcpip/file_system.c</itemPath>
+        <itemPath>../../../microchip/tcpip/ftp.c</itemPath>
+        <itemPath>../../../microchip/tcpip/hash_fnv.c</itemPath>
+        <itemPath>../../../microchip/tcpip/hash_tbl.c</itemPath>
+        <itemPath>../../../microchip/tcpip/http2.c</itemPath>
+        <itemPath>../../../microchip/tcpip/icmp.c</itemPath>
+        <itemPath>../../../microchip/tcpip/icmpv6.c</itemPath>
+        <itemPath>../../../microchip/tcpip/ip.c</itemPath>
+        <itemPath>../../../microchip/tcpip/mpfs2.c</itemPath>
+        <itemPath>../../../microchip/tcpip/nbns.c</itemPath>
+        <itemPath>../../../microchip/tcpip/ndp.c</itemPath>
+        <itemPath>../../../microchip/tcpip/reboot.c</itemPath>
+        <itemPath>../../../microchip/tcpip/rsa.c</itemPath>
+        <itemPath>../../../microchip/tcpip/smtp.c</itemPath>
+        <itemPath>../../../microchip/tcpip/snmp.c</itemPath>
+        <itemPath>../../../microchip/tcpip/snmpv3.c</itemPath>
+        <itemPath>../../../microchip/tcpip/snmpv3_usm.c</itemPath>
+        <itemPath>../../../microchip/tcpip/sntp.c</itemPath>
+        <itemPath>../../../microchip/tcpip/spi_eeprom.c</itemPath>
+        <itemPath>../../../microchip/tcpip/spi_flash.c</itemPath>
+        <itemPath>../../../microchip/tcpip/spi_ram.c</itemPath>
+        <itemPath>../../../microchip/tcpip/ssl.c</itemPath>
+        <itemPath>../../../microchip/tcpip/tcp.c</itemPath>
+        <itemPath>../../../microchip/tcpip/tcp_performance_test.c</itemPath>
+        <itemPath>../../../microchip/tcpip/tcpip_heap_alloc.c</itemPath>
+        <itemPath>../../../microchip/tcpip/tcpip_helpers.c</itemPath>
+        <itemPath>../../../microchip/tcpip/tcpip_mac_object.c</itemPath>
+        <itemPath>../../../microchip/tcpip/tcpip_manager.c</itemPath>
+        <itemPath>../../../microchip/tcpip/tcpip_storage.c</itemPath>
+        <itemPath>../../../microchip/tcpip/telnet.c</itemPath>
+        <itemPath>../../../microchip/tcpip/tftpc.c</itemPath>
+        <itemPath>../../../microchip/tcpip/udp.c</itemPath>
+      </logicalFolder>
+      <logicalFolder name="wifi" displayName="wifi" projectFiles="true">
+        <itemPath>../../../microchip/tcpip/wifi/wf_tx_power.c</itemPath>
+        <itemPath>../../../microchip/tcpip/wifi/wf_connect.c</itemPath>
+        <itemPath>../../../microchip/tcpip/wifi/wf_connection_algorithm.c</itemPath>
+        <itemPath>../../../microchip/tcpip/wifi/wf_connection_manager.c</itemPath>
+        <itemPath>../../../microchip/tcpip/wifi/wf_connection_profile.c</itemPath>
+        <itemPath>../../../microchip/tcpip/wifi/wf_console.c</itemPath>
+        <itemPath>../../../microchip/tcpip/wifi/wf_console_if_config.c</itemPath>
+        <itemPath>../../../microchip/tcpip/wifi/wf_console_iw_config.c</itemPath>
+        <itemPath>../../../microchip/tcpip/wifi/wf_console_iw_priv.c</itemPath>
+        <itemPath>../../../microchip/tcpip/wifi/wf_console_msg_handler.c</itemPath>
+        <itemPath>../../../microchip/tcpip/wifi/wf_console_msgs.c</itemPath>
+        <itemPath>../../../microchip/tcpip/wifi/wf_data_txrx.c</itemPath>
+        <itemPath>../../../microchip/tcpip/wifi/wf_driver_com.c</itemPath>
+        <itemPath>../../../microchip/tcpip/wifi/wf_driver_raw.c</itemPath>
+        <itemPath>../../../microchip/tcpip/wifi/wf_easy_config.c</itemPath>
+        <itemPath>../../../microchip/tcpip/wifi/wf_eint.c</itemPath>
+        <itemPath>../../../microchip/tcpip/wifi/wf_event_handler.c</itemPath>
+        <itemPath>../../../microchip/tcpip/wifi/wf_init.c</itemPath>
+        <itemPath>../../../microchip/tcpip/wifi/wf_mac.c</itemPath>
+        <itemPath>../../../microchip/tcpip/wifi/wf_mgmt_msg.c</itemPath>
+        <itemPath>../../../microchip/tcpip/wifi/wf_param_msg.c</itemPath>
+        <itemPath>../../../microchip/tcpip/wifi/wf_power_save.c</itemPath>
+        <itemPath>../../../microchip/tcpip/wifi/wf_scan.c</itemPath>
+        <itemPath>../../../microchip/tcpip/wifi/wf_spi.c</itemPath>
+        <itemPath>../../../microchip/tcpip/wifi/mrf24w_events.c</itemPath>
+        <itemPath>../../../microchip/tcpip/wifi/mrf24w_mac_pic32.c</itemPath>
+      </logicalFolder>
+      <itemPath>../custom_ssl_cert.c</itemPath>
+      <itemPath>../custom_http_app.c</itemPath>
+      <itemPath>../custom_snmp_app.c</itemPath>
+      <itemPath>../main_demo.c</itemPath>
+      <itemPath>../wf_config.c</itemPath>
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false">
+      <itemPath>Makefile</itemPath>
+    </logicalFolder>
+  </logicalFolder>
+  <sourceRootList>
+    <Elem>../</Elem>
+  </sourceRootList>
+  <projectmakefile>Makefile</projectmakefile>
+  <confs>
+    <conf name="default" type="2">
+      <toolsSet>
+        <developmentServer>localhost</developmentServer>
+        <targetDevice>PIC24FJ256GB110</targetDevice>
+        <targetHeader></targetHeader>
+        <platformTool>ICD3PlatformTool</platformTool>
+        <languageToolchain>C30</languageToolchain>
+        <languageToolchainVersion>3_31</languageToolchainVersion>
+        <platform>3</platform>
+      </toolsSet>
+      <compileType>
+        <linkerTool>
+          <linkerLibItems>
+          </linkerLibItems>
+        </linkerTool>
+      </compileType>
+      <makeCustomizationType>
+        <makeCustomizationPreStepEnabled>true</makeCustomizationPreStepEnabled>
+        <makeCustomizationPreStep></makeCustomizationPreStep>
+        <makeCustomizationPostStepEnabled>true</makeCustomizationPostStepEnabled>
+        <makeCustomizationPostStep></makeCustomizationPostStep>
+        <makeCustomizationAlternativeFileToLoadEnabled>false</makeCustomizationAlternativeFileToLoadEnabled>
+        <makeCustomizationAlternativeFileToLoad></makeCustomizationAlternativeFileToLoad>
+        <makeCustomizationPutChecksumInUserID>false</makeCustomizationPutChecksumInUserID>
+      </makeCustomizationType>
+      <item path="../../../microchip/system/system_services.c"
+            ex="false"
+            overriding="true">
+        <C30>
+          <property key="code-model" value="large-code"/>
+          <property key="const-model" value="const-in-data"/>
+          <property key="data-model" value="large-data"/>
+          <property key="enable-all-warnings" value="true"/>
+          <property key="enable-ansi-std" value="false"/>
+          <property key="enable-ansi-warnings" value="false"/>
+          <property key="enable-fatal-warnings" value="false"/>
+          <property key="enable-large-arrays" value="false"/>
+          <property key="enable-omit-frame-pointer" value="false"/>
+          <property key="enable-procedural-abstraction" value="false"/>
+          <property key="enable-short-double" value="false"/>
+          <property key="enable-symbols" value="true"/>
+          <property key="enable-unroll-loops" value="false"/>
+          <property key="extra-include-directories"
+                    value="../configs/c30_expl16/bsp_profile/enc624;../configs/c30_expl16/tcpip_profile;..;../../../microchip/include;../../../microchip/tcpip;../../../microchip/include/tcpip;../../../microchip/tcpip/wifi;../../../microchip/include/common;"/>
+          <property key="isolate-each-function" value="false"/>
+          <property key="optimization-level" value="s"/>
+          <property key="post-instruction-scheduling" value="default"/>
+          <property key="pre-instruction-scheduling" value="default"/>
+          <property key="preprocessor-macros" value="C30_EX16_ENC624"/>
+          <property key="scalar-model" value="default"/>
+        </C30>
+        <C30-AS>
+          <property key="assembler-symbols" value=""/>
+          <property key="expand-macros" value="false"/>
+          <property key="extra-include-directories-for-assembler" value="..;"/>
+          <property key="extra-include-directories-for-preprocessor"
+                    value="../configs/c30_expl16/bsp_profile/enc624;../configs/c30_expl16/tcpip_profile;..;../../../microchip/include;../../../microchip/tcpip;../../../microchip/include/tcpip;../../../microchip/tcpip/wifi;../../../microchip/include/common;"/>
+          <property key="false-conditionals" value="false"/>
+          <property key="keep-locals" value="false"/>
+          <property key="list-assembly" value="false"/>
+          <property key="list-file" value=""/>
+          <property key="list-section-info" value="false"/>
+          <property key="list-source" value="false"/>
+          <property key="list-symbols" value="false"/>
+          <property key="omit-debug-dirs" value="false"/>
+          <property key="omit-forms" value="false"/>
+          <property key="preprocessor-macros" value=""/>
+          <property key="relax" value="false"/>
+          <property key="warning-level" value="emit-warnings"/>
+          <appendMe value="-g "/>
+        </C30-AS>
+        <C30-LD>
+          <property key="boot-eeprom" value="no_eeprom"/>
+          <property key="boot-flash" value="no_flash"/>
+          <property key="boot-ram" value="no_ram"/>
+          <property key="boot-write-protect" value="no_write_protect"/>
+          <property key="enable-check-sections" value="false"/>
+          <property key="enable-data-init" value="true"/>
+          <property key="enable-default-isr" value="true"/>
+          <property key="enable-handles" value="true"/>
+          <property key="enable-pack-data" value="true"/>
+          <property key="extra-lib-directories" value="..;"/>
+          <property key="general-code-protect" value="no_code_protect"/>
+          <property key="general-write-protect" value="no_write_protect"/>
+          <property key="generate-cross-reference-file" value="false"/>
+          <property key="heap-size" value=""/>
+          <property key="input-libraries" value=""/>
+          <property key="linker-symbols" value=""/>
+          <property key="map-file"
+                    value="&quot;${DISTDIR}/tcpip_c30_e16_enc624_web_server_demo_app.X.${IMAGE_TYPE}.map&quot;"/>
+          <property key="preprocessor-macros" value=""/>
+          <property key="remove-unused-sections" value="false"/>
+          <property key="report-memory-usage" value="true"/>
+          <property key="secure-eeprom" value="no_eeprom"/>
+          <property key="secure-flash" value="no_flash"/>
+          <property key="secure-ram" value="no_ram"/>
+          <property key="secure-write-protect" value="no_write_protect"/>
+          <property key="stack-size" value=""/>
+          <property key="symbol-stripping" value=""/>
+          <property key="trace-symbols" value=""/>
+          <property key="warn-section-align" value="false"/>
+        </C30-LD>
+        <C30Global>
+          <property key="fast-math" value="false"/>
+          <property key="legacy-libc" value="false"/>
+          <property key="output-file-format" value="elf"/>
+        </C30Global>
+      </item>
+      <item path="../../../microchip/tcpip/tcpip_mac_object.c"
+            ex="false"
+            overriding="true">
+        <C30>
+          <property key="code-model" value="large-code"/>
+          <property key="const-model" value="const-in-data"/>
+          <property key="data-model" value="large-data"/>
+          <property key="enable-all-warnings" value="true"/>
+          <property key="enable-ansi-std" value="false"/>
+          <property key="enable-ansi-warnings" value="false"/>
+          <property key="enable-fatal-warnings" value="false"/>
+          <property key="enable-large-arrays" value="false"/>
+          <property key="enable-omit-frame-pointer" value="false"/>
+          <property key="enable-procedural-abstraction" value="false"/>
+          <property key="enable-short-double" value="false"/>
+          <property key="enable-symbols" value="true"/>
+          <property key="enable-unroll-loops" value="false"/>
+          <property key="extra-include-directories"
+                    value="../configs/c30_expl16/bsp_profile/enc624;../configs/c30_expl16/tcpip_profile;..;../../../microchip/include;../../../microchip/tcpip;../../../microchip/include/tcpip;../../../microchip/tcpip/wifi;../../../microchip/include/common;"/>
+          <property key="isolate-each-function" value="false"/>
+          <property key="optimization-level" value="s"/>
+          <property key="post-instruction-scheduling" value="default"/>
+          <property key="pre-instruction-scheduling" value="default"/>
+          <property key="preprocessor-macros" value="C30_EX16_ENC624"/>
+          <property key="scalar-model" value="default"/>
+        </C30>
+        <C30-AS>
+          <property key="assembler-symbols" value=""/>
+          <property key="expand-macros" value="false"/>
+          <property key="extra-include-directories-for-assembler" value="..;"/>
+          <property key="extra-include-directories-for-preprocessor"
+                    value="../configs/c30_expl16/bsp_profile/enc624;../configs/c30_expl16/tcpip_profile;..;../../../microchip/include;../../../microchip/tcpip;../../../microchip/include/tcpip;../../../microchip/tcpip/wifi;../../../microchip/include/common;"/>
+          <property key="false-conditionals" value="false"/>
+          <property key="keep-locals" value="false"/>
+          <property key="list-assembly" value="false"/>
+          <property key="list-file" value=""/>
+          <property key="list-section-info" value="false"/>
+          <property key="list-source" value="false"/>
+          <property key="list-symbols" value="false"/>
+          <property key="omit-debug-dirs" value="false"/>
+          <property key="omit-forms" value="false"/>
+          <property key="preprocessor-macros" value=""/>
+          <property key="relax" value="false"/>
+          <property key="warning-level" value="emit-warnings"/>
+          <appendMe value="-g "/>
+        </C30-AS>
+        <C30-LD>
+          <property key="boot-eeprom" value="no_eeprom"/>
+          <property key="boot-flash" value="no_flash"/>
+          <property key="boot-ram" value="no_ram"/>
+          <property key="boot-write-protect" value="no_write_protect"/>
+          <property key="enable-check-sections" value="false"/>
+          <property key="enable-data-init" value="true"/>
+          <property key="enable-default-isr" value="true"/>
+          <property key="enable-handles" value="true"/>
+          <property key="enable-pack-data" value="true"/>
+          <property key="extra-lib-directories" value="..;"/>
+          <property key="general-code-protect" value="no_code_protect"/>
+          <property key="general-write-protect" value="no_write_protect"/>
+          <property key="generate-cross-reference-file" value="false"/>
+          <property key="heap-size" value=""/>
+          <property key="input-libraries" value=""/>
+          <property key="linker-symbols" value=""/>
+          <property key="map-file"
+                    value="&quot;${DISTDIR}/tcpip_c30_e16_enc624_web_server_demo_app.X.${IMAGE_TYPE}.map&quot;"/>
+          <property key="preprocessor-macros" value=""/>
+          <property key="remove-unused-sections" value="false"/>
+          <property key="report-memory-usage" value="true"/>
+          <property key="secure-eeprom" value="no_eeprom"/>
+          <property key="secure-flash" value="no_flash"/>
+          <property key="secure-ram" value="no_ram"/>
+          <property key="secure-write-protect" value="no_write_protect"/>
+          <property key="stack-size" value=""/>
+          <property key="symbol-stripping" value=""/>
+          <property key="trace-symbols" value=""/>
+          <property key="warn-section-align" value="false"/>
+        </C30-LD>
+        <C30Global>
+          <property key="fast-math" value="false"/>
+          <property key="legacy-libc" value="false"/>
+          <property key="output-file-format" value="elf"/>
+        </C30Global>
+      </item>
+      <C30>
+        <property key="code-model" value="large-code"/>
+        <property key="const-model" value="const-in-data"/>
+        <property key="data-model" value="large-data"/>
+        <property key="enable-all-warnings" value="true"/>
+        <property key="enable-ansi-std" value="false"/>
+        <property key="enable-ansi-warnings" value="false"/>
+        <property key="enable-fatal-warnings" value="false"/>
+        <property key="enable-large-arrays" value="false"/>
+        <property key="enable-omit-frame-pointer" value="false"/>
+        <property key="enable-procedural-abstraction" value="false"/>
+        <property key="enable-short-double" value="false"/>
+        <property key="enable-symbols" value="true"/>
+        <property key="enable-unroll-loops" value="false"/>
+        <property key="extra-include-directories"
+                  value="../configs/c30_expl16/bsp_profile/enc624;../configs/c30_expl16/tcpip_profile;..;../../../microchip/include;../../../microchip/tcpip;../../../microchip/include/tcpip;../../../microchip/tcpip/wifi;../../../microchip/include/common;"/>
+        <property key="isolate-each-function" value="false"/>
+        <property key="optimization-level" value="s"/>
+        <property key="post-instruction-scheduling" value="default"/>
+        <property key="pre-instruction-scheduling" value="default"/>
+        <property key="preprocessor-macros" value="C30_EX16_ENC624;__LANGUAGE_C__"/>
+        <property key="scalar-model" value="default"/>
+      </C30>
+      <C30-AS>
+        <property key="assembler-symbols" value=""/>
+        <property key="expand-macros" value="false"/>
+        <property key="extra-include-directories-for-assembler" value="..;"/>
+        <property key="extra-include-directories-for-preprocessor"
+                  value="../configs/c30_expl16/bsp_profile/enc624;../configs/c30_expl16/tcpip_profile;..;../../../microchip/include;../../../microchip/tcpip;../../../microchip/include/tcpip;../../../microchip/tcpip/wifi;../../../microchip/include/common;"/>
+        <property key="false-conditionals" value="false"/>
+        <property key="keep-locals" value="false"/>
+        <property key="list-assembly" value="false"/>
+        <property key="list-file" value=""/>
+        <property key="list-section-info" value="false"/>
+        <property key="list-source" value="false"/>
+        <property key="list-symbols" value="false"/>
+        <property key="omit-debug-dirs" value="false"/>
+        <property key="omit-forms" value="false"/>
+        <property key="preprocessor-macros" value="C30_EX16_ENC624;__LANGUAGE_C__"/>
+        <property key="relax" value="false"/>
+        <property key="warning-level" value="emit-warnings"/>
+        <appendMe value="-g "/>
+      </C30-AS>
+      <C30-LD>
+        <property key="boot-eeprom" value="no_eeprom"/>
+        <property key="boot-flash" value="no_flash"/>
+        <property key="boot-ram" value="no_ram"/>
+        <property key="boot-write-protect" value="no_write_protect"/>
+        <property key="enable-check-sections" value="false"/>
+        <property key="enable-data-init" value="true"/>
+        <property key="enable-default-isr" value="true"/>
+        <property key="enable-handles" value="true"/>
+        <property key="enable-pack-data" value="true"/>
+        <property key="extra-lib-directories" value="..;"/>
+        <property key="general-code-protect" value="no_code_protect"/>
+        <property key="general-write-protect" value="no_write_protect"/>
+        <property key="generate-cross-reference-file" value="false"/>
+        <property key="heap-size" value="8500"/>
+        <property key="input-libraries" value=""/>
+        <property key="linker-symbols" value=""/>
+        <property key="map-file"
+                  value="&quot;${DISTDIR}/tcpip_c30_e16_enc624_web_server_demo_app.X.${IMAGE_TYPE}.map&quot;"/>
+        <property key="preprocessor-macros" value=""/>
+        <property key="remove-unused-sections" value="false"/>
+        <property key="report-memory-usage" value="true"/>
+        <property key="secure-eeprom" value="no_eeprom"/>
+        <property key="secure-flash" value="no_flash"/>
+        <property key="secure-ram" value="no_ram"/>
+        <property key="secure-write-protect" value="no_write_protect"/>
+        <property key="stack-size" value="500"/>
+        <property key="symbol-stripping" value=""/>
+        <property key="trace-symbols" value=""/>
+        <property key="warn-section-align" value="false"/>
+      </C30-LD>
+      <C30Global>
+        <property key="fast-math" value="false"/>
+        <property key="legacy-libc" value="false"/>
+        <property key="output-file-format" value="elf"/>
+      </C30Global>
+      <ICD3PlatformTool>
+        <property key="tracecontrol.disablemacros" value="true"/>
+        <property key="tracecontrol.medium" value="0"/>
+        <property key="tracecontrol.select" value="0"/>
+      </ICD3PlatformTool>
+    </conf>
+  </confs>
+</configurationDescriptor>
