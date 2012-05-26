@@ -64,7 +64,9 @@ int main(void)
   
   SysTickTimer_Init(); // Initialize the timer for millis()
 
-  app_main ();
+  serial_writestr("Start\r\nOK\r\n");
+
+//  app_main ();
 
   /* should never get here */
   while(1) ;

@@ -134,21 +134,15 @@ TARGET = project
 # application dir and source
 APPDIR = RepRap/Mendel
 APPSRC = \
-	$(APPDIR)/gcode_parse.c \
-	$(APPDIR)/gcode_process.c \
-	$(APPDIR)/mendel.c \
-	$(APPDIR)/temp.c \
-	$(APPDIR)/config.c \
-	$(APPDIR)/endstops.c \
-	$(APPDIR)/geometry.c \
-	app/grbl/planner.c \
-	app/grbl/stepper.c
-
-#	app/grbl/print.c \
-#	app/grbl/eeprom.c \
-#	app/grbl/settings.c \
-# $(APPDIR)/dda_queue.c \
-#	$(APPDIR)/dda.c \
+#	$(APPDIR)/gcode_parse.c \
+#	$(APPDIR)/gcode_process.c \
+#	$(APPDIR)/mendel.c \
+#	$(APPDIR)/temp.c \
+#	$(APPDIR)/config.c \
+#	$(APPDIR)/endstops.c \
+#	$(APPDIR)/geometry.c \
+#	app/grbl/planner.c \
+#	app/grbl/stepper.c
 
 
 #APPDIR = sample
@@ -170,9 +164,6 @@ SRC = \
 	$(wildcard $(APPLIBDIR)/LPCUSB/src/*.c) \
 	$(APPLIBDIR)/CMSISv1p30_LPC17xx/src/system_LPC17xx.c \
 	$(wildcard $(APPLIBDIR)/NXP/Drivers/source/lpc17xx_*.c) \
-	$(APPLIBDIR)/FatFs/src/ff.c \
-	$(APPLIBDIR)/FatFs/src/diskio.c \
-	$(APPLIBDIR)/FatFs/src/fattime.c \
 	$(APPLIBDIR)/R2C2/ios.c \
 	$(APPLIBDIR)/R2C2/usb.c \
 	$(APPLIBDIR)/R2C2/serial_fifo.c \

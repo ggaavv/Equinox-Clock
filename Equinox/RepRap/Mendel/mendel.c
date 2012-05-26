@@ -160,11 +160,6 @@ int app_main (void)
   long timer1 = 0;
   eParseResult parse_result;
 
-  buzzer_init();
-  buzzer_play(1500, 100); /* low beep */
-	buzzer_wait();
-  buzzer_play(2500, 200); /* high beep */
-
   init();
 
   read_config();
