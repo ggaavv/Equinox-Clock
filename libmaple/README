@@ -1,0 +1,80 @@
+
+                   _ _ _                           _      
+                  | (_) |__  _ __ ___   __ _ _ __ | | ___ 
+                  | | | '_ \| '_ ` _ \ / _` | '_ \| |/ _ \
+                  | | | |_) | | | | | | (_| | |_) | |  __/
+                  |_|_|_.__/|_| |_| |_|\__,_| .__/|_|\___|
+                                            |_|               by leaflabs!
+
+
+
+The latest version of this repository can be found at:
+http://github.com/leaflabs/libmaple
+
+libmaple Repo Layout
+------------------------------------------------------------------------------
+/LICENSE
+    Licensing and copyright information
+
+/main.cpp.example
+    main.cpp is required for a successful build but is non-existant by default;
+    use this file as a template for building your program. By default just 
+    blinks an LED.
+
+/build/
+    Binary output
+
+/libmaple/
+    Lowest level definitions, routines, macros, and functions. This is the meat
+    of the library.
+
+/wirish/
+    Extra wrappers and functionality around the lower level code which is 
+    useful for programming in the IDE. Files in here implement the "Wirish"
+    language, an Arduino "Wiring"-like language.
+
+/examples/
+    What it sounds like. Copy these to /main.cpp to compile them.
+    
+/support/ld/
+    Linker scripts
+
+/support/notes/
+    Unstructured text notes that may be useful. The 45-maple.rules udev file
+    can be placed in /etc/udev/rules.d/ on compatible linux machines to allow
+    non-root access to the Maple USB device for uploading.
+
+Instructions to Compile for ARM Targets
+------------------------------------------------------------------------------
+The best HOWTO for developing with this code is the "libmaple Unix Toolchain
+Quickstart" guide at http://leaflabs.com/docs/libmaple/unix-toolchain/.
+
+The Codesourcery g++ compiler for arm platforms is required. It is based on gcc
+(they push changes into gcc a couple times a year), get the latest EABI version
+from:
+
+    http://www.codesourcery.com/sgpp/lite/arm
+
+Note: grab the linux binaries for targeting the EABI platform (not to be 
+confused with the linux binaries /tageting/ the linux platform).
+
+I unzip the archive ("TAR") version into a directory such as 
+~/bin/arm-gcc-codesourcery and then add the bin/ directory within that to my
+$PATH in ~/.profile, resource that, then check that arm-none-eabi-gcc and
+others are in my path.
+
+You will also need to have dfu-util installed and on your path (on Linux) or
+compiled and placed in a folder "dfu-util/" at the same level as the
+maple-library folder (macosx and windows).
+
+Write your program using /main.cpp as the entry point. Then just 'make help'
+and follow the directions!
+
+Instructions to create a library
+------------------------------------------------------------------------------
+If you have a complicated project with its own Makefile and multiple .c files,
+or you're using an IDE that creates its own Makefile, you'll probably want to
+load libmaple from an archive (a build-time library, not a DLL). Use the
+"make library" target, and install build/libmaple.a and the appropriate headers
+in your project's directory. At a minimum, the header set will include
+libmaple.h, util.h, and libmaple_types.h
