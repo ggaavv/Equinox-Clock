@@ -120,12 +120,6 @@ void io_init(void)
   adc_init();
 }
 
-void temperatureTimerCallback (tTimer *pTimer)
-{
-  /* Manage the temperatures */
-  temp_tick();
-}
-
 void check_boot_request (void)
 {
   if (digital_read (4, (1<<29)) == 0)
@@ -141,16 +135,6 @@ void init(void)
   // set up inputs and outputs
   io_init();
 
-  /* Initialize Gcode parse variables */
-  gcode_parse_init();
-
-  // set up default feedrate
-//TODO  current_position.F = startpoint.F = next_target.target.F =       config.search_feedrate_z;
-
-  AddSlowTimer (&temperatureTimer);
-  StartSlowTimer (&temperatureTimer, 10, temperatureTimerCallback);
-  temperatureTimer.AutoReload = 1;
-
   // say hi to host
   serial_writestr("Start\r\nOK\r\n");
 }
@@ -161,12 +145,6 @@ int app_main (void)
   eParseResult parse_result;
 
   init();
-
-  read_config();
-
-  // grbl init
-  plan_init();      
-  st_init();    
   
   // main loop
   for (;;)
@@ -187,46 +165,6 @@ int app_main (void)
         else
           serial_line_buf.len = 0;
       }      
-    }
-
-    // process SD file if no serial command pending
-    if (!sd_line_buf.seen_lf && sd_printing)
-    {
-      if (sd_read_file (&sd_line_buf))
-      {
-          sd_line_buf.seen_lf = 1;
-      } 
-      else
-      {
-        sd_printing = false;
-        serial_writestr ("Done printing file\r\n");
-      }
-    }
-
-    // if queue is full, we wait
-    if (!plan_queue_full())
-    {
-  
-      /* At end of each line, put the "GCode" on movebuffer.
-       * If there are movement to do, Timer will start and execute code which
-       * will take data from movebuffer and generate the required step pulses
-       * for stepper motors.
-       */
-  
-      // give priority to user commands
-      if (serial_line_buf.seen_lf)
-      {
-        parse_result = gcode_parse_line (&serial_line_buf);
-        serial_line_buf.len = 0;
-        serial_line_buf.seen_lf = 0;
-      }
-      else if (sd_line_buf.seen_lf)
-      {
-        parse_result = gcode_parse_line (&sd_line_buf);
-        sd_line_buf.len = 0;
-        sd_line_buf.seen_lf = 0;
-      }
-
     }
 
     /* Do every 100ms */
