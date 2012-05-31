@@ -39,6 +39,9 @@ Description:	Driver for the ZeroG Wireless G2100 series devices
 #include "g2100.h"
 #include "global-conf.h"
 
+#include "pinout.h"
+#include "lpc17xx_ssp.h"
+
 #include "libmaple.h"
 #include "spi.h"
 #include "gpio.h"
@@ -69,34 +72,22 @@ static volatile U16 zg_buf_len;
 static U8 wpa_psk_key[32];
 
 /* D10  */
-#define CS_PORT                         GPIOA_BASE
-#define CS_PIN                          4
+//#define CS_PORT                         GPIOA_BASE
+//#define CS_PIN                          4
 
 /* D9  */
-#define LED_PORT                        GPIOB_BASE
-#define LED_PIN                         7
-#define LEDConn_on()                    gpio_write_bit(LED_PORT, LED_PIN, 1);
-#define LEDConn_off()                   gpio_write_bit(LED_PORT, LED_PIN, 0);
+//#define LED_PORT                        GPIOB_BASE
+//#define LED_PIN                         7
+//#define LEDConn_on()                    gpio_write_bit(LED_PORT, LED_PIN, 1);
+//#define LEDConn_off()                   gpio_write_bit(LED_PORT, LED_PIN, 0);
 
 /* D4  */
-#define DEBUG_PORT                      GPIOB_BASE
-#define DEBUG_PIN                       5
+//#define DEBUG_PORT                      GPIOB_BASE
+//#define DEBUG_PIN                       5
 
 
 void zg_init()
 {
-   gpio_set_mode(CS_PORT, CS_PIN, GPIO_MODE_OUTPUT_PP);
-   gpio_write_bit(CS_PORT, CS_PIN, 1);
-
-   gpio_set_mode(LED_PORT, LED_PIN, GPIO_MODE_OUTPUT_PP);
-   gpio_write_bit(LED_PORT, LED_PIN, 0);
-
-//   gpio_set_mode(DEBUG_PORT, DEBUG_PIN, GPIO_MODE_OUTPUT_PP);
-//   gpio_write_bit(DEBUG_PORT, DEBUG_PIN, 0);
-
-   /* initialize the spi  */
-   spi_init(1, SPI_PRESCALE_4, SPI_MSBFIRST, 0);
-
    intr_occured = 0;
    intr_valid = 0;
    zg_drv_state = DRV_STATE_INIT;
@@ -116,18 +107,39 @@ void zg_init()
    security_passphrase_len = (U8)strlen(security_passphrase);
 }
 
-void spi_transfer(volatile U8* buf, U16 len, U8 toggle_cs)
+void spi_transmit(volatile U8* buf, U16 len, U8 toggle_cs)
 {
    U16 i;
 
-   gpio_write_bit(CS_PORT, CS_PIN, 0);
+   digital_write(WF_CS_PORT, WF_CS_PIN, 0);
 
    for (i = 0; i < len; i++) {
-      buf[i] = spi_tx_byte(1, buf[i]);
+//      buf[i] = spi_tx_byte(1, buf[i]);
+	   while(!SSP_GetStatus(LPC_SSP1, SSP_STAT_TXFIFO_NOTFULL));
+	   buf[i] = SSP_SendData(LPC_SSP1, buf[i]);
    }
 
    if (toggle_cs) {
-      gpio_write_bit(CS_PORT, CS_PIN, 1);
+	   digital_write(WF_CS_PORT, WF_CS_PIN, 1);
+   }
+
+   return;
+}
+
+void spi_receive(volatile U8* buf, U16 len, U8 toggle_cs)
+{
+   U16 i;
+
+   digital_write(WF_CS_PORT, WF_CS_PIN, 0);
+
+   for (i = 0; i < len; i++) {
+//      buf[i] = spi_tx_byte(1, buf[i]);
+	   while(!SSP_GetStatus(LPC_SSP1, SSP_STAT_RXFIFO_NOTEMPTY));
+	   buf[i] = SSP_SendData(LPC_SSP1, buf[i]);
+   }
+
+   if (toggle_cs) {
+	   digital_write(WF_CS_PORT, WF_CS_PIN, 1);
    }
 
    return;
@@ -209,7 +221,8 @@ void zg_interrupt_reg(U8 mask, U8 state)
    return;
 }
 
-void zg_isr()
+//void zg_isr()
+extern "C" void EINT0_IRQHandler (void){
 {
    intr_occured = 1;
 //   gpio_write_bit(DEBUG_PORT, DEBUG_PIN, 1);
@@ -272,10 +285,10 @@ void zg_process_isr()
          U16 rx_byte_cnt = (0x0000 | (hdr[1] << 8) | hdr[2]) & 0x0fff;
 
          // Check if our buffer is large enough for packet
-            if(rx_byte_cnt + 1 < (U16)UIP_BUFSIZE ) {
+         if(rx_byte_cnt + 1 < (U16)UIP_BUFSIZE ) {
             zg_buf[0] = ZG_CMD_RD_FIFO;
             // Copy ZG2100 buffer contents into zg_buf (uip_buf)
-            spi_transfer(zg_buf, rx_byte_cnt + 1, 1);
+            spi_receive(zg_buf, rx_byte_cnt + 1, 1);
             // interrupt from zg2100 was meaningful and requires further processing
             intr_valid = 1;
          }

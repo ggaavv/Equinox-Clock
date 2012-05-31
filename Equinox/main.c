@@ -27,8 +27,14 @@
   POSSIBILITY OF SUCH DAMAGE.
 */
 
+<<<<<<< HEAD
 #include "debug_frmwrk.h"
 #include "r2c2.h"
+=======
+#include "clock.h"
+#include "wifi.h"
+//#include "r2c2.h"
+>>>>>>> branch 'master' of https://jam0x1@github.com/ggaavv/Equinox-Clock.git
 #include "pinout.h"
 #include "ext_interrupts.h"
 #include "g2100.h"
@@ -44,8 +50,8 @@ void startup_delay(void){
 	for (volatile unsigned long i = 0; i < 5000; i++) { ; }
 }
 
-void WiFi_init(){
 
+<<<<<<< HEAD
 	pin_mode(WF_CS_PORT, WF_CS_PIN, OUTPUT);
 	digital_write(WF_CS_PORT, WF_CS_PIN, HIGH);
 
@@ -177,6 +183,8 @@ prog_uchar wep_keys[] PROGMEM = {	0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08
 unsigned char wireless_mode = WIRELESS_MODE_INFRA;
 unsigned char ssid_len;
 unsigned char security_passphrase_len;
+=======
+>>>>>>> branch 'master' of https://jam0x1@github.com/ggaavv/Equinox-Clock.git
 
 /*********************************************************************//**
  * @brief	Main sub-routine

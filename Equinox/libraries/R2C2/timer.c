@@ -32,7 +32,7 @@
 #include "lpc17xx_gpio.h"
 #include "lpc_types.h"
 #include "ios.h"
-#include "sdcard.h"
+//#include "sdcard.h"
 #include "timer.h"
 
 

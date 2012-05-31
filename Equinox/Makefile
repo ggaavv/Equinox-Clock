@@ -172,10 +172,8 @@ SRC = \
 	$(APPLIBDIR)/R2C2/sersendf.c \
 	$(APPLIBDIR)/R2C2/timer.c \
 	$(APPLIBDIR)/R2C2/adc.c \
-	$(APPLIBDIR)/R2C2/spi.c \
-	$(APPLIBDIR)/R2C2/sdcard.c \
-	$(APPLIBDIR)/R2C2/buzzer.c \
 	$(APPLIBDIR)/R2C2/uart.c \
+	$(APPLIBDIR)/WiShield/*.c \
 	$(APPSRC) \
 	main.c
 	
