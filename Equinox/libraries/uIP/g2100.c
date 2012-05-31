@@ -72,18 +72,18 @@ static volatile U16 zg_buf_len;
 static U8 wpa_psk_key[32];
 
 /* D10  */
-#define CS_PORT                         GPIOA_BASE
-#define CS_PIN                          4
+//#define CS_PORT                         GPIOA_BASE
+//#define CS_PIN                          4
 
 /* D9  */
-#define LED_PORT                        GPIOB_BASE
-#define LED_PIN                         7
-#define LEDConn_on()                    gpio_write_bit(LED_PORT, LED_PIN, 1);
-#define LEDConn_off()                   gpio_write_bit(LED_PORT, LED_PIN, 0);
+//#define LED_PORT                        GPIOB_BASE
+//#define LED_PIN                         7
+//#define LEDConn_on()                    gpio_write_bit(LED_PORT, LED_PIN, 1);
+//#define LEDConn_off()                   gpio_write_bit(LED_PORT, LED_PIN, 0);
 
 /* D4  */
-#define DEBUG_PORT                      GPIOB_BASE
-#define DEBUG_PIN                       5
+//#define DEBUG_PORT                      GPIOB_BASE
+//#define DEBUG_PIN                       5
 
 
 void zg_init()
