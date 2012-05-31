@@ -155,7 +155,7 @@ INCLUDES = $(APPLIBDIR)/CMSISv1p30_LPC17xx/inc \
 	 $(APPLIBDIR)/NXP/Drivers/include \
 	 $(APPLIBDIR)/FatFs/src \
 	 $(APPLIBDIR)/R2C2/ \
-	 app/grbl/ \
+	 $(APPLIBDIR)/WiShield/ \
 	 $(APPDIR)
 
 # List C source files here. (C dependencies are automatically generated.)

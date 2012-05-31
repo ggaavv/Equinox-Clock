@@ -31,7 +31,6 @@
 #include "wifi.h"
 //#include "r2c2.h"
 #include "pinout.h"
-#include "ext_interrupts.h"
 #include "g2100.h"
 	void stack_init(void);
 	void stack_process(void);
