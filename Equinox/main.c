@@ -27,6 +27,7 @@
   POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include "debug_frmwrk.h"
 #include "r2c2.h"
 #include "pinout.h"
 #include "ext_interrupts.h"
@@ -139,6 +140,15 @@ unsigned char security_passphrase_len;
  **********************************************************************/
 int main(void){
 
+	long timer1, steptimeout, discard;
+
+	//Debug functions output to com1/8n1/115200
+	//does this need to be first??
+	//TODO
+	debug_frmwrk_init();
+	_DBG_("[OK]-debug_frmwrk_init()");//_DBG(__LINE__);_DBG(__FILE__);
+	//discard=_DBG_("**press any key**");_DG();//wait for key press @ debug port.
+
 	// DeInit NVIC and SCBNVIC
 	NVIC_DeInit();
 	NVIC_SCBDeInit();
@@ -156,14 +166,16 @@ int main(void){
 
 	// Initialize USB<->Serial
 	serial_init();
+	_DBG_("[OK]-serial_init()");//_DBG(__LINE__);_DBG(__FILE__);
+	serial_writestr("Start\r\nOK\r\n");
   
 	SysTickTimer_Init(); // Initialize the timer for millis()
 
 	// wifi init
 	WiFi_init();
+	_DBG("[OK]-WiFi_init()");//_DBG(__LINE__);_DBG(__FILE__);
 
 
-	serial_writestr("Start\r\nOK\r\n");
 
 	// main loop
 	for (;;){
