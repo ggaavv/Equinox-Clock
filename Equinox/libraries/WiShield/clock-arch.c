@@ -38,7 +38,8 @@
 #include <stdio.h>
 
 #include "clock-arch.h"
-#include "wirish.h"
+//#include "wirish.h"
+#include "timer.h"
 
 //Return time
 clock_time_t clock_time()

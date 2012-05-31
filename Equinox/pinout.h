@@ -32,7 +32,7 @@
 #define _PINOUT_H
 
 #include "ios.h"
-#include "machine.h"
+//#include "machine.h"
 
 /*
         Pin Definitions
