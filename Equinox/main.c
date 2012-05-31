@@ -99,7 +99,50 @@ void WiFi_init(){
 	stack_init();
 }
 
+void LED_init(){
 
+	pin_mode(LED_CS_PORT, LED_CS_PIN, OUTPUT);
+	digital_write(LED_CS_PORT, LED_CS_PIN, HIGH);
+
+	pin_mode(LED_LE_PORT, LED_LE_PIN, OUTPUT);
+	digital_write(LED_LE_PORT, LED_LE_PIN, HIGH);
+
+	pin_mode(WF_HIBERNATE_PORT, WF_HIBERNATE_PIN, INPUT);
+	digital_write(WF_HIBERNATE_PORT, WF_HIBERNATE_PIN, HIGH);
+
+	// Initialize SPI pin connect
+	PINSEL_CFG_Type PinCfg;
+	SSP_CFG_Type SSP_ConfigStruct;
+	/* SCK1 */
+	PinCfg.Funcnum   = PINSEL_FUNC_2;
+	PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
+	PinCfg.Pinmode   = PINSEL_PINMODE_PULLDOWN;
+	PinCfg.Pinnum    = LED_SCK_PIN;
+	PinCfg.Portnum   = LED_SCK_PORT;
+	PINSEL_ConfigPin(&PinCfg);
+	/* MISO1 */
+	PinCfg.Pinmode   = PINSEL_PINMODE_PULLUP;
+	PinCfg.Pinnum    = LED_MISO_PIN;
+	PinCfg.Portnum   = LED_MISO_PORT;
+	PINSEL_ConfigPin(&PinCfg);
+	/* MOSI1 */
+	PinCfg.Pinnum    = LED_MOSI_PIN;
+	PinCfg.Portnum   = LED_MOSI_PORT;
+	PINSEL_ConfigPin(&PinCfg);
+
+	/* initialize SSP configuration structure */
+	SSP_ConfigStruct.CPHA = SSP_CPHA_FIRST;
+	SSP_ConfigStruct.CPOL = SSP_CPOL_HI;
+	SSP_ConfigStruct.ClockRate = 10000000; /* 10Mhz */
+	SSP_ConfigStruct.Databit = SSP_DATABIT_16;
+	SSP_ConfigStruct.Mode = SSP_MASTER_MODE;
+	SSP_ConfigStruct.FrameFormat = SSP_FRAME_SPI;
+	SSP_Init(LPC_SSP0, &SSP_ConfigStruct);
+
+	/* Enable SSP peripheral */
+	SSP_Cmd(LPC_SSP0, ENABLE);
+
+}
 
 
 // This is the webpage that is served up by the webserver
@@ -171,12 +214,17 @@ int main(void){
   
 	SysTickTimer_Init(); // Initialize the timer for millis()
 
+	//Setup SSP port for led drivers
+	//LED_init();
+	//_DBG("[OK]-LED_init()");//_DBG(__LINE__);_DBG(__FILE__);
+
 	// wifi init
 	WiFi_init();
 	_DBG("[OK]-WiFi_init()");//_DBG(__LINE__);_DBG(__FILE__);
 
 
-
+	// main loop
+	_DBG("[INFO]-WiFi_init()");//_DBG(__LINE__);_DBG(__FILE__);
 	// main loop
 	for (;;){
 		stack_process();
@@ -203,4 +251,6 @@ int main(void){
 	/* should never get here */
 	while(1) ;
 }
+
+//delay_ms(2000);
 
