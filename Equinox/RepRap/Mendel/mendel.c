@@ -31,49 +31,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#include "lpc17xx_timer.h"
-#include "lpc17xx_wdt.h"
-#include "lpc17xx_adc.h"
-#include "r2c2.h"
-
-#include "machine.h"
-#include "gcode_parse.h"
-#include "gcode_process.h"
-#include "pinout.h"
-#include "debug.h"
-#include "config.h"
-#include "temp.h"
-
-#include "planner.h"
-#include "stepper.h"
-
-
-tTimer temperatureTimer;
-
-tLineBuffer serial_line_buf;
-tLineBuffer sd_line_buf;
-
-/* Initialize ADC for reading sensors */
-void adc_init(void)
-{
-  PINSEL_CFG_Type PinCfg;
-
-  PinCfg.Funcnum = PINSEL_FUNC_2; /* ADC function */
-  PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
-  PinCfg.Pinmode = PINSEL_PINMODE_TRISTATE;
-  PinCfg.Portnum = EXTRUDER_0_SENSOR_ADC_PORT;
-  PinCfg.Pinnum = EXTRUDER_0_SENSOR_ADC_PIN;
-  PINSEL_ConfigPin(&PinCfg);
-
-  PinCfg.Funcnum = PINSEL_FUNC_2; /* ADC function */
-  PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
-  PinCfg.Pinmode = PINSEL_PINMODE_TRISTATE;
-  PinCfg.Portnum = HEATED_BED_0_ADC_PORT;
-  PinCfg.Pinnum = HEATED_BED_0_ADC_PIN;
-  PINSEL_ConfigPin(&PinCfg);
-
-  ADC_Init(LPC_ADC, 200000); /* ADC conversion rate = 200Khz */
-}
 
 void io_init(void)
 {

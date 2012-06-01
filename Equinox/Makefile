@@ -132,8 +132,8 @@ OUTDIR = $(RUN_MODE)
 TARGET = project
 
 # application dir and source
-APPDIR = RepRap/Mendel
-APPSRC = \
+# APPDIR = RepRap/Mendel
+# APPSRC = \
 #	$(APPDIR)/gcode_parse.c \
 #	$(APPDIR)/gcode_process.c \
 #	$(APPDIR)/mendel.c \

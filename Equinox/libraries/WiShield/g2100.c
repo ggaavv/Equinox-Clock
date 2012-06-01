@@ -34,7 +34,6 @@ Description:	Driver for the ZeroG Wireless G2100 series devices
  *****************************************************************************/
 
 #include <string.h>
-#include "witypes.h"
 #include "config.h"
 #include "g2100.h"
 #include "global-conf.h"

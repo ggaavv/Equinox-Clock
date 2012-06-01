@@ -185,6 +185,10 @@ typedef Bool BOOL_16;
 /** 8 bit boolean type */
 typedef Bool BOOL_8;
 
+
+#define prog_char const char
+#define prog_uchar const unsigned char
+
 /**
  * @}
  */

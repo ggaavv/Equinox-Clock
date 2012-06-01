@@ -196,24 +196,24 @@ PORTD=11111111
 
 /*** DEFINES AND GLOBAL VARIABLES ***/
 
-#include <WProgram.h>
-#include <avr/pgmspace.h>
-#include <WConstants.h>
-#include "GlobalVars.h"
-#include "equinox_rev_1.h"
+//#include <WProgram.h>
+//#include <avr/pgmspace.h>
+//#include <WConstants.h>
+//#include "GlobalVars.h"
+#include "eq_clock.h"
 //#include "time_animations.h"
 //#include "ht1632/ht1632.h"
 #include "Ansi/Ansiterm.h"
 #include "Coms/Coms.h"
-#include "Wire/Wire.h"
+//#include "Wire/Wire.h"
 #include "RTClib/RTClib.h"
-#include "Button/Button.h"
+//#include "Button/Button.h"
 //#include "WiShield_user/WiShield.h"
 //#include "WiShield_user/udpapp.h"
 //#include "WiShield_user/udpapp.c"
 #include "Sunrise/Sunrise.h"
-#include "SoftwareSerial/SoftwareSerial.h"
-#include "ShiftPWM/hsv2rgb.h"
+//#include "SoftwareSerial/SoftwareSerial.h"
+//#include "ShiftPWM/hsv2rgb.h"
 #include "pinout.h"
 #include "lpc17xx_ssp.h"
 
@@ -761,7 +761,7 @@ void colourToRGBled(signed int rgbNo, char r, char g, char b, bool add, char fad
 		fadeNo++;
 	} while (fade>0);
 }
-
+/*
 void loop() {
 	bool inverted = false;
 	char prevSecond;
@@ -772,7 +772,7 @@ void loop() {
 //	colourToRGBled(time_now.hour12()*5,RED1,RED2,RED3,false,0);
 //	colourToRGBled(time_now.minute(),GREEN1,GREEN2,GREEN3,false,0);
 //	colourToRGBled(time_now.second(),BLUE1,BLUE2,BLUE3,false,0);
-
+*/
 /* good
 		ShiftPWM.SetGroupOf3(time_now.second()-4,0,0,1);
 		ShiftPWM.SetGroupOf3(time_now.second()-3,0,0,2);
@@ -786,7 +786,7 @@ void loop() {
 
 		ShiftPWM.SetGroupOf3(time_now.hour12()*5+(time_now.minute()/12),85,0,130);
 */
-
+/*
 		ShiftPWM.SetGroupOf3(time_now.second()-0,0,0,1);
 //		ShiftPWM.SetGroupOf3(time_now.second()-3,0,0,2);
 //		ShiftPWM.SetGroupOf3(time_now.second()-2,0,0,4);
@@ -809,15 +809,15 @@ void loop() {
 //	if(inverted)
 //		ShiftPWM.InvertAll();
 
-} // end main loop
-
+} // end main loop*/
+/*
 int main(void) {
 	init();
 	setup();
 	for (;;)
 		loop();
 	return 0;
-}
+}*/
 
 extern "C" void __cxa_pure_virtual()
 {

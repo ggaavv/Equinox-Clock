@@ -1,4 +1,6 @@
 
+#include "lpc_types.h"
+
 // Web Server config
 #define WIRELESS_MODE_INFRA	1
 #define WIRELESS_MODE_ADHOC	2

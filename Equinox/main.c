@@ -28,18 +28,14 @@
 */
 
 #include "debug_frmwrk.h"
-#include "clock.h"
+#include "eq_clock.h"
 #include "wifi.h"
-//#include "r2c2.h"
-#include "pinout.h"
 #include "g2100.h"
 	void stack_init(void);
 	void stack_process(void);
 
 #define USER_FLASH_START 0x30000 /* For USB bootloader */
 //#define USER_FLASH_START 0x0 /* No USB bootloader */
-
-extern int app_main (void);
 
 void startup_delay(void){
 	for (volatile unsigned long i = 0; i < 5000; i++) { ; }
@@ -106,7 +102,7 @@ int main(void){
 			/* If there are no activity during 30 seconds, power off the machine */
 			if (steptimeout > (30 * 1000/DELAY1))
 				{
-					power_off();
+//					power_off();
 				}
 			else
 				{

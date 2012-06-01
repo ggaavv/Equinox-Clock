@@ -31,22 +31,22 @@
 #ifndef _PINOUT_H
 #define _PINOUT_H
 
-#include "ios.h"
+//#include "ios.h"
 
 /*
         LED Pins
 */
 
 #define LED_CS_PORT			0
-#define LED_CS_PIN			(1 <<  6)
+#define LED_CS_PIN			(1 << 16)
 #define LED_LE_PORT			0
-#define LED_LE_PIN			(1 <<  6)
+#define LED_LE_PIN			(1 << 19)
 #define LED_SCK_PORT     	0
-#define LED_SCK_PIN			(1 <<  7)
+#define LED_SCK_PIN			(1 << 15)
 #define LED_MISO_PORT		0
-#define LED_MISO_PIN		(1 <<  8)
+#define LED_MISO_PIN		(1 << 17)
 #define LED_MOSI_PORT		0
-#define LED_MOSI_PIN		(1 <<  9)
+#define LED_MOSI_PIN		(1 << 18)
 
 /*
         Wifi Pins
@@ -67,62 +67,7 @@
 
 #define MRF24W_SPI_CHN		1
 #define MRF24W_INT		1
-/*
-        X Stepper
-*/
-#define x_enable() digital_write(X_ENABLE_PORT, X_ENABLE_PIN, 0)
-#define x_disable() digital_write(X_ENABLE_PORT, X_ENABLE_PIN, 1)
-#define x_step() digital_write(X_STEP_PORT, X_STEP_PIN, 1)
-#define x_unstep() digital_write(X_STEP_PORT, X_STEP_PIN, 0)
-#define x_direction(dir) digital_write(X_DIR_PORT, X_DIR_PIN, dir)
-#define x_min() ((digital_read(X_MIN_PORT, X_MIN_PIN))?0:1)
-#define x_max() ((digital_read(X_MAX_PORT, X_MAX_PIN))?0:1)
 
-/*
-        Y Stepper
-*/
-#define y_enable() digital_write(Y_ENABLE_PORT, Y_ENABLE_PIN, 0)
-#define y_disable() digital_write(Y_ENABLE_PORT, Y_ENABLE_PIN, 1)
-#define y_step() digital_write(Y_STEP_PORT, Y_STEP_PIN, 1)
-#define y_unstep() digital_write(Y_STEP_PORT, Y_STEP_PIN, 0)
-#define y_direction(dir) digital_write(Y_DIR_PORT, Y_DIR_PIN, dir)
-#define y_min() ((digital_read(Y_MIN_PORT, Y_MIN_PIN))?0:1)
-#define y_max() ((digital_read(Y_MAX_PORT, Y_MAX_PIN))?0:1)
-
-/*
-        Z Stepper
-*/
-#define z_enable() digital_write(Z_ENABLE_PORT, Z_ENABLE_PIN, 0)
-#define z_disable() digital_write(Z_ENABLE_PORT, Z_ENABLE_PIN, 1)
-#define z_step() digital_write(Z_STEP_PORT, Z_STEP_PIN, 1)
-#define z_unstep() digital_write(Z_STEP_PORT, Z_STEP_PIN, 0)
-#define z_direction(dir) digital_write(Z_DIR_PORT, Z_DIR_PIN, dir)
-#define z_min() ((digital_read(Z_MIN_PORT, Z_MIN_PIN))?0:1)
-#define z_max() ((digital_read(Z_MAX_PORT, Z_MAX_PIN))?0:1)
-
-/*
-        Extruder
-*/
-#define e_enable() digital_write(E_ENABLE_PORT, E_ENABLE_PIN, 0)
-#define e_disable() digital_write(E_ENABLE_PORT, E_ENABLE_PIN, 1)
-#define e_step() digital_write(E_STEP_PORT, E_STEP_PIN, 1)
-#define e_unstep() digital_write(E_STEP_PORT, E_STEP_PIN, 0)
-#define e_direction(dir) digital_write(E_DIR_PORT, E_DIR_PIN, dir)
-
-#define extruder_heater_on() digital_write(EXTRUDER_0_HEATER_PORT, EXTRUDER_0_HEATER_PIN, HIGH);
-#define extruder_heater_off() digital_write(EXTRUDER_0_HEATER_PORT, EXTRUDER_0_HEATER_PIN, LOW);
-
-#define extruder_fan_on() digital_write(EXTRUDER_0_FAN_PORT, EXTRUDER_0_FAN_PIN, HIGH);
-#define extruder_fan_off() digital_write(EXTRUDER_0_FAN_PORT, EXTRUDER_0_FAN_PIN, LOW);
-
-/*
-        Heated Bed
-*/
-#define heated_bed_on() digital_write(HEATED_BED_0_HEATER_PORT, HEATED_BED_0_HEATER_PIN, HIGH);
-#define heated_bed_off() digital_write(HEATED_BED_0_HEATER_PORT, HEATED_BED_0_HEATER_PIN, LOW);
-
-#define power_on()      if (0) {}
-#define power_off()     if (0) {}
 
 
 #endif  /* _PINOUT_H */

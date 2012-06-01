@@ -37,6 +37,7 @@
 #define CONFIG_H_
 
 #include "witypes.h"
+#include "wifi_config.h"
 
 extern U8 local_ip[];
 extern U8 gateway_ip[];

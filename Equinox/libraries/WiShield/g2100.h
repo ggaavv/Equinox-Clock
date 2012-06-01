@@ -36,6 +36,8 @@
 #ifndef G2100_H_
 #define G2100_H_
 
+#include "witypes.h"
+
 #define DRV_STATE_INIT					0
 #define DRV_STATE_GET_MAC				2
 #define DRV_STATE_START_CONN			3
