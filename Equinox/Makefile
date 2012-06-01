@@ -163,7 +163,7 @@ INCLUDES = $(APPLIBDIR)/CMSISv1p30_LPC17xx/inc \
 SRC = \
 	$(wildcard $(APPLIBDIR)/LPCUSB/src/*.c) \
 	$(APPLIBDIR)/CMSISv1p30_LPC17xx/src/system_LPC17xx.c \
-	$(wildcard $(APPLIBDIR)/NXP/Drivers/source/lpc17xx_*.c) \
+	$(wildcard $(APPLIBDIR)/NXP/Drivers/source/*.c) \
 	$(APPLIBDIR)/R2C2/ios.c \
 	$(APPLIBDIR)/R2C2/usb.c \
 	$(APPLIBDIR)/R2C2/serial_fifo.c \
