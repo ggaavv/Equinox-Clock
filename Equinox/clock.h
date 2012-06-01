@@ -8,6 +8,8 @@
 #ifndef DOTKLOK_REV_1_2_H_
 #define DOTKLOK_REV_1_2_H_
 
+void LED_init();
+
 const prog_uchar stringDOTKLOK[] PROGMEM = {"DOTKLOK "};
 const prog_uchar stringRTC_NOT_running[] PROGMEM = {"RTC NOT running!\r\n"};
 const prog_uchar stringRTC_running[] PROGMEM = {"RTC running\r\n"};
