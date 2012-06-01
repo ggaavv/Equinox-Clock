@@ -32,11 +32,21 @@
 #define _PINOUT_H
 
 #include "ios.h"
-//#include "machine.h"
 
 /*
-        Pin Definitions
+        LED Pins
 */
+
+#define LED_CS_PORT			0
+#define LED_CS_PIN			(1 <<  6)
+#define LED_LE_PORT			0
+#define LED_LE_PIN			(1 <<  6)
+#define LED_SCK_PORT     	0
+#define LED_SCK_PIN			(1 <<  7)
+#define LED_MISO_PORT		0
+#define LED_MISO_PIN		(1 <<  8)
+#define LED_MOSI_PORT		0
+#define LED_MOSI_PIN		(1 <<  9)
 
 /*
         Wifi Pins

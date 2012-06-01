@@ -1,5 +1,10 @@
 
 
+
+#include "pinout.h"
+#include "lpc17xx_ssp.h"
+
+
 void WiFi_init(){
 
 	pin_mode(WF_CS_PORT, WF_CS_PIN, OUTPUT);

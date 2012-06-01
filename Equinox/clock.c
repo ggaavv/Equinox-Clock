@@ -214,6 +214,8 @@ PORTD=11111111
 #include "Sunrise/Sunrise.h"
 #include "SoftwareSerial/SoftwareSerial.h"
 #include "ShiftPWM/hsv2rgb.h"
+#include "pinout.h"
+#include "lpc17xx_ssp.h"
 
 
 void LED_init(){
@@ -279,35 +281,6 @@ const bool ShiftPWM_invertOutputs = 0; // if invertOutputs is 1, outputs will be
 unsigned char DISPLAYING = OFF;
 
 #include <stdlib.h>
-
-
-
-// Wireless configuration parameters ----------------------------------------
-//unsigned char serverip[]    = {10,11,12,101};   // IP address of server
-//unsigned char local_ip[]    = {10,11,12,254};   // IP address of WiShield
-//unsigned char gateway_ip[]  = {10,11,12,1};   // router or gateway IP address
-//unsigned char subnet_mask[] = {255,255,255,0}; // subnet mask for the local network
-//char ssid[]                 = {"dlink"};   // max 32 bytes
-//unsigned char security_type = 3;               // 0 - open; 1 - WEP; 2 - WPA; 3 - WPA2
-
-// WPA/WPA2 passphrase
-//const prog_char security_passphrase[] PROGMEM = {"BCC558623C"};	// max 64 characters
-
-// WEP 128-bit keys
-//prog_uchar wep_keys[] PROGMEM = {
-//	0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d,	// Key 0
-//	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,	// Key 1
-//	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,	// Key 2
-//	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00	// Key 3
-//};
-
-// setup the wireless mode; infrastructure - connect to AP; adhoc - connect to another WiFi device
-//#define WIRELESS_MODE_INFRA	1
-//#define WIRELESS_MODE_ADHOC	2
-//unsigned char wireless_mode = WIRELESS_MODE_INFRA;
-//unsigned char ssid_len;
-//unsigned char security_passphrase_len;
-// End of wireless configuration parameters ----------------------------------------
 
 // global clock variables
 extern RTC_DS3231 RTC;
