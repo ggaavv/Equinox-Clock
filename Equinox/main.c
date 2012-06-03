@@ -31,8 +31,8 @@
 #include "eq_clock.h"
 #include "wifi.h"
 #include "g2100.h"
-	void stack_init(void);
-	void stack_process(void);
+//	void stack_init(void);
+//	void stack_process(void);
 
 #define USER_FLASH_START 0x30000 /* For USB bootloader */
 //#define USER_FLASH_START 0x0 /* No USB bootloader */

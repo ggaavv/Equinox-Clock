@@ -164,20 +164,11 @@ SRC = \
 	$(wildcard $(APPLIBDIR)/LPCUSB/src/*.c) \
 	$(APPLIBDIR)/CMSISv1p30_LPC17xx/src/system_LPC17xx.c \
 	$(wildcard $(APPLIBDIR)/NXP/Drivers/source/*.c) \
-	$(APPLIBDIR)/R2C2/ios.c \
-	$(APPLIBDIR)/R2C2/usb.c \
-	$(APPLIBDIR)/R2C2/serial_fifo.c \
-	$(APPLIBDIR)/R2C2/serial.c \
-	$(APPLIBDIR)/R2C2/sermsg.c \
-	$(APPLIBDIR)/R2C2/sersendf.c \
-	$(APPLIBDIR)/R2C2/timer.c \
-	$(APPLIBDIR)/R2C2/adc.c \
-	$(APPLIBDIR)/R2C2/uart.c \
+	$(APPLIBDIR)/R2C2/*.c \
 	$(APPLIBDIR)/WiShield/*.c \
 	$(APPSRC) \
 	main.c
-	
-	
+
 # List C source files here which must be compiled in ARM-Mode (no -mthumb).
 # use file-extension c for "c-only"-files
 ## just for testing, timer.c classcould be compiled in thumb-mode too

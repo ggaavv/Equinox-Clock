@@ -45,8 +45,8 @@
  * $Id: timer.c,v 1.2 2006/06/12 08:00:30 adam Exp $
  */
 
-#include "clock.h"
-#include "timer.h"
+//#include "clock.h"
+#include "sys_timer.h"
 
 /*---------------------------------------------------------------------------*/
 /**
@@ -61,10 +61,10 @@
  *
  */
 void
-timer_set(struct timer *t, clock_time_t interval)
+timer_set(struct timer *t, uint32_t interval)
 {
   t->interval = interval;
-  t->start = clock_time();
+  t->start = sys_millis();
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -103,7 +103,7 @@ timer_reset(struct timer *t)
 void
 timer_restart(struct timer *t)
 {
-  t->start = clock_time();
+  t->start = sys_millis();
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -120,7 +120,7 @@ timer_restart(struct timer *t)
 int
 timer_expired(struct timer *t)
 {
-  return (clock_time_t)(clock_time() - t->start) >= (clock_time_t)t->interval;
+  return (uint32_t)(sys_millis() - t->start) >= (uint32_t)t->interval;
 }
 /*---------------------------------------------------------------------------*/
 

@@ -41,19 +41,19 @@ Description:	Driver for the ZeroG Wireless G2100 series devices
 #include "pinout.h"
 #include "lpc17xx_ssp.h"
 
-#include "libmaple.h"
-#include "spi.h"
-#include "gpio.h"
-#include "nvic.h"
+//#include "libmaple.h"
+//#include "spi.h"
+//#include "gpio.h"
+//#include "nvic.h"
 
-#define ZG2100_SPI_DBG 0
-#define ZG2100_DBG 0
+//#define ZG2100_SPI_DBG 0
+//#define ZG2100_DBG 0
 
-#if ZG2100_SPI_DBG
-#define zg2100_spi_dbg(...) iprintf(__VA_ARGS__)
-#else
-#define zg2100_spi_dbg(...)
-#endif
+//#if ZG2100_SPI_DBG
+//#define zg2100_spi_dbg(...) iprintf(__VA_ARGS__)
+//#else
+//#define zg2100_spi_dbg(...)
+//#endif
 
 static U8 mac[6];
 
@@ -115,7 +115,7 @@ void spi_transmit(volatile U8* buf, U16 len, U8 toggle_cs)
    for (i = 0; i < len; i++) {
 //      buf[i] = spi_tx_byte(1, buf[i]);
 	   while(!SSP_GetStatus(LPC_SSP1, SSP_STAT_TXFIFO_NOTFULL));
-	   buf[i] = SSP_SendData(LPC_SSP1, buf[i]);
+	   SSP_SendData(LPC_SSP1, buf[i]);
    }
 
    if (toggle_cs) {
@@ -134,7 +134,7 @@ void spi_receive(volatile U8* buf, U16 len, U8 toggle_cs)
    for (i = 0; i < len; i++) {
 //      buf[i] = spi_tx_byte(1, buf[i]);
 	   while(!SSP_GetStatus(LPC_SSP1, SSP_STAT_RXFIFO_NOTEMPTY));
-	   buf[i] = SSP_SendData(LPC_SSP1, buf[i]);
+	   buf[i] = SSP_ReceiveData(LPC_SSP1);
    }
 
    if (toggle_cs) {
@@ -221,7 +221,7 @@ void zg_interrupt_reg(U8 mask, U8 state)
 }
 
 //void zg_isr()
-extern "C" void EINT0_IRQHandler (void){
+void EINT0_IRQHandler (void)
 {
    intr_occured = 1;
 //   gpio_write_bit(DEBUG_PORT, DEBUG_PIN, 1);
@@ -643,3 +643,5 @@ void zg_drv_process()
       break;
    }
 }
+
+// END

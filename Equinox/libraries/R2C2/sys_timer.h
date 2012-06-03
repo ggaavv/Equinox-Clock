@@ -80,7 +80,7 @@ void delay(int delay);
 void delay_ms(int delay);
 void delayMicrosecondsInterruptible(int us);
 #define	delay_us(d) delayMicrosecondsInterruptible(d)
-long millis(void);
+long sys_millis(void);
 
 // Slow timer (i.e. +/-1ms resolution)
 bool AddSlowTimer (tTimer *pTimer);

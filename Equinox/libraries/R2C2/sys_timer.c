@@ -33,7 +33,7 @@
 #include "lpc_types.h"
 #include "ios.h"
 //#include "sdcard.h"
-#include "timer.h"
+#include "sys_timer.h"
 
 
 //unsigned char clock_counter_250ms = 0;
@@ -250,16 +250,16 @@ void SysTick_Handler(void)
   /***********************************************************************/
 }
 
-long millis(void)
+long sys_millis(void)
 {
   return millis_ticks;
 }
 
 void delay_ms(int ms)
 {
-  int start = millis();
+  int start = sys_millis();
 
-  while (millis() - start <= ms)
+  while (sys_millis() - start <= ms)
     ;
 }
 
