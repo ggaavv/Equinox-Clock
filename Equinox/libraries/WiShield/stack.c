@@ -35,7 +35,7 @@ Description:	Stack process for the WiShield 1.0
 #include <stdio.h>
 #include <stdlib.h>
 //#include <avr/io.h>
-#include "libmaple.h"
+//#include "libmaple.h"
 #include "timer.h"
 #include "global-conf.h"
 #include "uip_arp.h"
@@ -43,7 +43,7 @@ Description:	Stack process for the WiShield 1.0
 #include "witypes.h"
 #include "config.h"
 #include "g2100.h"
-#include "spi.h"
+//#include "spi.h"
 
 #include <string.h>
 #define BUF ((struct uip_eth_hdr *)&uip_buf[0])

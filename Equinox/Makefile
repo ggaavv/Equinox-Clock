@@ -154,9 +154,9 @@ INCLUDES = $(APPLIBDIR)/CMSISv1p30_LPC17xx/inc \
 	 $(APPLIBDIR)/LPCUSB/inc \
 	 $(APPLIBDIR)/NXP/Drivers/include \
 	 $(APPLIBDIR)/FatFs/src \
+	 $(APPLIBDIR)/R2C2/ \
 	 $(APPLIBDIR)/WiShield/ \
 	 $(APPDIR)
-#	 $(APPLIBDIR)/R2C2/ \
 
 # List C source files here. (C dependencies are automatically generated.)
 # use file-extension c for "c-only"-files
@@ -164,9 +164,33 @@ SRC = \
 	$(wildcard $(APPLIBDIR)/LPCUSB/src/*.c) \
 	$(APPLIBDIR)/CMSISv1p30_LPC17xx/src/system_LPC17xx.c \
 	$(wildcard $(APPLIBDIR)/NXP/Drivers/source/*.c) \
+	$(APPLIBDIR)/WiShield/g2100.c \
+	$(APPLIBDIR)/WiShield/network.c \
+	$(APPLIBDIR)/WiShield/psock.c \
+	$(APPLIBDIR)/WiShield/strings.c \
+	$(APPLIBDIR)/WiShield/uip_arp.c \
+	$(APPLIBDIR)/WiShield/uip.c \
+	$(APPLIBDIR)/WiShield/uip-fw.c \
+	$(APPLIBDIR)/WiShield/uiplib.c \
+	$(APPLIBDIR)/WiShield/uip-neighbor.c \
+	$(APPLIBDIR)/WiShield/uip-split.c \
+	$(APPLIBDIR)/WiShield/webserver.c \
 	$(APPSRC) \
 	main.c
-#	$(APPLIBDIR)/WiShield/*.c \
+#	$(APPLIBDIR)/WiShield/g2100.c \
+#	$(APPLIBDIR)/WiShield/network.c \
+#	$(APPLIBDIR)/WiShield/psock.c \
+#	$(APPLIBDIR)/WiShield/stack.c \ ##compile error
+#	$(APPLIBDIR)/WiShield/strings.c \
+#	$(APPLIBDIR)/WiShield/timer.c \ ##compile error
+#	$(APPLIBDIR)/WiShield/uip_arp.c \
+#	$(APPLIBDIR)/WiShield/uip.c \
+#	$(APPLIBDIR)/WiShield/uip-fw.c \
+#	$(APPLIBDIR)/WiShield/uiplib.c \
+#	$(APPLIBDIR)/WiShield/uip-neighbor.c \
+#	$(APPLIBDIR)/WiShield/uip-split.c \
+#	$(APPLIBDIR)/WiShield/webserver.c \
+#	$(APPLIBDIR)/WiShield/*.c \ ##compile error
 #	$(APPLIBDIR)/R2C2/*.c \
 
 # List C source files here which must be compiled in ARM-Mode (no -mthumb).

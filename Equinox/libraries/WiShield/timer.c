@@ -47,6 +47,7 @@
 
 //#include "clock.h"
 #include "sys_timer.h"
+#include "lpc17xx_systick.h>
 
 /*---------------------------------------------------------------------------*/
 /**
@@ -64,7 +65,9 @@ void
 timer_set(struct timer *t, uint32_t interval)
 {
   t->interval = interval;
-  t->start = sys_millis();
+//  t->start = sys_millis();
+  t->start = SYSTICK_GetCurrentValue();
+
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -103,7 +106,8 @@ timer_reset(struct timer *t)
 void
 timer_restart(struct timer *t)
 {
-  t->start = sys_millis();
+//  t->start = sys_millis();
+  t->start = SYSTICK_GetCurrentValue();
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -120,7 +124,8 @@ timer_restart(struct timer *t)
 int
 timer_expired(struct timer *t)
 {
-  return (uint32_t)(sys_millis() - t->start) >= (uint32_t)t->interval;
+//  return (uint32_t)(sys_millis() - t->start) >= (uint32_t)t->interval;
+  return (uint32_t)(SYSTICK_GetCurrentValue() - t->start) >= (uint32_t)t->interval;
 }
 /*---------------------------------------------------------------------------*/
 
