@@ -1,4 +1,8 @@
 
+
+#ifndef WIFI_CONFIG_H_
+#define WIFI_CONFIG_H_
+
 #include "lpc_types.h"
 
 // Web Server config
@@ -30,3 +34,6 @@ prog_char wep_keys[] = {	0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0
 unsigned char wireless_mode = WIRELESS_MODE_INFRA;
 unsigned char ssid_len;
 unsigned char security_passphrase_len;
+
+
+#endif /* WIFI_CONFIG_H_ */

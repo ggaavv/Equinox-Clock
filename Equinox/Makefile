@@ -154,9 +154,9 @@ INCLUDES = $(APPLIBDIR)/CMSISv1p30_LPC17xx/inc \
 	 $(APPLIBDIR)/LPCUSB/inc \
 	 $(APPLIBDIR)/NXP/Drivers/include \
 	 $(APPLIBDIR)/FatFs/src \
-	 $(APPLIBDIR)/R2C2/ \
 	 $(APPLIBDIR)/WiShield/ \
 	 $(APPDIR)
+#	 $(APPLIBDIR)/R2C2/ \
 
 # List C source files here. (C dependencies are automatically generated.)
 # use file-extension c for "c-only"-files
@@ -164,10 +164,10 @@ SRC = \
 	$(wildcard $(APPLIBDIR)/LPCUSB/src/*.c) \
 	$(APPLIBDIR)/CMSISv1p30_LPC17xx/src/system_LPC17xx.c \
 	$(wildcard $(APPLIBDIR)/NXP/Drivers/source/*.c) \
-	$(APPLIBDIR)/R2C2/*.c \
-	$(APPLIBDIR)/WiShield/*.c \
 	$(APPSRC) \
 	main.c
+#	$(APPLIBDIR)/WiShield/*.c \
+#	$(APPLIBDIR)/R2C2/*.c \
 
 # List C source files here which must be compiled in ARM-Mode (no -mthumb).
 # use file-extension c for "c-only"-files

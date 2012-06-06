@@ -28,9 +28,9 @@
 */
 
 #include "debug_frmwrk.h"
-#include "eq_clock.h"
-#include "wifi.h"
-#include "g2100.h"
+//#include "eq_clock.h"
+//#include "wifi.h"
+//#include "g2100.h"
 //	void stack_init(void);
 //	void stack_process(void);
 
@@ -71,18 +71,19 @@ int main(void){
 	SCB->VTOR = (USER_FLASH_START & 0x1FFFFF80);
 
 	// Initialize USB<->Serial
-	serial_init();
+//	serial_init();
 	_DBG_("[OK]-serial_init()");//_DBG(__LINE__);_DBG(__FILE__);
-	serial_writestr("Start\r\nOK\r\n");
+//	serial_writestr("Start\r\nOK\r\n");
   
-	SysTickTimer_Init(); // Initialize the timer for millis()
+//	SysTickTimer_Init(); // Initialize the timer for millis()
+	SYSTICK_InternalInit(); // Initialize the timer for millis(), from NXP not R2C2
 
 	//Setup SSP port for led drivers
 	//LED_init();
 	//_DBG("[OK]-LED_init()");//_DBG(__LINE__);_DBG(__FILE__);
 
 	// wifi init
-	WiFi_init();
+//	WiFi_init();
 	_DBG("[OK]-WiFi_init()");//_DBG(__LINE__);_DBG(__FILE__);
 
 
@@ -90,14 +91,14 @@ int main(void){
 	_DBG("[INFO]-WiFi_init()");//_DBG(__LINE__);_DBG(__FILE__);
 	// main loop
 	for (;;){
-		stack_process();
-		zg_drv_process();
+//		stack_process();
+//		zg_drv_process();
 
 		/* Power save - Do every 100ms */
 		#define DELAY1 100
-		if (timer1 < millis())
+		if (timer1 < SYSTICK_GetCurrentValue())
 		{
-			timer1 = millis() + DELAY1;
+			timer1 = SYSTICK_GetCurrentValue() + DELAY1;
 
 			/* If there are no activity during 30 seconds, power off the machine */
 			if (steptimeout > (30 * 1000/DELAY1))
