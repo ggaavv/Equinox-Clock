@@ -443,6 +443,11 @@ char timeUpdate(void) {
 
 
 void setup() {
+
+
+	// TODO: Move to INIT!!!!
+
+
 //*
 //	cli();
 	// init the button inputs
