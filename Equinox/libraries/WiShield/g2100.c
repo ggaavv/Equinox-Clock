@@ -33,11 +33,12 @@ Description:	Driver for the ZeroG Wireless G2100 series devices
 
  *****************************************************************************/
 
-#include <string.h>
+//#include <string.h>
 #include "config.h"
 #include "g2100.h"
 #include "global-conf.h"
 
+#include "wifi_config.h"
 #include "pinout.h"
 #include "lpc17xx_ssp.h"
 
@@ -110,7 +111,7 @@ void spi_transmit(volatile U8* buf, U16 len, U8 toggle_cs)
 {
    U16 i;
 
-   digital_write(WF_CS_PORT, WF_CS_PIN, 0);
+   FIO_ClearValue(WF_CS_PORT, WF_CS_PIN);
 
    for (i = 0; i < len; i++) {
 //      buf[i] = spi_tx_byte(1, buf[i]);
@@ -119,7 +120,7 @@ void spi_transmit(volatile U8* buf, U16 len, U8 toggle_cs)
    }
 
    if (toggle_cs) {
-	   digital_write(WF_CS_PORT, WF_CS_PIN, 1);
+	   FIO_SetValue(WF_CS_PORT, WF_CS_PIN);
    }
 
    return;
@@ -129,7 +130,7 @@ void spi_receive(volatile U8* buf, U16 len, U8 toggle_cs)
 {
    U16 i;
 
-   digital_write(WF_CS_PORT, WF_CS_PIN, 0);
+   FIO_ClearValue(WF_CS_PORT, WF_CS_PIN);
 
    for (i = 0; i < len; i++) {
 //      buf[i] = spi_tx_byte(1, buf[i]);
@@ -138,7 +139,7 @@ void spi_receive(volatile U8* buf, U16 len, U8 toggle_cs)
    }
 
    if (toggle_cs) {
-	   digital_write(WF_CS_PORT, WF_CS_PIN, 1);
+	   FIO_SetValue(WF_CS_PORT, WF_CS_PIN);
    }
 
    return;
@@ -153,32 +154,32 @@ void zg_chip_reset()
       hdr[0] = ZG_INDEX_ADDR_REG;
       hdr[1] = 0x00;
       hdr[2] = ZG_RESET_REG;
-      spi_transfer(hdr, 3, 1);
+      spi_transmit(hdr, 3, 1);
 
       hdr[0] = ZG_INDEX_DATA_REG;
       hdr[1] = (loop_cnt == 0)?(0x80):(0x0f);
       hdr[2] = 0xff;
-      spi_transfer(hdr, 3, 1);
+      spi_transmit(hdr, 3, 1);
    } while(loop_cnt++ < 1);
 
    // write reset register data
    hdr[0] = ZG_INDEX_ADDR_REG;
    hdr[1] = 0x00;
    hdr[2] = ZG_RESET_STATUS_REG;
-   spi_transfer(hdr, 3, 1);
+   spi_transmit(hdr, 3, 1);
 
    do {
       hdr[0] = 0x40 | ZG_INDEX_DATA_REG;
       hdr[1] = 0x00;
       hdr[2] = 0x00;
-      spi_transfer(hdr, 3, 1);
+      spi_transmit(hdr, 3, 1);
    } while((hdr[1] & ZG_RESET_MASK) == 0);
 
    do {
       hdr[0] = 0x40 | ZG_BYTE_COUNT_REG;
       hdr[1] = 0x00;
       hdr[2] = 0x00;
-      spi_transfer(hdr, 3, 1);
+      spi_transmit(hdr, 3, 1);
    } while((hdr[1] == 0) && (hdr[2] == 0));
 }
 
@@ -188,7 +189,7 @@ void zg_interrupt2_reg()
    hdr[0] = 0x40 | ZG_INTR2_MASK_REG;
    hdr[1] = 0x00;
    hdr[2] = 0x00;
-   spi_transfer(hdr, 3, 1);
+   spi_transmit(hdr, 3, 1);
 
    // modify the interrupt mask value and re-write the value to the interrupt
    // mask register clearing the interrupt register first
@@ -197,7 +198,7 @@ void zg_interrupt2_reg()
    hdr[2] = 0xff;
    hdr[3] = 0;
    hdr[4] = 0;
-   spi_transfer(hdr, 5, 1);
+   spi_transmit(hdr, 5, 1);
 
    return;
 }
@@ -207,7 +208,7 @@ void zg_interrupt_reg(U8 mask, U8 state)
    // read the interrupt register
    hdr[0] = 0x40 | ZG_INTR_MASK_REG;
    hdr[1] = 0x00;
-   spi_transfer(hdr, 2, 1);
+   spi_transmit(hdr, 2, 1);
 
    // now regBuf[0] contains the current setting for the
    // interrupt mask register
@@ -215,7 +216,7 @@ void zg_interrupt_reg(U8 mask, U8 state)
    hdr[0] = ZG_INTR_REG;
    hdr[2] = (hdr[1] & ~mask) | ( (state == 0)? 0 : mask );
    hdr[1] = mask;
-   spi_transfer(hdr, 3, 1);
+   spi_transmit(hdr, 3, 1);
 
    return;
 }
@@ -235,7 +236,7 @@ void zg_process_isr()
    hdr[0] = 0x40 | ZG_INTR_REG;
    hdr[1] = 0x00;
    hdr[2] = 0x00;
-   spi_transfer(hdr, 3, 1);
+   spi_transmit(hdr, 3, 1);
 
    intr_state = ZG_INTR_ST_RD_INTR_REG;
 
@@ -248,7 +249,7 @@ void zg_process_isr()
          if ( (intr_val & ZG_INTR_MASK_FIFO1) == ZG_INTR_MASK_FIFO1) {
             hdr[0] = ZG_INTR_REG;
             hdr[1] = ZG_INTR_MASK_FIFO1;
-            spi_transfer(hdr, 2, 1);
+            spi_transmit(hdr, 2, 1);
 
             intr_state = ZG_INTR_ST_WT_INTR_REG;
             next_cmd = ZG_BYTE_COUNT_FIFO1_REG;
@@ -256,7 +257,7 @@ void zg_process_isr()
          else if ( (intr_val & ZG_INTR_MASK_FIFO0) == ZG_INTR_MASK_FIFO0) {
             hdr[0] = ZG_INTR_REG;
             hdr[1] = ZG_INTR_MASK_FIFO0;
-            spi_transfer(hdr, 2, 1);
+            spi_transmit(hdr, 2, 1);
 
             intr_state = ZG_INTR_ST_WT_INTR_REG;
             next_cmd = ZG_BYTE_COUNT_FIFO0_REG;
@@ -274,7 +275,7 @@ void zg_process_isr()
          hdr[0] = 0x40 | next_cmd;
          hdr[1] = 0x00;
          hdr[2] = 0x00;
-         spi_transfer(hdr, 3, 1);
+         spi_transmit(hdr, 3, 1);
 
          intr_state = ZG_INTR_ST_RD_CTRL_REG;
          break;
@@ -298,7 +299,7 @@ void zg_process_isr()
 
          // Tell ZG2100 we're done reading from its buffer
          hdr[0] = ZG_CMD_RD_FIFO_DONE;
-         spi_transfer(hdr, 1, 1);
+         spi_transmit(hdr, 1, 1);
 
          // Done reading interrupt from ZG2100
          intr_state = 0;
@@ -317,16 +318,16 @@ void zg_send(U8* buf, U16 len)
    hdr[2] = ZG_MAC_SUBTYPE_TXDATA_REQ_STD;
    hdr[3] = 0x00;
    hdr[4] = 0x00;
-   spi_transfer(hdr, 5, 0);
+   spi_transmit(hdr, 5, 0);
 
    buf[6] = 0xaa;
    buf[7] = 0xaa;
    buf[8] = 0x03;
    buf[9] = buf[10] = buf[11] = 0x00;
-   spi_transfer(buf, len, 1);
+   spi_transmit(buf, len, 1);
 
    hdr[0] = ZG_CMD_WT_FIFO_DONE;
-   spi_transfer(hdr, 1, 1);
+   spi_transmit(hdr, 1, 1);
 }
 
 void zg_recv(U8* buf, U16* len)
@@ -467,7 +468,7 @@ void zg_drv_process()
                zg_drv_state = DRV_STATE_START_CONN;
                break;
             case ZG_MAC_SUBTYPE_MGMT_REQ_CONNECT:
-               LEDConn_on();
+ //              LEDConn_on();
                zg_conn_status = 1;      // connected
                break;
             default:
@@ -482,7 +483,7 @@ void zg_drv_process()
          switch (zg_buf[2]) {
          case ZG_MAC_SUBTYPE_MGMT_IND_DISASSOC:
          case ZG_MAC_SUBTYPE_MGMT_IND_DEAUTH:
-            LEDConn_off();
+//            LEDConn_off();
             zg_conn_status = 0; // lost connection
 
             //try to reconnect
@@ -493,7 +494,7 @@ void zg_drv_process()
                U16 status = (((U16)(zg_buf[3]))<<8)|zg_buf[4];
 
                if (status == 1 || status == 5) {
-                  LEDConn_off();
+ //                 LEDConn_off();
                   zg_init();
                   /* Block execution until reconnected  */
                   while(zg_get_conn_state() != 1) {
@@ -501,7 +502,7 @@ void zg_drv_process()
                   }
                }
                else if (status == 2 || status == 6) {
-                  LEDConn_on();
+ //                 LEDConn_on();
                   zg_conn_status = 1;   // connected
                }
             }
@@ -524,10 +525,10 @@ void zg_drv_process()
       zg_buf[2] = ZG_MAC_SUBTYPE_MGMT_REQ_GET_PARAM;
       zg_buf[3] = 0;
       zg_buf[4] = ZG_PARAM_MAC_ADDRESS;
-      spi_transfer(zg_buf, 5, 1);
+      spi_transmit(zg_buf, 5, 1);
 
       zg_buf[0] = ZG_CMD_WT_FIFO_DONE;
-      spi_transfer(zg_buf, 1, 1);
+      spi_transmit(zg_buf, 1, 1);
 
       zg_drv_state = DRV_STATE_IDLE;
       break;
@@ -542,10 +543,10 @@ void zg_drv_process()
          zg_buf[1] = ZG_MAC_TYPE_MGMT_REQ;
          zg_buf[2] = ZG_MAC_SUBTYPE_MGMT_REQ_WEP_KEY;
          zg_write_wep_key(&zg_buf[3]);
-         spi_transfer(zg_buf, ZG_WEP_KEY_REQ_SIZE+3, 1);
+         spi_transmit(zg_buf, ZG_WEP_KEY_REQ_SIZE+3, 1);
 
          zg_buf[0] = ZG_CMD_WT_FIFO_DONE;
-         spi_transfer(zg_buf, 1, 1);
+         spi_transmit(zg_buf, 1, 1);
 
          zg_drv_state = DRV_STATE_IDLE;
          break;
@@ -556,10 +557,10 @@ void zg_drv_process()
          zg_buf[1] = ZG_MAC_TYPE_MGMT_REQ;
          zg_buf[2] = ZG_MAC_SUBTYPE_MGMT_REQ_CALC_PSK;
          zg_calc_psk_key(&zg_buf[3]);
-         spi_transfer(zg_buf, ZG_PSK_CALC_REQ_SIZE+3, 1);
+         spi_transmit(zg_buf, ZG_PSK_CALC_REQ_SIZE+3, 1);
 
          zg_buf[0] = ZG_CMD_WT_FIFO_DONE;
-         spi_transfer(zg_buf, 1, 1);
+         spi_transmit(zg_buf, 1, 1);
 
          zg_drv_state = DRV_STATE_IDLE;
          break;
@@ -573,10 +574,10 @@ void zg_drv_process()
       zg_buf[1] = ZG_MAC_TYPE_MGMT_REQ;
       zg_buf[2] = ZG_MAC_SUBTYPE_MGMT_REQ_PMK_KEY;
       zg_write_psk_key(&zg_buf[3]);
-      spi_transfer(zg_buf, ZG_PMK_KEY_REQ_SIZE+3, 1);
+      spi_transmit(zg_buf, ZG_PMK_KEY_REQ_SIZE+3, 1);
 
       zg_buf[0] = ZG_CMD_WT_FIFO_DONE;
-      spi_transfer(zg_buf, 1, 1);
+      spi_transmit(zg_buf, 1, 1);
 
       zg_drv_state = DRV_STATE_IDLE;
       break;
@@ -595,10 +596,10 @@ void zg_drv_process()
                               //                        exceeds the threshold. uses default value of
                               //                        100 missed beacons if not set during initialization
       zg_buf[6] = 0;
-      spi_transfer(zg_buf, 7, 1);
+      spi_transmit(zg_buf, 7, 1);
 
       zg_buf[0] = ZG_CMD_WT_FIFO_DONE;
-      spi_transfer(zg_buf, 1, 1);
+      spi_transmit(zg_buf, 1, 1);
 
       zg_drv_state = DRV_STATE_IDLE;
       break;
@@ -625,10 +626,10 @@ void zg_drv_process()
       else if (wireless_mode == WIRELESS_MODE_ADHOC)
          cmd->modeBss = 2;
 
-      spi_transfer(zg_buf, ZG_CONNECT_REQ_SIZE+3, 1);
+      spi_transmit(zg_buf, ZG_CONNECT_REQ_SIZE+3, 1);
 
       zg_buf[0] = ZG_CMD_WT_FIFO_DONE;
-      spi_transfer(zg_buf, 1, 1);
+      spi_transmit(zg_buf, 1, 1);
 
       zg_drv_state = DRV_STATE_IDLE;
       break;

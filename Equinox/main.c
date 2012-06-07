@@ -29,8 +29,8 @@
 
 #include "debug_frmwrk.h"
 //#include "eq_clock.h"
-//#include "wifi.h"
-//#include "g2100.h"
+#include "wifi.h"
+#include "g2100.h"
 //	void stack_init(void);
 //	void stack_process(void);
 
@@ -76,14 +76,14 @@ int main(void){
 //	serial_writestr("Start\r\nOK\r\n");
   
 //	SysTickTimer_Init(); // Initialize the timer for millis()
-	SYSTICK_InternalInit(10); // Initialize the timer for millis(), from NXP not R2C2 - 10ms interval
+	SYSTICK_InternalInit(10); // Initialize the timer for millis(), from NXP not R2C2 - 1ms interval
 
 	//Setup SSP port for led drivers
 	//LED_init();
 	//_DBG("[OK]-LED_init()");//_DBG(__LINE__);_DBG(__FILE__);
 
 	// wifi init
-//	WiFi_init();
+	WiFi_init();
 	_DBG("[OK]-WiFi_init()");//_DBG(__LINE__);_DBG(__FILE__);
 
 
@@ -91,8 +91,8 @@ int main(void){
 	_DBG("[INFO]-WiFi_init()");//_DBG(__LINE__);_DBG(__FILE__);
 	// main loop
 	for (;;){
-//		stack_process();
-//		zg_drv_process();
+		stack_process();
+		zg_drv_process();
 
 		/* Power save - Do every 100ms */
 		#define DELAY1 100

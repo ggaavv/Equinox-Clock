@@ -178,7 +178,9 @@ SRC = \
 	$(APPLIBDIR)/WiShield/uip-split.c \
 	$(APPLIBDIR)/WiShield/webserver.c \
 	$(APPSRC) \
-	main.c
+	main.c \
+	$(APPLIBDIR)/R2C2/ios.c \
+	wifi.c
 #	$(APPLIBDIR)/WiShield/g2100.c \
 #	$(APPLIBDIR)/WiShield/network.c \
 #	$(APPLIBDIR)/WiShield/psock.c \

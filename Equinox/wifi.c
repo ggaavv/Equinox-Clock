@@ -2,19 +2,21 @@
 
 
 #include "pinout.h"
+#include "lpc17xx_pinsel.h"
+#include "lpc17xx_gpio.h"
 #include "lpc17xx_ssp.h"
 
 
 void WiFi_init(){
 
-	pin_mode(WF_CS_PORT, WF_CS_PIN, OUTPUT);
-	digital_write(WF_CS_PORT, WF_CS_PIN, HIGH);
+	FIO_SetDir(WF_CS_PORT, WF_CS_PIN, 1);
+	FIO_SetValue(WF_CS_PORT, WF_CS_PIN);
 
-	pin_mode(WF_RESET_PORT, WF_RESET_PIN, OUTPUT);
-	digital_write(WF_RESET_PORT, WF_RESET_PIN, HIGH);
+	FIO_SetDir(WF_RESET_PORT, WF_RESET_PIN, 1);
+	FIO_SetValue(WF_RESET_PORT, WF_RESET_PIN);
 
-	pin_mode(WF_HIBERNATE_PORT, WF_HIBERNATE_PIN, INPUT);
-	digital_write(WF_HIBERNATE_PORT, WF_HIBERNATE_PIN, HIGH);
+	FIO_SetDir(WF_HIBERNATE_PORT, WF_HIBERNATE_PIN, 0);
+	FIO_SetValue(WF_HIBERNATE_PORT, WF_HIBERNATE_PIN);
 
 	// Initialize SPI pin connect
 	PINSEL_CFG_Type PinCfg;
