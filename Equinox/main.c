@@ -52,7 +52,7 @@ int main(void){
 	//does this need to be first??
 	//TODO
 	debug_frmwrk_init();
-	_DBG_("[OK]-debug_frmwrk_init()");//_DBG(__LINE__);_DBG(__FILE__);
+//	_DBG("[OK]-debug_frmwrk_init()");_DBG(__LINE__);_DBG(__FILE__);
 	//discard=_DBG_("**press any key**");_DG();//wait for key press @ debug port.
 
 	// DeInit NVIC and SCBNVIC
@@ -71,24 +71,26 @@ int main(void){
 	SCB->VTOR = (USER_FLASH_START & 0x1FFFFF80);
 
 	// Initialize USB<->Serial
-//	serial_init();
-	_DBG_("[OK]-serial_init()");//_DBG(__LINE__);_DBG(__FILE__);
-//	serial_writestr("Start\r\nOK\r\n");
+	serial_init();
+//	_DBG_("[OK]-serial_init()");//_DBG(__LINE__);_DBG(__FILE__);
+	serial_writestr("Start\r\nOK\r\n");
   
 //	SysTickTimer_Init(); // Initialize the timer for millis()
-	SYSTICK_InternalInit(10); // Initialize the timer for millis(), from NXP not R2C2 - 1ms interval
+	SYSTICK_InternalInit(10); // Initialize the timer for millis(), from NXP not R2C2 - 10ms interval
+	SYSTICK_IntCmd(ENABLE);
+	SYSTICK_Cmd(ENABLE);
 
 	//Setup SSP port for led drivers
 	//LED_init();
-	//_DBG("[OK]-LED_init()");//_DBG(__LINE__);_DBG(__FILE__);
+	//_DBG("[OK]-LED_init()");//_DBG(__LINE__);_DBG_(__FILE__);
 
 	// wifi init
 	WiFi_init();
-	_DBG("[OK]-WiFi_init()");//_DBG(__LINE__);_DBG(__FILE__);
+//	_DBG("[OK]-WiFi_init()");_DBG(__LINE__);_DBG_(__FILE__);
 
 
 	// main loop
-	_DBG("[INFO]-WiFi_init()");//_DBG(__LINE__);_DBG(__FILE__);
+//	_DBG("[INFO]-WiFi_init()");_DBG(__LINE__);_DBG_(__FILE__);
 	// main loop
 	for (;;){
 		stack_process();
