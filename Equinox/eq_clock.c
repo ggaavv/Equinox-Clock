@@ -215,19 +215,21 @@ PORTD=11111111
 //#include "SoftwareSerial/SoftwareSerial.h"
 //#include "ShiftPWM/hsv2rgb.h"
 #include "pinout.h"
+#include "lpc17xx_pinsel.h"
+#include "lpc17xx_gpio.h"
 #include "lpc17xx_ssp.h"
 
 
 void LED_init(){
+	
+	GPIO_SetDir(LED_CS_PORT, LED_CS_PIN, 1);
+	GPIO_SetValue(LED_CS_PORT, LED_CS_PIN);
 
-	pin_mode(LED_CS_PORT, LED_CS_PIN, OUTPUT);
-	digital_write(LED_CS_PORT, LED_CS_PIN, HIGH);
+	GPIO_SetDir(LED_LE_PORT, LED_LE_PIN, 1);
+	GPIO_SetValue(LED_LE_PORT, LED_LE_PIN);
 
-	pin_mode(LED_LE_PORT, LED_LE_PIN, OUTPUT);
-	digital_write(LED_LE_PORT, LED_LE_PIN, HIGH);
-
-	pin_mode(WF_HIBERNATE_PORT, WF_HIBERNATE_PIN, INPUT);
-	digital_write(WF_HIBERNATE_PORT, WF_HIBERNATE_PIN, HIGH);
+	GPIO_SetDir(WF_HIBERNATE_PORT, WF_HIBERNATE_PIN, 0);
+	GPIO_SetValu(WF_HIBERNATE_PORT, WF_HIBERNATE_PIN);
 
 	// Initialize SPI pin connect
 	PINSEL_CFG_Type PinCfg;
@@ -280,7 +282,7 @@ const bool ShiftPWM_invertOutputs = 0; // if invertOutputs is 1, outputs will be
 #define RAINBOW 2
 unsigned char DISPLAYING = OFF;
 
-#include <stdlib.h>
+//#include <stdlib.h>
 
 // global clock variables
 extern RTC_DS3231 RTC;
