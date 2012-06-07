@@ -168,6 +168,7 @@ SRC = \
 	$(APPLIBDIR)/WiShield/network.c \
 	$(APPLIBDIR)/WiShield/psock.c \
 	$(APPLIBDIR)/WiShield/strings.c \
+	$(APPLIBDIR)/WiShield/timer.c \
 	$(APPLIBDIR)/WiShield/uip_arp.c \
 	$(APPLIBDIR)/WiShield/uip.c \
 	$(APPLIBDIR)/WiShield/uip-fw.c \

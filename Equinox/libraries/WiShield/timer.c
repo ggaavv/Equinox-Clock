@@ -46,8 +46,8 @@
  */
 
 //#include "clock.h"
-#include "sys_timer.h"
-#include "lpc17xx_systick.h>
+#include "lpc17xx_systick.h"
+#include "timer.h"
 
 /*---------------------------------------------------------------------------*/
 /**
