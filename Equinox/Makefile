@@ -167,6 +167,7 @@ SRC = \
 	$(APPLIBDIR)/WiShield/g2100.c \
 	$(APPLIBDIR)/WiShield/network.c \
 	$(APPLIBDIR)/WiShield/psock.c \
+	$(APPLIBDIR)/WiShield/stack.c \
 	$(APPLIBDIR)/WiShield/strings.c \
 	$(APPLIBDIR)/WiShield/timer.c \
 	$(APPLIBDIR)/WiShield/uip_arp.c \

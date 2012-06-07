@@ -32,8 +32,8 @@ Description:	Stack process for the WiShield 1.0
 
  *****************************************************************************/
 
-#include <stdio.h>
-#include <stdlib.h>
+//#include <stdio.h>
+//#include <stdlib.h>
 //#include <avr/io.h>
 //#include "libmaple.h"
 #include "timer.h"
@@ -45,7 +45,7 @@ Description:	Stack process for the WiShield 1.0
 #include "g2100.h"
 //#include "spi.h"
 
-#include <string.h>
+//#include <string.h>
 #define BUF ((struct uip_eth_hdr *)&uip_buf[0])
 
 static struct timer periodic_timer, arp_timer, self_arp_timer;

@@ -76,7 +76,7 @@ int main(void){
 //	serial_writestr("Start\r\nOK\r\n");
   
 //	SysTickTimer_Init(); // Initialize the timer for millis()
-	SYSTICK_InternalInit(); // Initialize the timer for millis(), from NXP not R2C2
+	SYSTICK_InternalInit(10); // Initialize the timer for millis(), from NXP not R2C2 - 10ms interval
 
 	//Setup SSP port for led drivers
 	//LED_init();

@@ -62,6 +62,19 @@
 #define __TIMER_H__
 
 //#include "clock.h"
+#include "lpc17xx_systick.h"
+
+/**
+ * A second, measured in system clock time.
+ *
+ * \hideinitializer
+ */
+//#ifdef CLOCK_CONF_SECOND
+//#define CLOCK_SECOND CLOCK_CONF_SECOND
+//#else
+//#define CLOCK_SECOND (clock_time_t)32
+//#endif
+#define CLOCK_SECOND 100
 
 /**
  * A timer.
