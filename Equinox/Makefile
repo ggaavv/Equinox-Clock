@@ -180,6 +180,9 @@ SRC = \
 	$(APPSRC) \
 	main.c \
 	$(APPLIBDIR)/R2C2/sys_timer.c \
+	$(APPLIBDIR)/R2C2/serial.c \
+	$(APPLIBDIR)/R2C2/usb.c \
+	$(APPLIBDIR)/R2C2/serial_fifo.c \
 	wifi.c
 #	$(APPLIBDIR)/WiShield/g2100.c \
 #	$(APPLIBDIR)/WiShield/network.c \
