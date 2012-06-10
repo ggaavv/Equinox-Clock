@@ -1,14 +1,16 @@
 
 
-
+#include "debug_frmwrk.h"
 #include "pinout.h"
 #include "lpc17xx_pinsel.h"
 #include "lpc17xx_gpio.h"
 #include "lpc17xx_ssp.h"
+#include "g2100.h"
 
 
 void WiFi_init(){
 
+	_DBG_("WiFi_init()");_DBG(__LINE__);_DBG_(__FILE__);
 	GPIO_SetDir(WF_CS_PORT, WF_CS_PIN, 1);
 	GPIO_SetValue(WF_CS_PORT, WF_CS_PIN);
 
@@ -52,18 +54,26 @@ void WiFi_init(){
 
 //	attachInterrupt(INT_PIN, zg_isr, FALLING);
 
+	_DBG_("WiFi_init() - zg_init();");_DBG(__LINE__);_DBG_(__FILE__);
 	zg_init();
 
-
+	_DBG_("WiFi_init() - while(zg_get_conn_state() != 1) {");_DBG(__LINE__);_DBG_(__FILE__);
 	while(zg_get_conn_state() != 1) {
 		zg_drv_process();
 	}
 
+	_DBG_("WiFi_init() - stack_init();");_DBG(__LINE__);_DBG_(__FILE__);
 	stack_init();
 }
 
 
+void WiFi_loop(){
+	_DBG_("WiFi_loop()");_DBG(__LINE__);_DBG_(__FILE__);
+	stack_process();
+	zg_drv_process();
+}
 
 
 // This is the webpage that is served up by the webserver
 const prog_char webpage[] = {"HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<center><h1>Hello World!! I am WiShield</h1><form method=\"get\" action=\"0\">Toggle LED:<input type=\"submit\" name=\"0\" value=\"LED1\"></input></form></center>"};
+

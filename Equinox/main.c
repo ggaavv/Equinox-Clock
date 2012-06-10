@@ -75,7 +75,7 @@ int main(void){
 	_DBG_("[OK]-serial_init()");_DBG(__LINE__);_DBG_(__FILE__);
 	serial_writestr("Start\r\nOK\r\n");
   
-	SYSTICK_InternalInit(10); // Initialize the timer for millis(), from NXP not R2C2 - 10ms interval
+	SYSTICK_InternalInit(1); // Initialize the timer for millis(), from NXP not R2C2 - 1ms interval
 	SYSTICK_IntCmd(ENABLE);
 	SYSTICK_Cmd(ENABLE);
 
@@ -92,14 +92,14 @@ int main(void){
 	_DBG_("[INFO]-WiFi_init()");_DBG(__LINE__);_DBG_(__FILE__);
 	// main loop
 	for (;;){
-		stack_process();
-		zg_drv_process();
+		// Wifi Loop
+		WiFi_loop();
 
 		/* Power save - Do every 100ms */
 		#define DELAY1 100
-		if (timer1 < SYSTICK_GetCurrentValue())
+		if (timer1 < sys_millis())
 		{
-			timer1 = SYSTICK_GetCurrentValue() + DELAY1;
+			timer1 = sys_millis() + DELAY1;
 
 			/* If there are no activity during 30 seconds, power off the machine */
 			if (steptimeout > (30 * 1000/DELAY1))
