@@ -52,7 +52,7 @@ int main(void){
 	//does this need to be first??
 	//TODO
 	debug_frmwrk_init();
-	_DBG_("[OK]-debug_frmwrk_init()");_DBG(__LINE__);_DBG_(__FILE__);
+	_DBG("[OK]-debug_frmwrk_init()");_DBG(__LINE__);_DBG_(__FILE__);
 	//discard=_DBG_("**press any key**");_DG();//wait for key press @ debug port.
 
 	// DeInit NVIC and SCBNVIC
@@ -70,14 +70,17 @@ int main(void){
 	in case the user application uses interrupts */
 	SCB->VTOR = (USER_FLASH_START & 0x1FFFFF80);
 
-	// Initialize USB<->Serial
-	serial_init();
-	_DBG_("[OK]-serial_init()");_DBG(__LINE__);_DBG_(__FILE__);
-	serial_writestr("Start\r\nOK\r\n");
-  
-	SYSTICK_InternalInit(1); // Initialize the timer for millis(), from NXP not R2C2 - 1ms interval
+	// Initialize the timer for millis()
+	SYSTICK_InternalInit(1); // from NXP not R2C2 - 1ms interval
 	SYSTICK_IntCmd(ENABLE);
 	SYSTICK_Cmd(ENABLE);
+	_DBG("[OK]-SYSTICK_Cmd()");_DBG(__LINE__);_DBG_(__FILE__);
+
+	// Initialize USB<->Serial
+	serial_init();
+	_DBG("[OK]-serial_init()");_DBG(__LINE__);_DBG_(__FILE__);
+	serial_writestr("Start\r\nOK\r\n");
+  
 
 	//Setup SSP port for led drivers
 	//LED_init();
@@ -85,14 +88,15 @@ int main(void){
 
 	// wifi init
 	WiFi_init();
-	_DBG_("[OK]-WiFi_init()");_DBG(__LINE__);_DBG_(__FILE__);
+	_DBG("[OK]-WiFi_init()");_DBG(__LINE__);_DBG_(__FILE__);
 
 
 	// main loop
-	_DBG_("[INFO]-WiFi_init()");_DBG(__LINE__);_DBG_(__FILE__);
+	_DBG("[INFO]-WiFi_init()");_DBG(__LINE__);_DBG_(__FILE__);
 	// main loop
 	for (;;){
 		// Wifi Loop
+		//TODO change to interrupt
 		WiFi_loop();
 
 		/* Power save - Do every 100ms */

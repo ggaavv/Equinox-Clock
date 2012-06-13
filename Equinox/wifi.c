@@ -10,7 +10,7 @@
 
 void WiFi_init(){
 
-	_DBG_("WiFi_init()");_DBG(__LINE__);_DBG_(__FILE__);
+	_DBG("WiFi_init()");_DBG(__LINE__);_DBG_(__FILE__);
 	GPIO_SetDir(WF_CS_PORT, WF_CS_PIN, 1);
 	GPIO_SetValue(WF_CS_PORT, WF_CS_PIN);
 
@@ -54,21 +54,21 @@ void WiFi_init(){
 
 //	attachInterrupt(INT_PIN, zg_isr, FALLING);
 
-	_DBG_("WiFi_init() - zg_init();");_DBG(__LINE__);_DBG_(__FILE__);
+	_DBG("WiFi_init() - zg_init();");_DBG(__LINE__);_DBG_(__FILE__);
 	zg_init();
 
-	_DBG_("WiFi_init() - while(zg_get_conn_state() != 1) {");_DBG(__LINE__);_DBG_(__FILE__);
+	_DBG("WiFi_init() - while(zg_get_conn_state() != 1) {");_DBG(__LINE__);_DBG_(__FILE__);
 	while(zg_get_conn_state() != 1) {
 		zg_drv_process();
 	}
 
-	_DBG_("WiFi_init() - stack_init();");_DBG(__LINE__);_DBG_(__FILE__);
+	_DBG("WiFi_init() - stack_init();");_DBG(__LINE__);_DBG_(__FILE__);
 	stack_init();
 }
 
 
 void WiFi_loop(){
-	_DBG_("WiFi_loop()");_DBG(__LINE__);_DBG_(__FILE__);
+	_DBG("WiFi_loop()");_DBG(__LINE__);_DBG_(__FILE__);
 	stack_process();
 	zg_drv_process();
 }

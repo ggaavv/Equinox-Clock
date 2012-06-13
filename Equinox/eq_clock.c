@@ -221,6 +221,7 @@ PORTD=11111111
 
 
 void LED_init(){
+	//TODO lsb first spi mode 0 0?
 	
 	GPIO_SetDir(LED_CS_PORT, LED_CS_PIN, 1);
 	GPIO_SetValue(LED_CS_PORT, LED_CS_PIN);
@@ -447,24 +448,6 @@ void setup() {
 
 	// TODO: Move to INIT!!!!
 
-
-//*
-//	cli();
-	// init the button inputs
-//	pinMode(4, INPUT);
-//	pinMode(5, INPUT);
-//	pinMode(6, INPUT);
-//	pinMode(7, INPUT);
-//	pinMode(8, INPUT);
-//	digitalWrite(4, HIGH);
-//	digitalWrite(5, HIGH);
-//	digitalWrite(6, HIGH);
-//	digitalWrite(7, HIGH);
-//	digitalWrite(8, HIGH);
-
-	// define pin modes for tx, rx, led pins:
-	pinMode(rxPin, INPUT);
-	pinMode(txPin, OUTPUT);
 
 //	mySerial.begin(4800); //Only 4800 works to PC
 //	mySerial.print("Built:");
