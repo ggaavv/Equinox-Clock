@@ -34,11 +34,15 @@
 //	void stack_init(void);
 //	void stack_process(void);
 
-#define USER_FLASH_START 0x30000 /* For USB bootloader */
+#include "uart.h"   // TODO: remove after debugging
+#include "lpc17xx_gpio.h"
+#include "debug.h"
+
+#define USER_FLASH_START 0x3000 /* For USB bootloader */
 //#define USER_FLASH_START 0x0 /* No USB bootloader */
 
 void startup_delay(void){
-	for (volatile unsigned long i = 0; i < 5000; i++) { ; }
+	for (volatile unsigned long i = 0; i < 50000; i++) { ; }
 }
 
 /*********************************************************************//**
@@ -46,14 +50,12 @@ void startup_delay(void){
  **********************************************************************/
 int main(void){
 
-	long timer1, steptimeout, discard;
+	LPC_GPIO1->FIODIR = 1 << 23;
+	LPC_GPIO1->FIOPIN = 1 << 23; // make LED ON to indicate that button may be pressed to enter bootloader
+//	LPC_GPIO1->FIOPIN ^= 1 << 23; //  LED flasher
+//	LPC_GPIO1->FIOCLR = 1 << 23;
 
-	//Debug functions output to com1/8n1/115200
-	//does this need to be first??
-	//TODO
-	debug_frmwrk_init();
-	_DBG("[OK]-debug_frmwrk_init()");_DBG(__LINE__);_DBG_(__FILE__);
-	//discard=_DBG_("**press any key**");_DG();//wait for key press @ debug port.
+//	while(1) ;
 
 	// DeInit NVIC and SCBNVIC
 	NVIC_DeInit();
@@ -74,6 +76,16 @@ int main(void){
 	SYSTICK_InternalInit(1); // from NXP not R2C2 - 1ms interval
 	SYSTICK_IntCmd(ENABLE);
 	SYSTICK_Cmd(ENABLE);
+	
+	long timer1, steptimeout, discard;
+
+	//Debug functions output to com1/8n1/115200
+	//does this need to be first??
+	//TODO
+	debug_frmwrk_init();
+	_DBG("[OK]-debug_frmwrk_init()");_DBG(__LINE__);_DBG_(__FILE__);
+	//discard=_DBG_("**press any key**");_DG();//wait for key press @ debug port.
+
 	_DBG("[OK]-SYSTICK_Cmd()");_DBG(__LINE__);_DBG_(__FILE__);
 
 	// Initialize USB<->Serial

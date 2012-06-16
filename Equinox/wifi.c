@@ -10,7 +10,6 @@
 
 void WiFi_init(){
 
-	_DBG("WiFi_init()");_DBG(__LINE__);_DBG_(__FILE__);
 	GPIO_SetDir(WF_CS_PORT, WF_CS_PIN, 1);
 	GPIO_SetValue(WF_CS_PORT, WF_CS_PIN);
 
@@ -54,15 +53,15 @@ void WiFi_init(){
 
 //	attachInterrupt(INT_PIN, zg_isr, FALLING);
 
-	_DBG("WiFi_init() - zg_init();");_DBG(__LINE__);_DBG_(__FILE__);
 	zg_init();
+	_DBG("[OK]-WiFi_init() - zg_init();");_DBG(__LINE__);_DBG_(__FILE__);
 
-	_DBG("WiFi_init() - while(zg_get_conn_state() != 1) {");_DBG(__LINE__);_DBG_(__FILE__);
 	while(zg_get_conn_state() != 1) {
 		zg_drv_process();
 	}
+	_DBG("[OK]-WiFi_init() - while(zg_get_conn_state() != 1) {");_DBG(__LINE__);_DBG_(__FILE__);
 
-	_DBG("WiFi_init() - stack_init();");_DBG(__LINE__);_DBG_(__FILE__);
+	_DBG("[OK]-WiFi_init() - stack_init();");_DBG(__LINE__);_DBG_(__FILE__);
 	stack_init();
 }
 
@@ -75,5 +74,5 @@ void WiFi_loop(){
 
 
 // This is the webpage that is served up by the webserver
-const prog_char webpage[] = {"HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<center><h1>Hello World!! I am WiShield</h1><form method=\"get\" action=\"0\">Toggle LED:<input type=\"submit\" name=\"0\" value=\"LED1\"></input></form></center>"};
+const char webpage[] = {"HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<center><h1>Hello World!! I am WiShield</h1><form method=\"get\" action=\"0\">Toggle LED:<input type=\"submit\" name=\"0\" value=\"LED1\"></input></form></center>"};
 

@@ -48,6 +48,8 @@
 #define LED_MOSI_PORT		0
 #define LED_MOSI_PIN		(1 << 18)
 
+#define LED_SPI_CHN			0
+
 /*
         Wifi Pins
 */
@@ -65,8 +67,8 @@
 #define WF_MOSI_PORT		0
 #define WF_MOSI_PIN			(1 <<  9)
 
-#define MRF24W_SPI_CHN		1
-#define MRF24W_INT		1
+#define WF_SPI_CHN			1
+#define WF_INT				1
 
 
 

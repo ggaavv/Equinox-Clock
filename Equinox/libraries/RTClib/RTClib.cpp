@@ -121,7 +121,7 @@ static uint8_t daysInMonth [] PROGMEM = { 31,28,31,30,31,30,31,31,30,31,30,31 };
 #define DOW_LEN 3
 #define NUM_DAYS_OF_WEEK 7
 #define DAYS_OF_WEEK_MAX_LEN 10
-static unsigned char DayOfWeekName[NUM_DAYS_OF_WEEK][DAYS_OF_WEEK_MAX_LEN] PROGMEM = {
+static unsigned char DayOfWeekName[NUM_DAYS_OF_WEEK][DAYS_OF_WEEK_MAX_LEN] = {
 "Sunday",
 "Monday",
 "Tuesday",

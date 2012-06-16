@@ -184,7 +184,11 @@ SRC = \
 	$(APPLIBDIR)/R2C2/usb.c \
 	$(APPLIBDIR)/R2C2/serial_fifo.c \
 	wifi.c \
-	$(APPLIBDIR)/RTClib/rtc.c
+	$(APPLIBDIR)/RTClib/rtc.c \
+	$(APPLIBDIR)/R2C2/uart.c \
+	$(APPLIBDIR)/R2C2/sersendf.c \
+	$(APPLIBDIR)/R2C2/sermsg.c
+	
 #	$(APPLIBDIR)/WiShield/g2100.c \
 #	$(APPLIBDIR)/WiShield/network.c \
 #	$(APPLIBDIR)/WiShield/psock.c \

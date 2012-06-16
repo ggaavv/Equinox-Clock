@@ -285,10 +285,10 @@
 #define SCS_Val               0x00000020
 #define CLKSRCSEL_Val         0x00000001
 #define PLL0_SETUP            1
-#define PLL0CFG_Val           0x00050063
+#define PLL0CFG_Val           0x00000008
 #define PLL1_SETUP            1
-#define PLL1CFG_Val           0x00000023
-#define CCLKCFG_Val           0x00000003
+#define PLL1CFG_Val           0x00000022
+#define CCLKCFG_Val           0x00000002
 #define USBCLKCFG_Val         0x00000000
 #define PCLKSEL0_Val          0x00000000
 #define PCLKSEL1_Val          0x00000000
@@ -381,7 +381,7 @@
 /*----------------------------------------------------------------------------
   Define clocks
  *----------------------------------------------------------------------------*/
-#define XTAL        (12000000UL)        /* Oscillator frequency               */
+#define XTAL        (16000000UL)        /* Oscillator frequency               */
 #define OSC_CLK     (      XTAL)        /* Main oscillator frequency          */
 #define RTC_CLK     (   32000UL)        /* RTC oscillator frequency           */
 #define IRC_OSC     ( 4000000UL)        /* Internal RC oscillator frequency   */
@@ -476,20 +476,20 @@ void SystemCoreClockUpdate (void)            /* Get Core Clock Frequency      */
 void SystemInit (void)
 {
 #if (CLOCK_SETUP)                       /* Clock Setup                        */
-  LPC_SC->SCS       = 0x00000020; /* Main oscillator enable */
+  LPC_SC->SCS       = SCS_Val; /* Main oscillator enable */
   if (SCS_Val & (1 << 5)) {             /* If Main Oscillator is enabled      */
     while ((LPC_SC->SCS & (1<<6)) == 0);/* Wait for Oscillator to be ready    */
   }
 
-  LPC_SC->CCLKCFG   = 0x00000003;      /* Setup Clock Divider -- PLL0 output is divided by 4 to produce the CPU clock */
+  LPC_SC->CCLKCFG   = CCLKCFG_Val;      /* Setup Clock Divider -- PLL0 output is divided by 4 to produce the CPU clock */
 
   LPC_SC->PCLKSEL0  = 0;     /* Peripheral Clock Selection -- none!         */
   LPC_SC->PCLKSEL1  = 0;
 
-  LPC_SC->CLKSRCSEL = 0x00000001;    /* Select Clock Source for PLL0 -- Selects the main oscillator as the PLL0 clock source */
+  LPC_SC->CLKSRCSEL = CLKSRCSEL_Val;    /* Select Clock Source for PLL0 -- Selects the main oscillator as the PLL0 clock source */
 
 #if (PLL0_SETUP)
-  LPC_SC->PLL0CFG   = 0x00050063; /* configure PLL0 -- MSEL0 = 99; NSEL0 = 5, for 12MHz xtal: (24*10^6 * (99+1)) / (2 * 12*10^6) = 400 */
+  LPC_SC->PLL0CFG   = PLL0CFG_Val; /* configure PLL0 -- MSEL0 = 99; NSEL0 = 5, for 12MHz xtal: (24*10^6 * (99+1)) / (2 * 12*10^6) = 400 */
   LPC_SC->PLL0FEED  = 0xAA;
   LPC_SC->PLL0FEED  = 0x55;
 
@@ -505,7 +505,7 @@ void SystemInit (void)
 #endif
 
 #if (PLL1_SETUP)
-  LPC_SC->PLL1CFG   = 0x00000023; /* configure PLL1 -- MSEL1 = 3; PSEL1 = 1, for 12MHz xtal: (2 * 4 * 12*10^6) / 2 = 48MHz */
+  LPC_SC->PLL1CFG   = PLL1CFG_Val; /* configure PLL1 -- MSEL1 = 3; PSEL1 = 1, for 12MHz xtal: (2 * 4 * 12*10^6) / 2 = 48MHz */
   LPC_SC->PLL0FEED  = 0xAA;
   LPC_SC->PLL1FEED  = 0xAA;
   LPC_SC->PLL1FEED  = 0x55;
@@ -523,6 +523,8 @@ void SystemInit (void)
   LPC_SC->USBCLKCFG = USBCLKCFG_Val;    /* Setup USB Clock Divider            */
 #endif
 
+  LPC_SC->PCLKSEL0  = PCLKSEL0_Val;     /* Peripheral Clock Selection         */
+  LPC_SC->PCLKSEL1  = PCLKSEL1_Val;
   LPC_SC->PCONP     = PCONP_Val;        /* Power Control for Peripherals      */
 
   /* Use next 2 lines (and comment 3rd) to test on P1.27 the CPU clock signal. Should be 25MHz on pin because it's divided by 4 */
@@ -534,6 +536,6 @@ void SystemInit (void)
 #endif
 
 #if (FLASH_SETUP == 1)                  /* Flash Accelerator Setup            */
-  LPC_SC->FLASHCFG  = (LPC_SC->FLASHCFG & ~0x0000F000) | FLASHCFG_Val;
+  LPC_SC->FLASHCFG  = FLASHCFG_Val;
 #endif
 }

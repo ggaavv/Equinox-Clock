@@ -1,21 +1,28 @@
-/***********************************************************************//**
- * @file		lpc17xx_uart.c
- * @brief		Contains all functions support for UART firmware library on LPC17xx
- * @version		3.0
- * @date		18. June. 2010
- * @author		NXP MCU SW Application Team
- **************************************************************************
- * Software that is described herein is for illustrative purposes only
- * which provides customers with programming information regarding the
- * products. This software is supplied "AS IS" without any warranties.
- * NXP Semiconductors assumes no responsibility or liability for the
- * use of the software, conveys no license or title under any patent,
- * copyright, or mask work right to the product. NXP Semiconductors
- * reserves the right to make changes in the software without
- * notification. NXP Semiconductors also make no representation or
- * warranty that such application will be suitable for the specified
- * use without further testing or modification.
- **********************************************************************/
+/**********************************************************************
+* $Id$		lpc17xx_uart.c			2011-06-06
+*//**
+* @file		lpc17xx_uart.c
+* @brief	Contains all functions support for UART firmware library
+* 			on LPC17xx
+* @version	3.2
+* @date		25. July. 2011
+* @author	NXP MCU SW Application Team
+*
+* Copyright(C) 2011, NXP Semiconductor
+* All rights reserved.
+*
+***********************************************************************
+* Software that is described herein is for illustrative purposes only
+* which provides customers with programming information regarding the
+* products. This software is supplied "AS IS" without any warranties.
+* NXP Semiconductors assumes no responsibility or liability for the
+* use of the software, conveys no license or title under any patent,
+* copyright, or mask work right to the product. NXP Semiconductors
+* reserves the right to make changes in the software without
+* notification. NXP Semiconductors also make no representation or
+* warranty that such application will be suitable for the specified
+* use without further testing or modification.
+**********************************************************************/
 
 /* Peripheral group ----------------------------------------------------------- */
 /** @addtogroup UART
@@ -61,17 +68,10 @@ static Status uart_set_divisors(LPC_UART_TypeDef *UARTx, uint32_t baudrate)
 	Status errorStatus = ERROR;
 
 	uint32_t uClk;
-	uint32_t calcBaudrate = 0;
-	uint32_t temp = 0;
-
-	uint32_t mulFracDiv, dividerAddFracDiv;
-	uint32_t diviser = 0 ;
-	uint32_t mulFracDivOptimal = 1;
-	uint32_t dividerAddOptimal = 0;
-	uint32_t diviserOptimal = 0;
-
-	uint32_t relativeError = 0;
-	uint32_t relativeOptimalError = 100000;
+	uint32_t d, m, bestd, bestm, tmp;
+	uint64_t best_divisor, divisor;
+	uint32_t current_error, best_error;
+	uint32_t recalcbaud;
 
 	/* get UART block clock */
 	if (UARTx == LPC_UART0)
@@ -92,7 +92,6 @@ static Status uart_set_divisors(LPC_UART_TypeDef *UARTx, uint32_t baudrate)
 	}
 
 
-	uClk = uClk >> 4; /* div by 16 */
 	/* In the Uart IP block, baud rate is calculated using FDR and DLL-DLM registers
 	* The formula is :
 	* BaudRate= uClk * (mulFracDiv/(mulFracDiv+dividerAddFracDiv) / (16 * (DLL)
@@ -100,66 +99,77 @@ static Status uart_set_divisors(LPC_UART_TypeDef *UARTx, uint32_t baudrate)
 	* Multiply and divide method.*/
 	/* The value of mulFracDiv and dividerAddFracDiv should comply to the following expressions:
 	* 0 < mulFracDiv <= 15, 0 <= dividerAddFracDiv <= 15 */
-	for (mulFracDiv = 1 ; mulFracDiv <= 15 ;mulFracDiv++)
+	best_error = 0xFFFFFFFF; /* Worst case */
+	bestd = 0;
+	bestm = 0;
+	best_divisor = 0;
+	for (m = 1 ; m <= 15 ;m++)
 	{
-	for (dividerAddFracDiv = 0 ; dividerAddFracDiv <= 15 ;dividerAddFracDiv++)
-	{
-	  temp = (mulFracDiv * uClk) / ((mulFracDiv + dividerAddFracDiv));
-
-	  diviser = temp / baudrate;
-	  if ((temp % baudrate) > (baudrate / 2))
-		diviser++;
-
-	  if (diviser > 2 && diviser < 65536)
-	  {
-		calcBaudrate = temp / diviser;
-
-		if (calcBaudrate <= baudrate)
-		  relativeError = baudrate - calcBaudrate;
-		else
-		  relativeError = calcBaudrate - baudrate;
-
-		if ((relativeError < relativeOptimalError))
+		for (d = 0 ; d < m ; d++)
 		{
-		  mulFracDivOptimal = mulFracDiv ;
-		  dividerAddOptimal = dividerAddFracDiv;
-		  diviserOptimal = diviser;
-		  relativeOptimalError = relativeError;
-		  if (relativeError == 0)
-			break;
-		}
-	  } /* End of if */
-	} /* end of inner for loop */
-	if (relativeError == 0)
-	  break;
+		  divisor = ((uint64_t)uClk<<28)*m/(baudrate*(m+d));
+		  current_error = divisor & 0xFFFFFFFF;
+
+		  tmp = divisor>>32;
+
+		  /* Adjust error */
+		  if(current_error > ((uint32_t)1<<31)){
+			current_error = -current_error;
+			tmp++;
+			}
+
+		  if(tmp<1 || tmp>65536) /* Out of range */
+		  continue;
+
+		  if( current_error < best_error){
+			best_error = current_error;
+			best_divisor = tmp;
+			bestd = d;
+			bestm = m;
+			if(best_error == 0) break;
+			}
+		} /* end of inner for loop */
+
+		if (best_error == 0)
+		  break;
 	} /* end of outer for loop  */
 
-	if (relativeOptimalError < ((baudrate * UART_ACCEPTED_BAUDRATE_ERROR)/100))
-	{
-		if (((LPC_UART1_TypeDef *)UARTx) == LPC_UART1)
-		{
-			((LPC_UART1_TypeDef *)UARTx)->LCR |= UART_LCR_DLAB_EN;
-			((LPC_UART1_TypeDef *)UARTx)->/*DLIER.*/DLM = UART_LOAD_DLM(diviserOptimal);
-			((LPC_UART1_TypeDef *)UARTx)->/*RBTHDLR.*/DLL = UART_LOAD_DLL(diviserOptimal);
-			/* Then reset DLAB bit */
-			((LPC_UART1_TypeDef *)UARTx)->LCR &= (~UART_LCR_DLAB_EN) & UART_LCR_BITMASK;
-			((LPC_UART1_TypeDef *)UARTx)->FDR = (UART_FDR_MULVAL(mulFracDivOptimal) \
-					| UART_FDR_DIVADDVAL(dividerAddOptimal)) & UART_FDR_BITMASK;
-		}
-		else
-		{
-			UARTx->LCR |= UART_LCR_DLAB_EN;
-			UARTx->/*DLIER.*/DLM = UART_LOAD_DLM(diviserOptimal);
-			UARTx->/*RBTHDLR.*/DLL = UART_LOAD_DLL(diviserOptimal);
-			/* Then reset DLAB bit */
-			UARTx->LCR &= (~UART_LCR_DLAB_EN) & UART_LCR_BITMASK;
-			UARTx->FDR = (UART_FDR_MULVAL(mulFracDivOptimal) \
-					| UART_FDR_DIVADDVAL(dividerAddOptimal)) & UART_FDR_BITMASK;
-		}
-		errorStatus = SUCCESS;
-	}
+	if(best_divisor == 0) return ERROR; /* can not find best match */
 
-	return errorStatus;
+	recalcbaud = (uClk>>4) * bestm/(best_divisor * (bestm + bestd));
+
+	/* reuse best_error to evaluate baud error*/
+	if(baudrate>recalcbaud) best_error = baudrate - recalcbaud;
+	else best_error = recalcbaud -baudrate;
+
+	best_error = best_error * 100 / baudrate;
+
+	if (best_error < UART_ACCEPTED_BAUDRATE_ERROR)
+		{
+			if (((LPC_UART1_TypeDef *)UARTx) == LPC_UART1)
+			{
+				((LPC_UART1_TypeDef *)UARTx)->LCR |= UART_LCR_DLAB_EN;
+				((LPC_UART1_TypeDef *)UARTx)->/*DLIER.*/DLM = UART_LOAD_DLM(best_divisor);
+				((LPC_UART1_TypeDef *)UARTx)->/*RBTHDLR.*/DLL = UART_LOAD_DLL(best_divisor);
+				/* Then reset DLAB bit */
+				((LPC_UART1_TypeDef *)UARTx)->LCR &= (~UART_LCR_DLAB_EN) & UART_LCR_BITMASK;
+				((LPC_UART1_TypeDef *)UARTx)->FDR = (UART_FDR_MULVAL(bestm) \
+						| UART_FDR_DIVADDVAL(bestd)) & UART_FDR_BITMASK;
+			}
+			else
+			{
+				UARTx->LCR |= UART_LCR_DLAB_EN;
+				UARTx->/*DLIER.*/DLM = UART_LOAD_DLM(best_divisor);
+				UARTx->/*RBTHDLR.*/DLL = UART_LOAD_DLL(best_divisor);
+				/* Then reset DLAB bit */
+				UARTx->LCR &= (~UART_LCR_DLAB_EN) & UART_LCR_BITMASK;
+				UARTx->FDR = (UART_FDR_MULVAL(bestm) \
+						| UART_FDR_DIVADDVAL(bestd)) & UART_FDR_BITMASK;
+			}
+			errorStatus = SUCCESS;
+		}
+
+		return errorStatus;
 }
 
 /* End of Private Functions ---------------------------------------------------- */

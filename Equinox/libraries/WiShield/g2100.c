@@ -37,6 +37,7 @@ Description:	Driver for the ZeroG Wireless G2100 series devices
 #include "config.h"
 #include "g2100.h"
 #include "global-conf.h"
+#include "debug_frmwrk.h"
 
 #include "wifi_config.h"
 #include "pinout.h"
@@ -98,10 +99,16 @@ void zg_init()
    zg_buf = uip_buf;
    zg_buf_len = UIP_BUFSIZE;
 
+   //TODO enable eint!!!!!!!
+
    zg_chip_reset();
+   _DBG("[OK]-zg_chip_reset()");_DBG(__LINE__);_DBG_(__FILE__);
    zg_interrupt2_reg();
+   _DBG("[OK]-zg_interrupt2_reg()");_DBG(__LINE__);_DBG_(__FILE__);
    zg_interrupt_reg(0xff, 0);
+   _DBG("[OK]-zg_interrupt_reg(0xff, 0)");_DBG(__LINE__);_DBG_(__FILE__);
    zg_interrupt_reg(0x80|0x40, 1);
+   _DBG("zg_interrupt_reg(0x80|0x40, 1)");_DBG(__LINE__);_DBG_(__FILE__);
 
    ssid_len = (U8)strlen(ssid);
    security_passphrase_len = (U8)strlen(security_passphrase);
@@ -154,7 +161,9 @@ void zg_chip_reset()
       hdr[0] = ZG_INDEX_ADDR_REG;
       hdr[1] = 0x00;
       hdr[2] = ZG_RESET_REG;
+
       spi_transmit(hdr, 3, 1);
+      _DBG("[OK]-zg_chip_reset() -- spi_transmit(hdr, 3, 1)");_DBG(__LINE__);_DBG_(__FILE__);
 
       hdr[0] = ZG_INDEX_DATA_REG;
       hdr[1] = (loop_cnt == 0)?(0x80):(0x0f);
@@ -167,6 +176,7 @@ void zg_chip_reset()
    hdr[1] = 0x00;
    hdr[2] = ZG_RESET_STATUS_REG;
    spi_transmit(hdr, 3, 1);
+   _DBG("[OK]-zg_chip_reset() -- // write reset register data");_DBG(__LINE__);_DBG_(__FILE__);
 
    do {
       hdr[0] = 0x40 | ZG_INDEX_DATA_REG;
@@ -174,6 +184,7 @@ void zg_chip_reset()
       hdr[2] = 0x00;
       spi_transmit(hdr, 3, 1);
    } while((hdr[1] & ZG_RESET_MASK) == 0);
+   _DBG("[OK]-zg_chip_reset() -- } while((hdr[1] & ZG_RESET_MASK) == 0);");_DBG(__LINE__);_DBG_(__FILE__);
 
    do {
       hdr[0] = 0x40 | ZG_BYTE_COUNT_REG;
@@ -222,7 +233,8 @@ void zg_interrupt_reg(U8 mask, U8 state)
 }
 
 //void zg_isr()
-void EINT0_IRQHandler (void)
+// void EINT0_IRQHandler (void) // TODO: set to eint0 when finnished debugging
+void EINT2_IRQHandler (void)
 {
    intr_occured = 1;
 //   gpio_write_bit(DEBUG_PORT, DEBUG_PIN, 1);

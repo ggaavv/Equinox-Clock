@@ -174,11 +174,11 @@ static bool ConfigureSpiMRF24W(void)
     /* data is sampled on rising edge   */
     /* set the clock divider            */
 	#if defined(__PIC32MX__)
-	return DRV_SPI_Initialize(MRF24W_SPI_CHN, 
+	return DRV_SPI_Initialize(MRF24W_SPI_CHN,
 				SPI_OPEN_MSTEN|SPI_OPEN_MODE8|SPI_OPEN_SMP_END|SPI_OPEN_CKP_HIGH, 
 				SYS_CLK_PeripheralClockGet()/WF_MAX_SPI_FREQ);
 	#elif defined(__C30__)
-	return DRV_SPI_Initialize(MRF24W_SPI_CHN, 
+	return DRV_SPI_Initialize(MRF24W_SPI_CHN,
 				SPI_SMP_END|SPI_CLK_POL|SPI_MSTEN, 
 				SYS_CLK_PeripheralClockGet()/WF_MAX_SPI_FREQ);
 	#else

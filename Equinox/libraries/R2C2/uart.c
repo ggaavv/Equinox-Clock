@@ -33,7 +33,7 @@
 
 //Debug UART can be 0 or 3
 #define DBG_UART_NUM  0 
-#define DBG_UART      LPC_UART3
+#define DBG_UART      LPC_UART0
 
 void uart_init(void)
 {
@@ -73,7 +73,7 @@ void uart_init(void)
 		* None parity
 		*/
 	UART_ConfigStructInit(&UARTConfigStruct);
-	UARTConfigStruct.Baud_rate = 57600;
+	UARTConfigStruct.Baud_rate = 115200;
 
 	// Initialize UART peripheral with given to corresponding parameter
 	UART_Init(DBG_UART, &UARTConfigStruct);

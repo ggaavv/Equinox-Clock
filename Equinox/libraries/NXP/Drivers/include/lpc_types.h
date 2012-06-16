@@ -151,21 +151,18 @@ typedef char CHAR;
 
 /** SMA type for 8 bit unsigned value */
 typedef uint8_t UNS_8;
-//typedef uint8_t u8_t;
 
 /** SMA type for 8 bit signed value */
 typedef int8_t INT_8;
 
 /** SMA type for 16 bit unsigned value */
 typedef	uint16_t UNS_16;
-//typedef	uint16_t u16_t;
 
 /** SMA type for 16 bit signed value */
 typedef	int16_t INT_16;
 
 /** SMA type for 32 bit unsigned value */
 typedef	uint32_t UNS_32;
-//typedef	uint32_t u32_t;
 
 /** SMA type for 32 bit signed value */
 typedef	int32_t INT_32;
@@ -184,10 +181,6 @@ typedef Bool BOOL_16;
 
 /** 8 bit boolean type */
 typedef Bool BOOL_8;
-
-
-#define prog_char const char
-#define prog_uchar const unsigned char
 
 /**
  * @}
