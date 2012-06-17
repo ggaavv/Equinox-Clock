@@ -118,3 +118,18 @@ void uart_writestr(char *data)
  	while ((r = data[i++]))
 		uart_send(r);
 }
+
+void uart_send_32_Hex(char Data){
+	if(Data >= 0x10){
+		uart_send_32_Hex(Data/0x10);
+		uart_send_32_Hex(Data%0x10);
+	}
+	else{
+		if(Data < 0xA){
+		UART_SendByte(DBG_UART, Data+'0');
+	    }
+	    else{
+	    	UART_SendByte(DBG_UART, ((Data-0x0A)+'A'));
+	    }
+	}
+}

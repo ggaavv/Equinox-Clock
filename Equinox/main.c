@@ -51,6 +51,7 @@ void startup_delay(void){
 int main(void){
 
 	LPC_GPIO1->FIODIR = 1 << 23;
+	LPC_GPIO1->FIODIR = 1 << 21;
 	LPC_GPIO1->FIOPIN = 1 << 23; // make LED ON to indicate that button may be pressed to enter bootloader
 //	LPC_GPIO1->FIOPIN ^= 1 << 23; //  LED flasher
 //	LPC_GPIO1->FIOCLR = 1 << 23;
@@ -91,6 +92,8 @@ int main(void){
 	// Initialize USB<->Serial
 	serial_init();
 	_DBG("[OK]-serial_init()");_DBG(__LINE__);_DBG_(__FILE__);
+
+	uart_writestr("Start\r\nOK\r\n");
 	serial_writestr("Start\r\nOK\r\n");
   
 

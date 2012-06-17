@@ -35,6 +35,7 @@ char uart_data_available(void);
 char uart_receive(void);
 void uart_send(char byte);
 void uart_writestr(char *data);
+void uart_send_32_Hex(char Data);
 
 // #define serial_writechar(x) uart_send(x)
 

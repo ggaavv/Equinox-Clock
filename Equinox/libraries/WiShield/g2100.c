@@ -60,6 +60,7 @@ Description:	Driver for the ZeroG Wireless G2100 series devices
 static U8 mac[6];
 
 static U8 hdr[5];
+static U8 bufrec[5];
 static volatile U8 zg_conn_status;
 static volatile U8 intr_occured;
 static volatile U8 intr_valid;
@@ -99,8 +100,6 @@ void zg_init()
    zg_buf = uip_buf;
    zg_buf_len = UIP_BUFSIZE;
 
-   //TODO enable eint!!!!!!!
-
    zg_chip_reset();
    _DBG("[OK]-zg_chip_reset()");_DBG(__LINE__);_DBG_(__FILE__);
    zg_interrupt2_reg();
@@ -114,6 +113,54 @@ void zg_init()
    security_passphrase_len = (U8)strlen(security_passphrase);
 }
 
+void spi_transfer(volatile U8* buf, U16 len, U8 toggle_cs)
+{
+   U8 i;
+
+   FIO_ClearValue(WF_CS_PORT, WF_CS_PIN);
+
+   SSP_DATA_SETUP_Type xferConfig;
+   xferConfig.tx_data = buf;
+   xferConfig.rx_data = bufrec;
+   xferConfig.length = len;
+
+
+   uart_writestr("\nbefore");
+   uart_writestr("\n");
+   uart_send_32_Hex(buf[0]);
+   uart_writestr("\n");
+   uart_send_32_Hex(buf[1]);
+   uart_writestr("\n");
+   uart_send_32_Hex(buf[2]);
+   uart_writestr("\n");
+   uart_send_32_Hex(buf[3]);
+   uart_writestr("\n");
+   uart_send_32_Hex(buf[4]);
+   uart_writestr("\n");
+   SSP_ReadWrite (LPC_SSP1, &xferConfig, SSP_TRANSFER_POLLING);
+   uart_writestr("\nafter\n");
+   uart_send_32_Hex(bufrec[0]);
+   uart_writestr("\n");
+   uart_send_32_Hex(bufrec[1]);
+   uart_writestr("\n");
+   uart_send_32_Hex(bufrec[2]);
+   uart_writestr("\n");
+   uart_send_32_Hex(bufrec[3]);
+   uart_writestr("\n");
+   uart_send_32_Hex(bufrec[4]);
+   uart_writestr("\n");
+
+/*   for (i = 0; i < len; i++) {
+      buf[i] = spi_tx_byte(1, buf[i]);
+   }*/
+
+   if (toggle_cs) {
+	   FIO_SetValue(WF_CS_PORT, WF_CS_PIN);
+   }
+
+   return;
+}
+
 void spi_transmit(volatile U8* buf, U16 len, U8 toggle_cs)
 {
    U16 i;
@@ -122,8 +169,13 @@ void spi_transmit(volatile U8* buf, U16 len, U8 toggle_cs)
 
    for (i = 0; i < len; i++) {
 //      buf[i] = spi_tx_byte(1, buf[i]);
-	   while(!SSP_GetStatus(LPC_SSP1, SSP_STAT_TXFIFO_NOTFULL));
+	   do {
+		   uart_writestr("waiting\n");
+	   } while(!SSP_GetStatus(LPC_SSP1, SSP_STAT_TXFIFO_NOTFULL));
+	   uart_writestr("\nb4");
 	   SSP_SendData(LPC_SSP1, buf[i]);
+	   uart_send_32_Hex(buf[i]);
+	   uart_writestr("\nafter\n");
    }
 
    if (toggle_cs) {
@@ -162,35 +214,35 @@ void zg_chip_reset()
       hdr[1] = 0x00;
       hdr[2] = ZG_RESET_REG;
 
-      spi_transmit(hdr, 3, 1);
-      _DBG("[OK]-zg_chip_reset() -- spi_transmit(hdr, 3, 1)");_DBG(__LINE__);_DBG_(__FILE__);
+      spi_transfer(hdr, 3, 1);
+      _DBG("[OK]-zg_chip_reset() -- 1");_DBG(__LINE__);_DBG_(__FILE__);
 
       hdr[0] = ZG_INDEX_DATA_REG;
       hdr[1] = (loop_cnt == 0)?(0x80):(0x0f);
       hdr[2] = 0xff;
-      spi_transmit(hdr, 3, 1);
+      spi_transfer(hdr, 3, 1);
    } while(loop_cnt++ < 1);
 
    // write reset register data
    hdr[0] = ZG_INDEX_ADDR_REG;
    hdr[1] = 0x00;
    hdr[2] = ZG_RESET_STATUS_REG;
-   spi_transmit(hdr, 3, 1);
-   _DBG("[OK]-zg_chip_reset() -- // write reset register data");_DBG(__LINE__);_DBG_(__FILE__);
+   spi_transfer(hdr, 3, 1);
+   _DBG("[OK]-zg_chip_reset() -- 2");_DBG(__LINE__);_DBG_(__FILE__);
 
    do {
       hdr[0] = 0x40 | ZG_INDEX_DATA_REG;
       hdr[1] = 0x00;
       hdr[2] = 0x00;
-      spi_transmit(hdr, 3, 1);
+      spi_transfer(hdr, 3, 1);
    } while((hdr[1] & ZG_RESET_MASK) == 0);
-   _DBG("[OK]-zg_chip_reset() -- } while((hdr[1] & ZG_RESET_MASK) == 0);");_DBG(__LINE__);_DBG_(__FILE__);
+   _DBG("[OK]-zg_chip_reset() -- 3");_DBG(__LINE__);_DBG_(__FILE__);
 
    do {
       hdr[0] = 0x40 | ZG_BYTE_COUNT_REG;
       hdr[1] = 0x00;
       hdr[2] = 0x00;
-      spi_transmit(hdr, 3, 1);
+      spi_transfer(hdr, 3, 1);
    } while((hdr[1] == 0) && (hdr[2] == 0));
 }
 
@@ -238,6 +290,7 @@ void EINT2_IRQHandler (void)
 {
    intr_occured = 1;
 //   gpio_write_bit(DEBUG_PORT, DEBUG_PIN, 1);
+   _DBG("[OK]-EINT2_IRQHandler()");_DBG(__LINE__);_DBG_(__FILE__);
 }
 
 void zg_process_isr()

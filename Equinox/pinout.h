@@ -66,6 +66,10 @@
 #define WF_MISO_PIN			(1 <<  8)
 #define WF_MOSI_PORT		0
 #define WF_MOSI_PIN			(1 <<  9)
+#define WF_EINT0_PORT		2
+#define WF_EINT0_PIN		(1 <<  10)
+#define WF_EINT2_PORT		2
+#define WF_EINT2_PIN		(1 <<  12)
 
 #define WF_SPI_CHN			1
 #define WF_INT				1
