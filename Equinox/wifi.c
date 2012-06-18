@@ -10,12 +10,12 @@
 
 void WiFi_init(){
 
-	GPIO_SetDir(WF_CS_PORT, WF_CS_PIN, 1);
-	GPIO_SetValue(WF_CS_PORT, WF_CS_PIN);
+//	GPIO_SetDir(WF_CS_PORT, WF_CS_PIN, 1);
+//	GPIO_SetValue(WF_CS_PORT, WF_CS_PIN);
 
 	GPIO_SetDir(WF_RESET_PORT, WF_RESET_PIN, 1);
 	GPIO_ClearValue(WF_RESET_PORT, WF_RESET_PIN);
-	delay_ms(100);
+	delay_ms(1);
 	GPIO_SetValue(WF_RESET_PORT, WF_RESET_PIN);
 
 	GPIO_SetDir(WF_HIBERNATE_PORT, WF_HIBERNATE_PIN, 1);
@@ -46,6 +46,13 @@ void WiFi_init(){
 	PinCfg.Pinmode   = PINSEL_PINMODE_TRISTATE;
 	PinCfg.Pinnum    = WF_MOSI_PIN;
 	PinCfg.Portnum   = WF_MOSI_PORT;
+	PINSEL_ConfigPin(&PinCfg);
+	/* SSEL1 */
+	PinCfg.Funcnum   = PINSEL_FUNC_2;
+	PinCfg.OpenDrain = PINSEL_PINMODE_PULLUP;
+	PinCfg.Pinmode   = PINSEL_PINMODE_TRISTATE;
+	PinCfg.Pinnum    = WF_CS_PIN;
+	PinCfg.Portnum   = WF_CS_PORT;
 	PINSEL_ConfigPin(&PinCfg);
 //	GPIO_SetDir(WF_MOSI_PORT, WF_MOSI_PIN, 1);
 	/* EINT0 */
