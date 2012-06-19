@@ -27,7 +27,6 @@
 #include "lpc17xx_clkpwr.h"
 
 
-
 /* If this source file built with example, the LPC17xx FW library configuration
  * file in each example directory ("lpc17xx_libcfg.h") must be included,
  * otherwise the default FW library configuration file must be included instead
@@ -300,9 +299,6 @@ void SSP_SlaveOutputCmd(LPC_SSP_TypeDef* SSPx, FunctionalState NewState)
  **********************************************************************/
 void SSP_SendData(LPC_SSP_TypeDef* SSPx, uint16_t Data)
 {
-	   uart_writestr("\nSSP_SendData before\n");
-	   uart_send_32_Hex(Data);
-	   uart_writestr("\nSSP_SendData after\n");
 
 	CHECK_PARAM(PARAM_SSPx(SSPx));
 
@@ -412,11 +408,6 @@ int32_t SSP_ReadWrite (LPC_SSP_TypeDef *SSPx, SSP_DATA_SETUP_Type *dataCfg, \
 			while ((SSPx->SR & SSP_SR_RNE) && (dataCfg->rx_cnt != dataCfg->length)){
 				// Read data from SSP data
 				tmp = SSP_ReceiveData(SSPx);
-
-				   uart_writestr("\nSSP_ReceiveData before\n");
-				   uart_send_32_Hex(tmp);
-				   uart_writestr("\nSSP_ReceiveData after\n");
-
 				// Store data to destination
 				if (dataCfg->rx_data != NULL)
 				{
