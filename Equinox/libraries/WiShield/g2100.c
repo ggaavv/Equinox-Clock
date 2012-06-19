@@ -115,9 +115,10 @@ void zg_init()
 
 void spi_transfer(volatile U8* buf, U16 len, U8 toggle_cs)
 {
+
    U8 i;
 
-   FIO_ClearValue(WF_CS_PORT, WF_CS_PIN);
+   FIO_ClearValue(WF_CS_PORT, WF_CS_BIT);
 
    SSP_DATA_SETUP_Type xferConfig;
    xferConfig.tx_data = buf;
@@ -126,27 +127,27 @@ void spi_transfer(volatile U8* buf, U16 len, U8 toggle_cs)
 
 
    uart_writestr("\nbefore");
-   uart_writestr("\n");
+//   uart_writestr("\n");
    uart_send_32_Hex(buf[0]);
-   uart_writestr("\n");
+//   uart_writestr("\n");
    uart_send_32_Hex(buf[1]);
-   uart_writestr("\n");
+//   uart_writestr("\n");
    uart_send_32_Hex(buf[2]);
-   uart_writestr("\n");
+//   uart_writestr("\n");
    uart_send_32_Hex(buf[3]);
-   uart_writestr("\n");
+//   uart_writestr("\n");
    uart_send_32_Hex(buf[4]);
-   uart_writestr("\n");
-   SSP_ReadWrite (LPC_SSP1, &xferConfig, SSP_TRANSFER_POLLING);
-   uart_writestr("\nafter\n");
+//   uart_writestr("\n");
+   SSP_ReadWrite (LPC_SSP0, &xferConfig, SSP_TRANSFER_POLLING);
+   uart_writestr("Rx");
    uart_send_32_Hex(bufrec[0]);
-   uart_writestr("\n");
+//   uart_writestr("\n");
    uart_send_32_Hex(bufrec[1]);
-   uart_writestr("\n");
+//   uart_writestr("\n");
    uart_send_32_Hex(bufrec[2]);
-   uart_writestr("\n");
+//   uart_writestr("\n");
    uart_send_32_Hex(bufrec[3]);
-   uart_writestr("\n");
+//   uart_writestr("\n");
    uart_send_32_Hex(bufrec[4]);
    uart_writestr("\n");
 
@@ -155,7 +156,7 @@ void spi_transfer(volatile U8* buf, U16 len, U8 toggle_cs)
    }*/
 
    if (toggle_cs) {
-	   FIO_SetValue(WF_CS_PORT, WF_CS_PIN);
+	   FIO_SetValue(WF_CS_PORT, WF_CS_BIT);
    }
 
    return;
@@ -170,12 +171,8 @@ void spi_transmit(volatile U8* buf, U16 len, U8 toggle_cs)
    for (i = 0; i < len; i++) {
 //      buf[i] = spi_tx_byte(1, buf[i]);
 	   do {
-		   uart_writestr("waiting\n");
 	   } while(!SSP_GetStatus(LPC_SSP1, SSP_STAT_TXFIFO_NOTFULL));
-	   uart_writestr("\nb4");
 	   SSP_SendData(LPC_SSP1, buf[i]);
-	   uart_send_32_Hex(buf[i]);
-	   uart_writestr("\nafter\n");
    }
 
    if (toggle_cs) {
@@ -291,6 +288,13 @@ void EINT2_IRQHandler (void)
    intr_occured = 1;
 //   gpio_write_bit(DEBUG_PORT, DEBUG_PIN, 1);
    _DBG("[OK]-EINT2_IRQHandler()");_DBG(__LINE__);_DBG_(__FILE__);
+}
+
+void EINT3_IRQHandler (void)
+{
+//   intr_occured = 1;
+//   gpio_write_bit(DEBUG_PORT, DEBUG_PIN, 1);
+   _DBG("[OK]-EINT3_IRQHandler()");_DBG(__LINE__);_DBG_(__FILE__);
 }
 
 void zg_process_isr()
