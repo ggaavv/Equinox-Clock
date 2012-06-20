@@ -42,7 +42,7 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 
 #include "tcpip_private.h"
 #include "wf_mac.h"
-
+#define TCPIP_IF_MRF24W
 #if defined(TCPIP_IF_MRF24W)
 #include "wf_debug_output.h"
 

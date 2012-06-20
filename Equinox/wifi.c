@@ -5,6 +5,7 @@
 #include "lpc17xx_pinsel.h"
 #include "lpc17xx_gpio.h"
 #include "lpc17xx_ssp.h"
+#include "lpc17xx_exti.h"
 #include "g2100.h"
 
 
@@ -65,15 +66,21 @@ void WiFi_init(){
 	PinCfg.Pinnum    = WF_EINT3_PIN;//TODO: change to eint0 after debug
 	PinCfg.Portnum   = WF_EINT3_PORT;//TODO: change to eint0 after debug
 	PINSEL_ConfigPin(&PinCfg);
-	GPIO_SetDir(WF_EINT3_PORT, WF_EINT2_BIT, 0);
+
+	EXTI_InitTypeDef EXTICfg;
+	EXTICfg.EXTI_Line 		= EXTI_EINT3;
+	EXTICfg.EXTI_Mode 		= EXTI_MODE_EDGE_SENSITIVE;
+	EXTICfg.EXTI_polarity 	= EXTI_POLARITY_LOW_ACTIVE_OR_FALLING_EDGE;
+	EXTI_Config(&EXTICfg);
+//	GPIO_SetDir(WF_EINT3_PORT, WF_EINT2_BIT, 0);
 
 	NVIC_EnableIRQ(EINT3_IRQn); //TODO: change to eint0 after debug
 
 	/* initialize SSP configuration structure */
 	SSP_CFG_Type SSP_ConfigStruct;
-	SSP_ConfigStruct.CPHA = SSP_CPHA_FIRST;
-	SSP_ConfigStruct.CPOL = SSP_CPOL_HI;
-	SSP_ConfigStruct.ClockRate = 1000000; /* 10Mhz WF max frequency = 25mhz*/
+	SSP_ConfigStruct.CPHA = SSP_CPHA_SECOND;
+	SSP_ConfigStruct.CPOL = SSP_CPOL_LO;
+	SSP_ConfigStruct.ClockRate = 25000000; /* 10Mhz WF max frequency = 25mhz*/
 	SSP_ConfigStruct.Databit = SSP_DATABIT_8;
 	SSP_ConfigStruct.Mode = SSP_MASTER_MODE;
 	SSP_ConfigStruct.FrameFormat = SSP_FRAME_SPI;
@@ -88,7 +95,9 @@ void WiFi_init(){
 	_DBG("[OK]-WiFi_init() - zg_init();");_DBG(__LINE__);_DBG_(__FILE__);
 
 	while(zg_get_conn_state() != 1) {
+//		_DBG("BEFORE\n while(zg_get_conn_state() != 1) {");_DBG(__LINE__);_DBG_(__FILE__);
 		zg_drv_process();
+//		_DBG("AFTER\nwhile(zg_get_conn_state() != 1) {");_DBG(__LINE__);_DBG_(__FILE__);
 	}
 	_DBG("[OK]-WiFi_init() - while(zg_get_conn_state() != 1) {");_DBG(__LINE__);_DBG_(__FILE__);
 
