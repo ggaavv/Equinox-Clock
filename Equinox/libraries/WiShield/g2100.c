@@ -457,7 +457,7 @@ void zg_drv_process()
    if (intr_occured) {
       zg_process_isr();
    }
-   _DBG("zg_drv_process() after // process interrupt");_DBD(__LINE__);_DBG_(__FILE__);
+//   _DBG("zg_drv_process() after // process interrupt");_DBD(__LINE__);_DBG_(__FILE__);
 
 //   uart_writestr("\n");
 //   uart_send_32_Hex(intr_valid);
