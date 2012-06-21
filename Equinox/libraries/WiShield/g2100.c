@@ -126,20 +126,20 @@ void spi_transfer(volatile U8* buf, U16 len, U8 toggle_cs)
    xferConfig.length = len;
 
 
-   uart_writestr("\nTx");
-   for (i = 0; i < len; i++) {
-	   uart_send_32_Hex(buf[i]);
-	   uart_writestr(".");
-   }
-   uart_writestr("\n");
+//   uart_writestr("\nTx");
+//   for (i = 0; i < len; i++) {
+//	   uart_send_32_Hex(buf[i]);
+//	   uart_writestr(".");
+//   }
+//   uart_writestr("\n");
 
    SSP_ReadWrite (LPC_SSP0, &xferConfig, SSP_TRANSFER_POLLING);
 
-   uart_writestr("Rx");
-   for (i = 0; i < len; i++) {
-	   uart_send_32_Hex(buf[i]);
-	   uart_writestr(".");
-   }
+//   uart_writestr("Rx");
+//   for (i = 0; i < len; i++) {
+//	   uart_send_32_Hex(buf[i]);
+//	   uart_writestr(".");
+//   }
 //   uart_writestr("\n");
 
    if (toggle_cs) {
@@ -242,12 +242,12 @@ void EINT3_IRQHandler (void)
 {
 	EXTI_ClearEXTIFlag(EXTI_EINT3);
 	intr_occured = 1;
-	_DBG("E3 Interup xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");//_DBG(__LINE__);_DBG_(__FILE__);
+	_DBG("E3 Interup xxxxxxxxxxxxx");//_DBG(__LINE__);_DBG_(__FILE__);
 }
 
 void zg_process_isr()
 {
-	_DBG("E3 Interup servie routine zzzzzzzzzzzzzzzzzzzzzzz");//_DBG(__LINE__);_DBG_(__FILE__);
+//	_DBG("E3 Interup servie routine zzzzzzzzzzzzzzzzzzzzzzz");//_DBG(__LINE__);_DBG_(__FILE__);
 
    U8 intr_state = 0;
    U8 next_cmd = 0;
@@ -451,22 +451,22 @@ void zg_drv_process()
       cnf_pending = 1;
    }
 
-   _DBG("zg_drv_process() after // TX frame");_DBG(__LINE__);_DBG_(__FILE__);
+//   _DBG("zg_drv_process() after // TX frame");_DBG_(__FILE__);
 
    // process interrupt
    if (intr_occured) {
       zg_process_isr();
    }
 
-   _DBG("zg_drv_process() after // process interrupt");_DBG(__LINE__);_DBG_(__FILE__);
+//   _DBG("zg_drv_process() after // process interrupt");_DBG_(__FILE__);
 
-   uart_writestr("\n");
-   uart_send_32_Hex(intr_valid);
-   uart_writestr("\n");
-   uart_send_32_Hex(zg_buf[1]);
-   uart_writestr("\n");
-   uart_send_32_Hex(zg_buf[2]);
-   uart_writestr("\n");
+//   uart_writestr("\n");
+//   uart_send_32_Hex(intr_valid);
+//   uart_writestr("\n");
+//   uart_send_32_Hex(zg_buf[1]);
+//   uart_writestr("\n");
+//   uart_send_32_Hex(zg_buf[2]);
+//   uart_writestr("\n");
 
    if (intr_valid) {
       switch (zg_buf[1]) {
@@ -548,9 +548,9 @@ void zg_drv_process()
    }
 
 
-   uart_writestr("111111\n");
-   uart_send_32_Hex(zg_drv_state);
-   uart_writestr("\n222222\n");
+//   uart_writestr("111111\n");
+ //  uart_send_32_Hex(zg_drv_state);
+//   uart_writestr("\n222222\n");
 
    switch (zg_drv_state) {
    case DRV_STATE_INIT:
@@ -686,7 +686,7 @@ void zg_drv_process()
    case DRV_STATE_IDLE:
       break;
    }
-   _DBG("[END]-zg_drv_process()");_DBG(__LINE__);_DBG_(__FILE__);
+//   _DBG("[END]-zg_drv_process()");_DBG(__LINE__);_DBG_(__FILE__);
 }
 
 // END
