@@ -84,14 +84,14 @@ int main(void){
 	//does this need to be first??
 	//TODO
 	debug_frmwrk_init();
-	_DBG("[OK]-debug_frmwrk_init()");_DBG(__LINE__);_DBG_(__FILE__);
+	_DBG("[OK]-debug_frmwrk_init()");_DBD(__LINE__);_DBG_(__FILE__);
 	//discard=_DBG_("**press any key**");_DG();//wait for key press @ debug port.
 
-	_DBG("[OK]-SYSTICK_Cmd()");_DBG(__LINE__);_DBG_(__FILE__);
+	_DBG("[OK]-SYSTICK_Cmd()");_DBD(__LINE__);_DBG_(__FILE__);
 
 	// Initialize USB<->Serial
 	serial_init();
-	_DBG("[OK]-serial_init()");_DBG(__LINE__);_DBG_(__FILE__);
+	_DBG("[OK]-serial_init()");_DBD(__LINE__);_DBG_(__FILE__);
 
 	uart_writestr("Start\r\nOK\r\n");
 	serial_writestr("Start\r\nOK\r\n");
@@ -99,15 +99,15 @@ int main(void){
 
 	//Setup SSP port for led drivers
 	//LED_init();
-	_DBG_("[OK]-LED_init()");_DBG(__LINE__);_DBG_(__FILE__);
+	_DBG_("[OK]-LED_init()");_DBD(__LINE__);_DBG_(__FILE__);
 
 	// wifi init
 	WiFi_init();
-	_DBG("[OK]-WiFi_init()");_DBG(__LINE__);_DBG_(__FILE__);
+	_DBG("[OK]-WiFi_init()");_DBD(__LINE__);_DBG_(__FILE__);
 
 
 	// main loop
-	_DBG("[INFO]-WiFi_init()");_DBG(__LINE__);_DBG_(__FILE__);
+	_DBG("[INFO]-WiFi_init()");_DBD(__LINE__);_DBG_(__FILE__);
 	// main loop
 	for (;;){
 		// Wifi Loop
