@@ -95,7 +95,23 @@ int main(void){
 
 	uart_writestr("Start\r\nOK\r\n");
 	serial_writestr("Start\r\nOK\r\n");
-  
+
+	// Init RTC module
+	RTC_Init(LPC_RTC);
+	_DBG("[OK]-serial_init()");_DBD(__LINE__);_DBG_(__FILE__);
+
+	//TODO check if RTC IRQ needs disabling
+	/* Disable RTC interrupt */
+    NVIC_DisableIRQ(RTC_IRQn);
+    /* preemption = 1, sub-priority = 1 */
+    NVIC_SetPriority(RTC_IRQn, ((0x01<<3)|0x01));
+    //TODO check if rtc is running
+/*    if (!RTC.isrunning()) {
+    	_DBG("[ERR]-!RTC.isrunning()");_DBD(__LINE__);_DBG_(__FILE__);
+        // following line sets the RTC to the date & time this sketch was compiled
+        RTC.adjust(DateTime(__DATE__, __TIME__));
+    }
+*/
 
 	//Setup SSP port for led drivers
 	//LED_init();
