@@ -101,13 +101,13 @@ void zg_init()
    zg_buf_len = UIP_BUFSIZE;
 
    zg_chip_reset();
-   _DBG("[OK]-zg_chip_reset()");_DBD(__LINE__);_DBG_(__FILE__);
+   _DBG("[OK]-zg_chip_reset()");_DBG("LN:");_DBD(__LINE__);_DBG(" File:");_DBG_(__FILE__);
    zg_interrupt2_reg();
-   _DBG("[OK]-zg_interrupt2_reg()");_DBD(__LINE__);_DBG_(__FILE__);
+   _DBG("[OK]-zg_interrupt2_reg()");_DBG("LN:");_DBD(__LINE__);_DBG(" File:");_DBG_(__FILE__);
    zg_interrupt_reg(0xff, 0);
-   _DBG("[OK]-zg_interrupt_reg(0xff, 0)");_DBD(__LINE__);_DBG_(__FILE__);
+   _DBG("[OK]-zg_interrupt_reg(0xff, 0)");_DBG("LN:");_DBD(__LINE__);_DBG(" File:");_DBG_(__FILE__);
    zg_interrupt_reg(0x80|0x40, 1);
-   _DBG("zg_interrupt_reg(0x80|0x40, 1)");_DBD(__LINE__);_DBG_(__FILE__);
+   _DBG("zg_interrupt_reg(0x80|0x40, 1)");_DBG("LN:");_DBD(__LINE__);_DBG(" File:");_DBG_(__FILE__);
 
    ssid_len = (U8)strlen(ssid);
    security_passphrase_len = (U8)strlen(security_passphrase);
@@ -160,7 +160,7 @@ void zg_chip_reset()
       hdr[2] = ZG_RESET_REG;
 
       spi_transfer(hdr, 3, 1);
-      _DBG("[OK]-zg_chip_reset() -- 1");_DBD(__LINE__);_DBG_(__FILE__);
+      _DBG("[OK]-zg_chip_reset() -- 1");_DBG("LN:");_DBD(__LINE__);_DBG(" File:");_DBG_(__FILE__);
 
       hdr[0] = ZG_INDEX_DATA_REG;
       hdr[1] = (loop_cnt == 0)?(0x80):(0x0f);
@@ -173,7 +173,7 @@ void zg_chip_reset()
    hdr[1] = 0x00;
    hdr[2] = ZG_RESET_STATUS_REG;
    spi_transfer(hdr, 3, 1);
-   _DBG("[OK]-zg_chip_reset() -- 2");_DBD(__LINE__);_DBG_(__FILE__);
+   _DBG("[OK]-zg_chip_reset() -- 2");_DBG("LN:");_DBD(__LINE__);_DBG(" File:");_DBG_(__FILE__);
 
    do {
       hdr[0] = 0x40 | ZG_INDEX_DATA_REG;
@@ -181,7 +181,7 @@ void zg_chip_reset()
       hdr[2] = 0x00;
       spi_transfer(hdr, 3, 1);
    } while((hdr[1] & ZG_RESET_MASK) == 0);
-   _DBG("[OK]-zg_chip_reset() -- 3");_DBD(__LINE__);_DBG_(__FILE__);
+   _DBG("[OK]-zg_chip_reset() -- 3");_DBG("LN:");_DBD(__LINE__);_DBG(" File:");_DBG_(__FILE__);
 
    do {
       hdr[0] = 0x40 | ZG_BYTE_COUNT_REG;
@@ -242,12 +242,12 @@ void EINT3_IRQHandler (void)
 {
 	EXTI_ClearEXTIFlag(EXTI_EINT3);
 	intr_occured = 1;
-	_DBG("E3 Interup xxxxxxxxxxxxx");//_DBD(__LINE__);_DBG_(__FILE__);
+	_DBG("E3 Interup xxxxxxxxxxxxx");//_DBG("LN:");_DBD(__LINE__);_DBG(" File:");_DBG_(__FILE__);
 }
 
 void zg_process_isr()
 {
-//	_DBG("E3 Interup servie routine zzzzzzzzzzzzzzzzzzzzzzz");//_DBD(__LINE__);_DBG_(__FILE__);
+//	_DBG("E3 Interup servie routine zzzzzzzzzzzzzzzzzzzzzzz");//_DBG("LN:");_DBD(__LINE__);_DBG(" File:");_DBG_(__FILE__);
 
    U8 intr_state = 0;
    U8 next_cmd = 0;
@@ -451,13 +451,13 @@ void zg_drv_process()
       cnf_pending = 1;
    }
 
-//   _DBG("zg_drv_process() after // TX frame");_DBD(__LINE__);_DBG_(__FILE__);
+//   _DBG("zg_drv_process() after // TX frame");_DBG("LN:");_DBD(__LINE__);_DBG(" File:");_DBG_(__FILE__);
 
    // process interrupt
    if (intr_occured) {
       zg_process_isr();
    }
-//   _DBG("zg_drv_process() after // process interrupt");_DBD(__LINE__);_DBG_(__FILE__);
+//   _DBG("zg_drv_process() after // process interrupt");_DBG("LN:");_DBD(__LINE__);_DBG(" File:");_DBG_(__FILE__);
 
 //   uart_writestr("\n");
 //   uart_send_32_Hex(intr_valid);

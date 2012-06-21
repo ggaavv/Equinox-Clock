@@ -84,21 +84,21 @@ int main(void){
 	//does this need to be first??
 	//TODO
 	debug_frmwrk_init();
-	_DBG("[OK]-debug_frmwrk_init()");_DBD(__LINE__);_DBG_(__FILE__);
+	_DBG("[OK]-debug_frmwrk_init()");_DBG("LN:");_DBD(__LINE__);_DBG(" File:");_DBG_(__FILE__);
 	//discard=_DBG_("**press any key**");_DG();//wait for key press @ debug port.
 
-	_DBG("[OK]-SYSTICK_Cmd()");_DBD(__LINE__);_DBG_(__FILE__);
+	_DBG("[OK]-SYSTICK_Cmd()");_DBG("LN:");_DBD(__LINE__);_DBG(" File:");_DBG_(__FILE__);
 
 	// Initialize USB<->Serial
 	serial_init();
-	_DBG("[OK]-serial_init()");_DBD(__LINE__);_DBG_(__FILE__);
+	_DBG("[OK]-serial_init()");_DBG("LN:");_DBD(__LINE__);_DBG(" File:");_DBG_(__FILE__);
 
 	uart_writestr("Start\r\nOK\r\n");
 	serial_writestr("Start\r\nOK\r\n");
 
 	// Init RTC module
 	RTC_Init(LPC_RTC);
-	_DBG("[OK]-serial_init()");_DBD(__LINE__);_DBG_(__FILE__);
+	_DBG("[OK]-serial_init()");_DBG("LN:");_DBD(__LINE__);_DBG(" File:");_DBG_(__FILE__);
 
 	//TODO check if RTC IRQ needs disabling
 	/* Disable RTC interrupt */
@@ -107,7 +107,7 @@ int main(void){
     NVIC_SetPriority(RTC_IRQn, ((0x01<<3)|0x01));
     //TODO check if rtc is running
 /*    if (!RTC.isrunning()) {
-    	_DBG("[ERR]-!RTC.isrunning()");_DBD(__LINE__);_DBG_(__FILE__);
+    	_DBG("[ERR]-!RTC.isrunning()");_DBG("LN:");_DBD(__LINE__);_DBG(" File:");_DBG_(__FILE__);
         // following line sets the RTC to the date & time this sketch was compiled
         RTC.adjust(DateTime(__DATE__, __TIME__));
     }
@@ -115,15 +115,15 @@ int main(void){
 
 	//Setup SSP port for led drivers
 	//LED_init();
-	_DBG_("[OK]-LED_init()");_DBD(__LINE__);_DBG_(__FILE__);
+	_DBG_("[OK]-LED_init()");_DBG("LN:");_DBD(__LINE__);_DBG(" File:");_DBG_(__FILE__);
 
 	// wifi init
 	WiFi_init();
-	_DBG("[OK]-WiFi_init()");_DBD(__LINE__);_DBG_(__FILE__);
+	_DBG("[OK]-WiFi_init()");_DBG("LN:");_DBD(__LINE__);_DBG(" File:");_DBG_(__FILE__);
 
 
 	// main loop
-	_DBG("[INFO]-WiFi_init()");_DBD(__LINE__);_DBG_(__FILE__);
+	_DBG("[INFO]-WiFi_init()");_DBG("LN:");_DBD(__LINE__);_DBG(" File:");_DBG_(__FILE__);
 	// main loop
 	for (;;){
 		// Wifi Loop
