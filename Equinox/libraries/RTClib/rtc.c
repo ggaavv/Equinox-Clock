@@ -44,15 +44,25 @@ void RTC_time_Init(){
 	RTC_Init(LPC_RTC);
 	/* Disable RTC interrupt */
     NVIC_DisableIRQ(RTC_IRQn);
-    /* preemption = 1, sub-priority = 1 */
-    NVIC_SetPriority(RTC_IRQn, ((0x01<<3)|0x01));
-
-	/* Enable rtc (starts increase the tick counter and second counter register) */
-	RTC_ResetClockTickCounter(LPC_RTC);
+    NVIC_SetPriority(RTC_IRQn, 8); // set according to main.c
 	RTC_Cmd(LPC_RTC, ENABLE);
-	RTC_CalibCounterCmd(LPC_RTC, DISABLE);
 
-	RTC_time_SetTime(2012, 6, 11, 1, 163, 10, 50, 20);
+    // Set bit 32 of General purpose register 4 to one after configuring time
+    // If no 1 set to default time
+    RTC_WriteGPREG(LPC_RTC, 4, 0x0);
+    uart_send_32_Hex(RTC_ReadGPREG(LPC_RTC, 4));
+    if (!(RTC_ReadGPREG(LPC_RTC, 4)&(1<<32)))
+    {
+		/* Enable rtc (starts increase the tick counter and second counter register) */
+		RTC_ResetClockTickCounter(LPC_RTC);
+//		RTC_CalibCounterCmd(LPC_RTC, DISABLE);
+		RTC_time_SetTime(2012, 6, 11, 1, 163, 10, 50, 20);
+    }
+
+    /* Enable RTC interrupt */
+    NVIC_EnableIRQ(RTC_IRQn);
+    RTC_CntIncrIntConfig (LPC_RTC, RTC_TIMETYPE_SECOND, ENABLE);
+
 
 }
 

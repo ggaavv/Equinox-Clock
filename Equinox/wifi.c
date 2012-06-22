@@ -14,6 +14,7 @@
 
 void WiFi_init(){
 
+	// Configuring GPIO
 	GPIO_SetDir(WF_CS_PORT, WF_CS_BIT, 1);
 	GPIO_SetValue(WF_CS_PORT, WF_CS_BIT);
 
@@ -34,7 +35,6 @@ void WiFi_init(){
 	PinCfg.Pinnum    = WF_CS_PIN;
 	PinCfg.Portnum   = WF_CS_PORT;
 	PINSEL_ConfigPin(&PinCfg);
-//	GPIO_SetDir(WF_CS_PORT, WF_CS_BIT, 0);
 	/* SCK1 */
 	PinCfg.Funcnum   = PINSEL_FUNC_2;
 	PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
@@ -42,7 +42,6 @@ void WiFi_init(){
 	PinCfg.Pinnum    = WF_SCK_PIN;
 	PinCfg.Portnum   = WF_SCK_PORT;
 	PINSEL_ConfigPin(&PinCfg);
-//	GPIO_SetDir(WF_SCK_PORT, WF_SCK_BIT, 0);
 	/* MISO1 */
 	PinCfg.Funcnum   = PINSEL_FUNC_2;
 	PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
@@ -50,7 +49,6 @@ void WiFi_init(){
 	PinCfg.Pinnum    = WF_MISO_PIN;
 	PinCfg.Portnum   = WF_MISO_PORT;
 	PINSEL_ConfigPin(&PinCfg);
-//	GPIO_SetDir(WF_MISO_PORT, WF_MISO_BIT, 0);
 	/* MOSI1 */
 	PinCfg.Funcnum   = PINSEL_FUNC_2;
 	PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
@@ -58,7 +56,6 @@ void WiFi_init(){
 	PinCfg.Pinnum    = WF_MOSI_PIN;
 	PinCfg.Portnum   = WF_MOSI_PORT;
 	PINSEL_ConfigPin(&PinCfg);
-//	GPIO_SetDir(WF_MOSI_PORT, WF_MOSI_BIT, 0);
 	/* EINT0 */
 	PinCfg.Funcnum   = PINSEL_FUNC_1;
 	PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
@@ -67,12 +64,12 @@ void WiFi_init(){
 	PinCfg.Portnum   = WF_EINT3_PORT;//TODO: change to eint0 after debug
 	PINSEL_ConfigPin(&PinCfg);
 
+	// Configuring Ext Int
 	EXTI_InitTypeDef EXTICfg;
 	EXTICfg.EXTI_Line 		= EXTI_EINT3;
 	EXTICfg.EXTI_Mode 		= EXTI_MODE_EDGE_SENSITIVE;
 	EXTICfg.EXTI_polarity 	= EXTI_POLARITY_LOW_ACTIVE_OR_FALLING_EDGE;
 	EXTI_Config(&EXTICfg);
-//	GPIO_SetDir(WF_EINT3_PORT, WF_EINT2_BIT, 0);
 
 	NVIC_EnableIRQ(EINT3_IRQn); //TODO: change to eint0 after debug
 

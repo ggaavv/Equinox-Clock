@@ -56,37 +56,32 @@ int main(void){
 //	LPC_GPIO1->FIOPIN ^= 1 << 23; //  LED flasher
 //	LPC_GPIO1->FIOCLR = 1 << 23;
 
-//	while(1) ;
-
 	// DeInit NVIC and SCBNVIC
 	NVIC_DeInit();
 	NVIC_SCBDeInit();
-
-	/* Configure the NVIC Preemption Priority Bits:
-	* two (2) bits of preemption priority, six (6) bits of sub-priority.
-	* Since the Number of Bits used for Priority Levels is five (5), so the
-	* actual bit number of sub-priority is three (3)
-	*/
-	NVIC_SetPriorityGrouping(0x05);
+	/* Configure the NVIC Preemption Priority Bits */
+	// b100 bxxx.yy000    Group priority bits:[7:5]    Subpriority bits:[4:3]    Group priorities:8   Subpriorities:4 = 4
+	// assign LED to group 0 sub-priority 0 = 0
+	// assign USB to group 1 sub-priority 0 = 4
+	// assign Wifi to group 2 sub-priority 0 = 8
+	// assign RTC to group 2 sub-priority 0 = 8
+	NVIC_SetPriorityGrouping(4);
 
 	/* Change the Vector Table to the USER_FLASH_START
 	in case the user application uses interrupts */
 	SCB->VTOR = (USER_FLASH_START & 0x1FFFFF80);
-
-	// Initialize the timer for millis()
-	SYSTICK_InternalInit(1); // from NXP not R2C2 - 1ms interval
-	SYSTICK_IntCmd(ENABLE);
-	SYSTICK_Cmd(ENABLE);
-	
-	long timer1, steptimeout, discard;
 
 	//Debug functions output to com1/8n1/115200
 	//does this need to be first??
 	//TODO
 	debug_frmwrk_init();
 	_DBG("[OK]-debug_frmwrk_init()");_DBG("LN:");_DBD(__LINE__);_DBG(" File:");_DBG_(__FILE__);
-	//discard=_DBG_("**press any key**");_DG();//wait for key press @ debug port.
 
+	// Initialize the timer for millis()
+	SYSTICK_InternalInit(1); // from NXP - 1ms interval
+	SYSTICK_IntCmd(ENABLE);
+	SYSTICK_Cmd(ENABLE);
+	delay_ms(1);
 	_DBG("[OK]-SYSTICK_Cmd()");_DBG("LN:");_DBD(__LINE__);_DBG(" File:");_DBG_(__FILE__);
 
 	// Initialize USB<->Serial
@@ -97,8 +92,8 @@ int main(void){
 	serial_writestr("Start\r\nOK\r\n");
 
 	// Init RTC module
-	RTC_Init(LPC_RTC);
-	_DBG("[OK]-serial_init()");_DBG("LN:");_DBD(__LINE__);_DBG(" File:");_DBG_(__FILE__);
+	RTC_time_Init();
+	_DBG("[OK]-RTC_time_Init()");_DBG("LN:");_DBD(__LINE__);_DBG(" File:");_DBG_(__FILE__);
 
 	//TODO check if RTC IRQ needs disabling
 	/* Disable RTC interrupt */
@@ -125,6 +120,7 @@ int main(void){
 	// main loop
 	_DBG("[INFO]-WiFi_init()");_DBG("LN:");_DBD(__LINE__);_DBG(" File:");_DBG_(__FILE__);
 	// main loop
+	long timer1, steptimeout, discard;
 	for (;;){
 		// Wifi Loop
 		//TODO change to interrupt
@@ -132,6 +128,8 @@ int main(void){
 
 		/* Power save - Do every 100ms */
 		#define DELAY1 100
+
+
 		if (timer1 < sys_millis())
 		{
 			timer1 = sys_millis() + DELAY1;

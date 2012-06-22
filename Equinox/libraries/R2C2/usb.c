@@ -333,6 +333,7 @@ void USBSerial_Init(void)
   fifo_init(&rxfifo, rxbuf);
   fifo_init(&txfifo, txbuf);
 
+  NVIC_SetPriority(USB_IRQn, 4); // set according to main.c
   NVIC_EnableIRQ(USB_IRQn);
 
   // connect to bus

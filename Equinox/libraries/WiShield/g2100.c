@@ -242,7 +242,7 @@ void EINT3_IRQHandler (void)
 {
 	EXTI_ClearEXTIFlag(EXTI_EINT3);
 	intr_occured = 1;
-	_DBG("E3 Interup xxxxxxxxxxxxx");//_DBG("LN:");_DBD(__LINE__);_DBG(" File:");_DBG_(__FILE__);
+//	_DBG("E3");//_DBG("LN:");_DBD(__LINE__);_DBG(" File:");_DBG_(__FILE__);
 }
 
 void zg_process_isr()

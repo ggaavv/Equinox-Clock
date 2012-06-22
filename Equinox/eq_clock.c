@@ -223,14 +223,14 @@ PORTD=11111111
 void LED_init(){
 	//TODO lsb first spi mode 0 0?
 	
-	GPIO_SetDir(LED_CS_PORT, LED_CS_PIN, 1);
-	GPIO_SetValue(LED_CS_PORT, LED_CS_PIN);
+	GPIO_SetDir(LED_CS_PORT, LED_CS_BIT, 1);
+	GPIO_SetValue(LED_CS_PORT, LED_CS_BIT);
 
-	GPIO_SetDir(LED_LE_PORT, LED_LE_PIN, 1);
-	GPIO_SetValue(LED_LE_PORT, LED_LE_PIN);
+	GPIO_SetDir(LED_LE_PORT, LED_LE_BIT, 1);
+	GPIO_SetValue(LED_LE_PORT, LED_LE_BIT);
 
-	GPIO_SetDir(WF_HIBERNATE_PORT, WF_HIBERNATE_PIN, 0);
-	GPIO_SetValu(WF_HIBERNATE_PORT, WF_HIBERNATE_PIN);
+	GPIO_SetDir(WF_HIBERNATE_PORT, WF_HIBERNATE_BIT, 0);
+	GPIO_SetValu(WF_HIBERNATE_PORT, WF_HIBERNATE_BIT);
 
 	// Initialize SPI pin connect
 	PINSEL_CFG_Type PinCfg;
@@ -255,11 +255,16 @@ void LED_init(){
 	/* initialize SSP configuration structure */
 	SSP_ConfigStruct.CPHA = SSP_CPHA_FIRST;
 	SSP_ConfigStruct.CPOL = SSP_CPOL_HI;
-	SSP_ConfigStruct.ClockRate = 10000000; /* 10Mhz */
+	SSP_ConfigStruct.ClockRate = 10000000; /* TLC5927 max freq = 30Mhz */
 	SSP_ConfigStruct.Databit = SSP_DATABIT_16;
 	SSP_ConfigStruct.Mode = SSP_MASTER_MODE;
 	SSP_ConfigStruct.FrameFormat = SSP_FRAME_SPI;
 	SSP_Init(LPC_SSP0, &SSP_ConfigStruct);
+
+	RIT_Init(LPC_RIT);
+	RIT_TimerConfig(LPC_RIT, TIME_INTERVAL); //TODO: decide on time interval
+	NVIC_SetPriority(LPC_RIT, 0); // set according to main.c
+	NVIC_EnableIRQ(LPC_RIT);
 
 	/* Enable SSP peripheral */
 	SSP_Cmd(LPC_SSP0, ENABLE);
@@ -407,7 +412,7 @@ char timeUpdate(void) {
 
 #ifdef WIFI_ENABLED
 //	Serial.println("b4 wifi run");
-	  WiFi.run();
+//	  WiFi.run();
 //	Serial.println("after wifi run");
 #endif
 
@@ -437,6 +442,20 @@ char timeUpdate(void) {
 //	}
 	return 1;
 }
+
+
+
+
+void RIT_IRQHandler(void){
+
+	RIT_GetIntStatus(LPC_RIT);
+
+	// Send LED SPI data
+
+
+}
+
+
 
 /***********************************************************************
  * traditional Arduino sketch functions: setup and loop.
@@ -666,7 +685,7 @@ void setup() {
 
   // RTC setup
   Wire.begin();
-  RTC.begin();
+//  RTC.begin();
   DST.begin();
 //	DateTime set = DateTime(__DATE__, __TIME__);
 //	DateTime set = DateTime(2011,10,30,00,59,48);
