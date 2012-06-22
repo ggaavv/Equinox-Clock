@@ -71,25 +71,33 @@ int main(void){
 	in case the user application uses interrupts */
 	SCB->VTOR = (USER_FLASH_START & 0x1FFFFF80);
 
+
+
 	//Debug functions output to com1/8n1/115200
 	//does this need to be first??
 	//TODO
-	debug_frmwrk_init();_DBG("[OK]-debug_frmwrk_init()");_DBG("LN:");_DBD(__LINE__);_DBG(" File:");_DBG_(__FILE__);
+	debug_frmwrk_init();_DBG("[OK]-debug_frmwrk_init()");_DBG(" ");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG("\r\n");
+
+	//eraseScreen
+//	_DBG(0x1B);//_DBG(ESCAPE);
+//	_DBG('[');//_DBG(BRACE);
+//	_DBG('1');
+//	_DBG('J');
 
 	// Initialize the timer for millis()
 	SYSTICK_InternalInit(1); // from NXP - 1ms interval
 	SYSTICK_IntCmd(ENABLE);
-	SYSTICK_Cmd(ENABLE);_DBG("[OK]-SYSTICK_Cmd()");_DBG("LN:");_DBD(__LINE__);_DBG(" File:");_DBG_(__FILE__);
+	SYSTICK_Cmd(ENABLE);_DBG("[OK]-SYSTICK_Cmd()");_DBG(" ");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG("\r\n");
 //	delay_ms(1);
 
 	// Initialize USB<->Serial
-	serial_init();_DBG("[OK]-serial_init()");_DBG("LN:");_DBD(__LINE__);_DBG(" File:");_DBG_(__FILE__);
+	serial_init();_DBG("[OK]-serial_init()");_DBG(" ");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG("\r\n");
 
 	uart_writestr("Start\r\nOK\r\n");
 	serial_writestr("Start\r\nOK\r\n");
 
 	// Init RTC module
-	RTC_time_Init();_DBG("[OK]-RTC_time_Init()");_DBG("LN:");_DBD(__LINE__);_DBG(" File:");_DBG_(__FILE__);
+	RTC_time_Init();_DBG("[OK]-RTC_time_Init()");_DBG(" ");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG("\r\n");
 
 	//TODO check if RTC IRQ needs disabling
 	/* Disable RTC interrupt */
@@ -98,26 +106,26 @@ int main(void){
     NVIC_SetPriority(RTC_IRQn, ((0x01<<3)|0x01));
     //TODO check if rtc is running
 /*    if (!RTC.isrunning()) {
-    	_DBG("[ERR]-!RTC.isrunning()");_DBG("LN:");_DBD(__LINE__);_DBG(" File:");_DBG_(__FILE__);
+    	_DBG("[ERR]-!RTC.isrunning()");_DBG(" ");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG("\r\n");
         // following line sets the RTC to the date & time this sketch was compiled
         RTC.adjust(DateTime(__DATE__, __TIME__));
     }
 */
 
 	//Setup SSP port for led drivers
-	//LED_init();_DBG("[OK]-LED_init()");_DBG("LN:");_DBD(__LINE__);_DBG(" File:");_DBG_(__FILE__);
+	//LED_init();_DBG("[OK]-LED_init()");_DBG(" ");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG("\r\n");
 
 	// wifi init
-	WiFi_init();_DBG("[OK]-WiFi_init()");_DBG("LN:");_DBD(__LINE__);_DBG(" File:");_DBG_(__FILE__);
+//	WiFi_init();_DBG("[OK]-WiFi_init()");_DBG(" ");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG("\r\n");
 
 	// main loop
-	_DBG("[INFO]-WiFi_init()");_DBG("LN:");_DBD(__LINE__);_DBG(" File:");_DBG_(__FILE__);
+//	_DBG("[INFO]-WiFi_init()");_DBG(" ");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG("\r\n");
 	// main loop
 	long timer1, steptimeout, discard;
 	for (;;){
 		// Wifi Loop
 		//TODO change to interrupt
-		WiFi_loop();
+//		WiFi_loop();
 
 		/* Power save - Do every 100ms */
 		#define DELAY1 100
