@@ -29,6 +29,7 @@
 
 #include "debug_frmwrk.h"
 //#include "eq_clock.h"
+#include "ShiftPWM.h"
 #include "wifi.h"
 #include "g2100.h"
 //	void stack_init(void);
@@ -74,18 +75,22 @@ int main(void){
 	//Debug functions output to com1/8n1/115200
 	//does this need to be first??
 	//TODO
-	debug_frmwrk_init();
-	_DBG("[OK]-debug_frmwrk_init()");_DBG("LN:");_DBD(__LINE__);_DBG(" File:");_DBG_(__FILE__);
+	debug_frmwrk_init();_DBG("[OK]-debug_frmwrk_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
+
+	//eraseScreen
+//	_DBG(0x1B);//_DBG(ESCAPE);
+//	_DBG('[');//_DBG(BRACE);
+//	_DBG('1');
+//	_DBG('J');
 
 	// Initialize the timer for millis()
 	SYSTICK_InternalInit(1); // from NXP - 1ms interval
 	SYSTICK_IntCmd(ENABLE);
-	SYSTICK_Cmd(ENABLE);
-	_DBG("[OK]-SYSTICK_Cmd()");_DBG("LN:");_DBD(__LINE__);_DBG(" File:");_DBG_(__FILE__);
+	SYSTICK_Cmd(ENABLE);_DBG("[OK]-SYSTICK_Cmd()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
 
 	// Initialize USB<->Serial
-	serial_init();
-	_DBG("[OK]-serial_init()");_DBG("LN:");_DBD(__LINE__);_DBG(" File:");_DBG_(__FILE__);
+	serial_init();_DBG("[OK]-serial_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
+
 	uart_writestr("Start\r\nOK\r\n");
 	serial_writestr("Start\r\nOK\r\n");
 
@@ -96,15 +101,14 @@ int main(void){
     NVIC_SetPriority(RTC_IRQn, ((0x01<<3)|0x01));
 
 	// Init RTC module
-	RTC_time_Init();
-	_DBG("[OK]-RTC_time_Init()");_DBG("LN:");_DBD(__LINE__);_DBG(" File:");_DBG_(__FILE__);
+    RTC_time_Init();_DBG("[OK]-RTC_time_Init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
 
-	//LED_init();
-	_DBG("[OK]-LED_init()");_DBG("LN:");_DBD(__LINE__);_DBG(" File:");_DBG_(__FILE__);
+    LED_init();_DBG("[OK]-LED_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
+    LED_test();_DBG("[OK]-LED_test()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
+
 
 	// Wifi init
-	WiFi_init();
-	_DBG("[OK]-WiFi_init()");_DBG("LN:");_DBD(__LINE__);_DBG(" File:");_DBG_(__FILE__);
+	WiFi_init();_DBG("[OK]-WiFi_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
 
 	// main loop
 	long timer1, steptimeout, discard;

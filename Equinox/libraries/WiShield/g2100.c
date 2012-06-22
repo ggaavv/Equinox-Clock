@@ -154,7 +154,6 @@ void zg_chip_reset()
       hdr[0] = ZG_INDEX_ADDR_REG;
       hdr[1] = 0x00;
       hdr[2] = ZG_RESET_REG;
-
       spi_transfer(hdr, 3, 1);
 
       hdr[0] = ZG_INDEX_DATA_REG;
@@ -238,7 +237,6 @@ void EINT3_IRQHandler (void)
 
 void zg_process_isr()
 {
-
    U8 intr_state = 0;
    U8 next_cmd = 0;
 
@@ -441,13 +439,13 @@ void zg_drv_process()
       cnf_pending = 1;
    }
 
-//   _DBG("zg_drv_process() after // TX frame");_DBG("LN:");_DBD(__LINE__);_DBG(" File:");_DBG_(__FILE__);
+//   _DBG("zg_drv_process() after // TX frame");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
 
    // process interrupt
    if (intr_occured) {
       zg_process_isr();
    }
-//   _DBG("zg_drv_process() after // process interrupt");_DBG("LN:");_DBD(__LINE__);_DBG(" File:");_DBG_(__FILE__);
+//   _DBG("zg_drv_process() after // process interrupt");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
 
 //   uart_writestr("\n");
 //   uart_send_32_Hex(intr_valid);
