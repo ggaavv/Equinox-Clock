@@ -24,6 +24,7 @@ void RTC_IRQHandler(void)
 
 		// Clear pending interrupt
 		RTC_ClearIntPending(LPC_RTC, RTC_INT_COUNTER_INCREASE);
+
 	}
 
 	/* Continue to check the Alarm match*/
@@ -46,23 +47,26 @@ void RTC_time_Init(){
     NVIC_DisableIRQ(RTC_IRQn);
     NVIC_SetPriority(RTC_IRQn, 8); // set according to main.c
 	RTC_Cmd(LPC_RTC, ENABLE);
+	RTC_CalibCounterCmd(LPC_RTC, DISABLE);
 
     // Set bit 32 of General purpose register 4 to one after configuring time
     // If no 1 set to default time
-    RTC_WriteGPREG(LPC_RTC, 4, 0x0);
-    uart_send_32_Hex(RTC_ReadGPREG(LPC_RTC, 4));
-    if (!(RTC_ReadGPREG(LPC_RTC, 4)&(1<<32)))
+//	RTC_WriteGPREG(LPC_RTC, 4, 0xaa);
+//    uart_send_32_Hex(RTC_ReadGPREG(LPC_RTC, 4));
+    if (!(RTC_ReadGPREG(LPC_RTC, 4)==(0xaa)))
     {
+    	_DBG("Setting clock time");_DBG("LN:");_DBD(__LINE__);_DBG(" File:");_DBG_(__FILE__);
 		/* Enable rtc (starts increase the tick counter and second counter register) */
 		RTC_ResetClockTickCounter(LPC_RTC);
-//		RTC_CalibCounterCmd(LPC_RTC, DISABLE);
-		RTC_time_SetTime(2012, 6, 11, 1, 163, 10, 50, 20);
+		//				 yyyy  mm  dd  Dom Dow  ss  mm  hh
+		RTC_time_SetTime(2012,  6, 11, 1,  163, 10, 50, 20);
+	        // following line sets the RTC to the date & time this sketch was compiled
+//	        RTC.adjust(DateTime(__DATE__, __TIME__)); //TODO: get this to work
     }
+//	RTC_CntIncrIntConfig (LPC_RTC, RTC_TIMETYPE_SECOND, ENABLE);
 
     /* Enable RTC interrupt */
     NVIC_EnableIRQ(RTC_IRQn);
-    RTC_CntIncrIntConfig (LPC_RTC, RTC_TIMETYPE_SECOND, ENABLE);
-
 
 }
 
