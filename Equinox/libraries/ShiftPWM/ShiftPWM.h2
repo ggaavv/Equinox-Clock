@@ -67,17 +67,11 @@ SetGroupOf5(int group, unsigned char v0, unsigned char v1, unsigned char v2, uns
 #ifndef ShiftPWM_H
 #define ShiftPWM_H
 
-//extern SoftwareSerial mySerial;
-
-#include "pins_arduino_compile_time.h" // My own version of pins arduino, which does not define the arrays in program memory
-#include <WProgram.h>
 #include "CShiftPWM.h"
 
 // These should be defined in the file where ShiftPWM.h is included.
 extern const int ShiftPWM_latchPin;
 extern const bool ShiftPWM_invertOutputs;
-//const int ShiftPWM_latchPin=10; //atmega1284p PD2
-//const int ShiftPWM_dataPin=9; //atmega1284p PD1
 
 // The ShiftPWM object is created in the header file, instead of defining it as extern here and creating it in the cpp file.
 // If the ShiftPWM object is created in the cpp file, it is separately compiled with the library.

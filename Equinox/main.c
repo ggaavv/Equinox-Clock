@@ -29,6 +29,7 @@
 
 #include "debug_frmwrk.h"
 //#include "eq_clock.h"
+#include "ShiftPWM.h"
 #include "wifi.h"
 #include "g2100.h"
 //	void stack_init(void);
@@ -76,7 +77,7 @@ int main(void){
 	//Debug functions output to com1/8n1/115200
 	//does this need to be first??
 	//TODO
-	debug_frmwrk_init();_DBG("[OK]-debug_frmwrk_init()");_DBG(" ");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG("\r\n");
+	debug_frmwrk_init();_DBG("[OK]-debug_frmwrk_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
 
 	//eraseScreen
 //	_DBG(0x1B);//_DBG(ESCAPE);
@@ -87,17 +88,17 @@ int main(void){
 	// Initialize the timer for millis()
 	SYSTICK_InternalInit(1); // from NXP - 1ms interval
 	SYSTICK_IntCmd(ENABLE);
-	SYSTICK_Cmd(ENABLE);_DBG("[OK]-SYSTICK_Cmd()");_DBG(" ");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG("\r\n");
+	SYSTICK_Cmd(ENABLE);_DBG("[OK]-SYSTICK_Cmd()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
 //	delay_ms(1);
 
 	// Initialize USB<->Serial
-	serial_init();_DBG("[OK]-serial_init()");_DBG(" ");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG("\r\n");
+	serial_init();_DBG("[OK]-serial_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
 
 	uart_writestr("Start\r\nOK\r\n");
 	serial_writestr("Start\r\nOK\r\n");
 
 	// Init RTC module
-	RTC_time_Init();_DBG("[OK]-RTC_time_Init()");_DBG(" ");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG("\r\n");
+	RTC_time_Init();_DBG("[OK]-RTC_time_Init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
 
 	//TODO check if RTC IRQ needs disabling
 	/* Disable RTC interrupt */
@@ -106,20 +107,21 @@ int main(void){
     NVIC_SetPriority(RTC_IRQn, ((0x01<<3)|0x01));
     //TODO check if rtc is running
 /*    if (!RTC.isrunning()) {
-    	_DBG("[ERR]-!RTC.isrunning()");_DBG(" ");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG("\r\n");
+    	_DBG("[ERR]-!RTC.isrunning()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
         // following line sets the RTC to the date & time this sketch was compiled
         RTC.adjust(DateTime(__DATE__, __TIME__));
     }
 */
 
 	//Setup SSP port for led drivers
-	//LED_init();_DBG("[OK]-LED_init()");_DBG(" ");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG("\r\n");
+	LED_init();_DBG("[OK]-LED_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
+	LED_test();_DBG("[OK]-LED_test()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
 
 	// wifi init
-//	WiFi_init();_DBG("[OK]-WiFi_init()");_DBG(" ");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG("\r\n");
+//	WiFi_init();_DBG("[OK]-WiFi_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
 
 	// main loop
-//	_DBG("[INFO]-WiFi_init()");_DBG(" ");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG("\r\n");
+//	_DBG("[INFO]-WiFi_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
 	// main loop
 	long timer1, steptimeout, discard;
 	for (;;){

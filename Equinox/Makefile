@@ -156,6 +156,7 @@ INCLUDES = $(APPLIBDIR)/CMSISv1p30_LPC17xx/inc \
 	 $(APPLIBDIR)/FatFs/src \
 	 $(APPLIBDIR)/R2C2/ \
 	 $(APPLIBDIR)/WiShield/ \
+	 $(APPLIBDIR)/TESTShiftPWM/ \
 	 $(APPDIR)
 
 # List C source files here. (C dependencies are automatically generated.)
@@ -177,6 +178,7 @@ SRC = \
 	$(APPLIBDIR)/WiShield/uip-neighbor.c \
 	$(APPLIBDIR)/WiShield/uip-split.c \
 	$(APPLIBDIR)/WiShield/webserver.c \
+	$(APPLIBDIR)/TESTShiftPWM/ShiftPWM.c \
 	$(APPSRC) \
 	main.c \
 	$(APPLIBDIR)/R2C2/sys_timer.c \
