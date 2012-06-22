@@ -59,6 +59,7 @@ void LED_init(){
 
 
 void LED_test(){
+	uint8_t ttt;
 	uint16_t temp, send_data;
 	_DBG("[INFO]-LED_test()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
 
@@ -69,7 +70,8 @@ void LED_test(){
 
 		SSP_SendData(LPC_SSP1, send_data);
 		while(SSP_GetStatus(LPC_SSP1,SSP_STAT_RXFIFO_FULL)){
-			_DBG("[ERR]-LPC_SSP1 buffer full");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
+			_DBG("[ERR]-LPC_SSP1 buffer full *press any key*");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
+			ttt = _DG;//wait for key press
 			delay_ms(2000);
 		}
 
