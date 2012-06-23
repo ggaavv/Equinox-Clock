@@ -128,15 +128,17 @@ static uint8_t conv2d(const char* p) {
 
 void RTC_set_default_time_to_compiled(void) {
 
+	uint8_t month_as_number;
+
     switch (__DATE__[0]) {
-        case 'J': m = __DATE__[1] == 'a' ? 1 : m = __DATE__[2] == 'n' ? 6 : 7; break;
-        case 'F': m = 2; break;
-        case 'A': m = __DATE__[2] == 'r' ? 4 : 8; break;
-        case 'M': m = __DATE__[2] == 'r' ? 3 : 5; break;
-        case 'S': m = 9; break;
-        case 'O': m = 10; break;
-        case 'N': m = 11; break;
-        case 'D': m = 12; break;
+        case 'J': month_as_number = __DATE__[1] == 'a' ? 1 : month_as_number = __DATE__[2] == 'n' ? 6 : 7; break;
+        case 'F': month_as_number = 2; break;
+        case 'A': month_as_number = __DATE__[2] == 'r' ? 4 : 8; break;
+        case 'M': month_as_number = __DATE__[2] == 'r' ? 3 : 5; break;
+        case 'S': month_as_number = 9; break;
+        case 'O': month_as_number = 10; break;
+        case 'N': month_as_number = 11; break;
+        case 'D': month_as_number = 12; break;
     }
 
     RTC_SetTime (LPC_RTC, RTC_TIMETYPE_YEAR, conv2d(__DATE__[0] + 9));
