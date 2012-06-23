@@ -94,12 +94,6 @@ int main(void){
 	uart_writestr("Start\r\nOK\r\n");
 	serial_writestr("Start\r\nOK\r\n");
 
-	//TODO check if RTC IRQ needs disabling
-	/* Disable RTC interrupt */
-    NVIC_DisableIRQ(RTC_IRQn);
-    /* preemption = 1, sub-priority = 1 */
-    NVIC_SetPriority(RTC_IRQn, ((0x01<<3)|0x01));
-
 	// Init RTC module
     RTC_time_Init();_DBG("[OK]-RTC_time_Init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
 
