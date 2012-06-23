@@ -88,20 +88,20 @@ void WiFi_init(){
 
 //	attachInterrupt(INT_PIN, zg_isr, FALLING);
 
-	zg_init();_DBG("[OK]-zg_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
+	zg_init();_DBG("[OK]-zg_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD32(__LINE__);_DBG(")\r\n");
 
 	while(zg_get_conn_state() != 1) {
-//		_DBG("BEFORE\n while(zg_get_conn_state() != 1) {");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
+//		_DBG("BEFORE\n while(zg_get_conn_state() != 1) {");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD32(__LINE__);_DBG(")\r\n");
 		zg_drv_process();
-//		_DBG("AFTER\nwhile(zg_get_conn_state() != 1) {");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
+//		_DBG("AFTER\nwhile(zg_get_conn_state() != 1) {");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD32(__LINE__);_DBG(")\r\n");
 	}
-	_DBG("[OK]-Wifi Connected :)");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
+	_DBG("[OK]-Wifi Connected :)");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD32(__LINE__);_DBG(")\r\n");
 	stack_init();
 }
 
 
 void WiFi_loop(){
-//	_DBG("WiFi_loop()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
+//	_DBG("WiFi_loop()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD32(__LINE__);_DBG(")\r\n");
 	stack_process();
 	zg_drv_process();
 }

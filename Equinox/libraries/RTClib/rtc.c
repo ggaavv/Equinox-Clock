@@ -86,7 +86,7 @@ void RTC_time_Init(){
 //    uart_send_32_Hex(RTC_ReadGPREG(LPC_RTC, 4));
     if (!(RTC_ReadGPREG(LPC_RTC, 4)==(0xaa)))
     {
-    	_DBG("[INFO]-Setting clock time");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
+    	_DBG("[INFO]-Setting clock time");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD32(__LINE__);_DBG(")\r\n");
     	_DBG("[INFO]-__DATE__=");_DBG(__DATE__);_DBG(", __TIME__=");_DBG_(__TIME__);
 		/* Enable rtc (starts increase the tick counter and second counter register) */
 		RTC_ResetClockTickCounter(LPC_RTC);
@@ -147,9 +147,9 @@ void RTC_set_default_time_to_compiled(void) {
         case 'D': month_as_number = 12; break;
     }
 
-    _DBG("[INFO]-__DATE__[0]=");_DBD(__DATE__[0]);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
-    _DBG("[INFO]-conv2d(__DATE__[0]=");_DBD(conv2d(__DATE__[0]));_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
-    _DBG("[INFO]-conv2d(__DATE__[0] + 9)=");_DBD(conv2d(__DATE__[0] + 9));_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
+    _DBG("[INFO]-__DATE__[0]=");_DBD(__DATE__[0]);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD32(__LINE__);_DBG(")\r\n");
+    _DBG("[INFO]-conv2d(__DATE__[0]=");_DBD(conv2d(__DATE__[0]));_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD32(__LINE__);_DBG(")\r\n");
+    _DBG("[INFO]-conv2d(__DATE__[0] + 9)=");_DBD(conv2d(__DATE__[0] + 9));_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD32(__LINE__);_DBG(")\r\n");
     RTC_SetTime (LPC_RTC, RTC_TIMETYPE_YEAR, conv2d(__DATE__ + 9));
 	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_MONTH, conv2d(__DATE__ + 3));
 //	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_DAYOFMONTH, month_as_number);
