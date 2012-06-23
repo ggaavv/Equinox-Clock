@@ -30,14 +30,187 @@
  *
  *
  ********************************************************************************/
+/*
+digitalWrite(0, LOW)
+PORTA=11111111
+PORTB=11111110
+PORTC=11111111
+PORTD=11111111
+digitalWrite(1, LOW)
+PORTA=11111111
+PORTB=11111101
+PORTC=11111111
+PORTD=11111111
+digitalWrite(2, LOW)
+PORTA=11111111
+PORTB=11111011
+PORTC=11111111
+PORTD=11111111
+digitalWrite(3, LOW)
+PORTA=11111111
+PORTB=11110111
+PORTC=11111111
+PORTD=11111111
+digitalWrite(4, LOW)
+PORTA=11111111
+PORTB=11101111
+PORTC=11111111
+PORTD=11111111
+digitalWrite(5, LOW)
+PORTA=11111111
+PORTB=11011111
+PORTC=11111111
+PORTD=11111111
+digitalWrite(6, LOW)
+PORTA=11111111
+PORTB=10111111
+PORTC=11111111
+PORTD=11111111
+digitalWrite(7, LOW)
+PORTA=11111111
+PORTB=01111111
+PORTC=11111111
+PORTD=11111111
+digitalWrite(8, LOW)
+PORTA=11111111
+PORTB=11111111
+PORTC=11111111
+PORTD=11111110
+digitalWrite(9, LOW)
+PORTA=11111111
+PORTB=11111111
+PORTC=11111111
+PORTD=11111101
+digitalWrite(10, LOW)
+PORTA=11111111
+PORTB=11111111
+PORTC=11111111
+PORTD=11111011
+digitalWrite(11, LOW)
+PORTA=11111111
+PORTB=11111111
+PORTC=11111111
+PORTD=11110111
+digitalWrite(12, LOW)
+PORTA=11111111
+PORTB=11111111
+PORTC=11111111
+PORTD=11101111
+digitalWrite(13, LOW)
+PORTA=11111111
+PORTB=11111111
+PORTC=11111111
+PORTD=11011111
+digitalWrite(14, LOW)
+PORTA=11111111
+PORTB=11111111
+PORTC=11111111
+PORTD=10111111
+digitalWrite(15, LOW)
+PORTA=11111111
+PORTB=11111111
+PORTC=11111111
+PORTD=01111111
+digitalWrite(16, LOW)
+PORTA=11111111
+PORTB=11111111
+PORTC=11111110
+PORTD=11111111
+digitalWrite(17, LOW)
+PORTA=11111111
+PORTB=11111111
+PORTC=11111101
+PORTD=11111111
+digitalWrite(18, LOW)
+PORTA=11111111
+PORTB=11111111
+PORTC=11111011
+PORTD=11111111
+digitalWrite(19, LOW)
+PORTA=11111111
+PORTB=11111111
+PORTC=11110111
+PORTD=11111111
+digitalWrite(20, LOW)
+PORTA=11111111
+PORTB=11111111
+PORTC=11101111
+PORTD=11111111
+digitalWrite(21, LOW)
+PORTA=11111111
+PORTB=11111111
+PORTC=11011111
+PORTD=11111111
+digitalWrite(22, LOW)
+PORTA=11111111
+PORTB=11111111
+PORTC=10111111
+PORTD=11111111
+digitalWrite(23, LOW)
+PORTA=11111111
+PORTB=11111111
+PORTC=01111111
+PORTD=11111111
+digitalWrite(24, LOW)
+PORTA=01111111
+PORTB=11111111
+PORTC=11111111
+PORTD=11111111
+digitalWrite(25, LOW)
+PORTA=10111111
+PORTB=11111111
+PORTC=11111111
+PORTD=11111111
+digitalWrite(26, LOW)
+PORTA=11011111
+PORTB=11111111
+PORTC=11111111
+PORTD=11111111
+digitalWrite(27, LOW)
+PORTA=11101111
+PORTB=11111111
+PORTC=11111111
+PORTD=11111111
+digitalWrite(28, LOW)
+PORTA=11110111
+PORTB=11111111
+PORTC=11111111
+PORTD=11111111
+digitalWrite(29, LOW)
+PORTA=11111011
+PORTB=11111111
+PORTC=11111111
+PORTD=11111111
+digitalWrite(30, LOW)
+PORTA=11111101
+PORTB=11111111
+PORTC=11111111
+PORTD=11111111
+digitalWrite(31, LOW)
+PORTA=11111110
+PORTB=11111111
+PORTC=11111111
+PORTD=11111111
+
+*/
 
 /*** DEFINES AND GLOBAL VARIABLES ***/
 
+//#include <WProgram.h>
+//#include <avr/pgmspace.h>
+//#include <WConstants.h>
 //#include "GlobalVars.h"
 #include "eq_clock.h"
+//#include "time_animations.h"
+//#include "ht1632/ht1632.h"
 #include "Ansi/Ansiterm.h"
 #include "Coms/Coms.h"
+//#include "Wire/Wire.h"
 #include "RTClib/RTClib.h"
+//#include "Button/Button.h"
+//#include "WiShield_user/WiShield.h"
+//#include "WiShield_user/udpapp.h"
+//#include "WiShield_user/udpapp.c"
 #include "Sunrise/Sunrise.h"
 //#include "SoftwareSerial/SoftwareSerial.h"
 //#include "ShiftPWM/hsv2rgb.h"
@@ -99,6 +272,8 @@ void LED_init(){
 }
 
 
+//Data pin is MOSI (atmega168/328: pin 11. Mega: 51)
+//Clock pin is SCK (atmega168/328: pin 13. Mega: 52)
 unsigned char maxBrightness = 50;//255;
 unsigned char pwmFrequency = 95;//75
 int numRegisters = 20; //each TLC8925 has 1 16bit shift registers
@@ -112,6 +287,8 @@ const bool ShiftPWM_invertOutputs = 0; // if invertOutputs is 1, outputs will be
 #define TIME 1
 #define RAINBOW 2
 unsigned char DISPLAYING = OFF;
+
+//#include <stdlib.h>
 
 // global clock variables
 extern RTC_DS3231 RTC;
@@ -128,11 +305,44 @@ boolean dailyCalculationsDone=false;
 uint8_t lastSecond=false;
 uint8_t TEST[5];
 
+// Button mapping
+Button b1 = Button(6,PULLUP);
+Button b2 = Button(5,PULLUP);
+Button b3 = Button(8,PULLUP);
+Button b4 = Button(7,PULLUP);
+Button b5 = Button(4,PULLUP);
+Button buttons[] = { b1, b2, b3, b4, b5 };
+
+unsigned long int b1_time;
+unsigned long int b2_time;
+unsigned long int b3_time;
+unsigned long int b4_time;
+
 extern int animation;
 extern int ani_max;
 
+//extern void udpapp_init(void);
+//extern void send_request(void);
+
+#define rxPin 0
+#define txPin 1 //19
+
+// set up a new serial port
+//SoftwareSerial mySerial =  SoftwareSerial(rxPin, txPin);
+
 /*** UTILITY FUNCTIONS ***/
 
+// debugging tool only:
+// used to estimate available mem
+// obtainted from arduino.cc forum
+// not sure how accurate this is
+int availableMemory() {
+  int size = 8192;
+  byte *buf;
+  while ((buf = (byte *) malloc(--size)) == NULL);
+  free(buf);
+  return size;
+}
 
 int setupPAMTimer(){
 	  //Setup Timer
@@ -266,7 +476,19 @@ void setup() {
 //	delay(500);
 //	mySerial.println("Start S uart");
 
+	//setup shiftpwm pins
+	pinMode(ShiftPWM_dataPin, OUTPUT);
+	digitalWrite(ShiftPWM_dataPin, HIGH);
+	pinMode(ShiftPWM_clockPin, OUTPUT);
+	digitalWrite(ShiftPWM_clockPin, HIGH);
+	pinMode(ShiftPWM_latchPin, OUTPUT);
+	digitalWrite(ShiftPWM_latchPin, HIGH);
 
+	//Pin test
+	while(0){
+		digitalWrite(txPin, HIGH);
+		digitalWrite(txPin, LOW);
+	}
 	//Pin test
 	while(0){
 		char a=20;
@@ -286,6 +508,37 @@ void setup() {
 		digitalWrite(ShiftPWM_dataPin, LOW);
 	}
 
+/*
+	Serial.begin(4800);
+	Serial.println("Start H uart");
+
+	Serial.println();
+	Serial.println();
+	Serial.println();
+	Serial.println();
+	for(unsigned char a=0,b; a<25; a++){
+		DDRA=0xff;
+		DDRB=0xff;
+		DDRC=0xff;
+		DDRD=0xff;
+		PORTA=0xff;
+		PORTB=0xff;
+		PORTC=0xff;
+		PORTD=0xff;
+		digitalWrite(a, LOW);
+		Serial.print("digitalWrite(");Serial.print(a,DEC);Serial.println(", LOW)");
+		Serial.print("PORTA=");Serial.println(PORTA,BIN);
+		Serial.print("PORTB=");Serial.println(PORTB,BIN);
+		Serial.print("PORTC=");Serial.println(PORTC,BIN);
+		Serial.print("PORTD=");Serial.println(PORTD,BIN);
+		digitalWrite(a, HIGH);
+//		Serial.print("digitalWrite(");Serial.print(a,DEC);Serial.println(", HIGH)");
+//		Serial.print("PORTA=");Serial.println(PORTA,BIN);
+//		Serial.print("PORTB=");Serial.println(PORTB,BIN);
+//		Serial.print("PORTC=");Serial.println(PORTC,BIN);
+//		Serial.print("PORTD=");Serial.println(PORTD,BIN);
+	}
+*/
 	//PWM Pin test
 	while(0){
 		for(unsigned char a=0,b; a<3; a++){
@@ -301,6 +554,15 @@ void setup() {
 		}
 	}
 
+	//Setup USART for MSPIM
+	UBRR0L = 0; //Reset for MSPI to work
+	UBRR0H = 0; //Reset for MSPI to work
+	//Do not modify for fastest MSPIM
+
+	//Disable UART receiver with no interrupts
+	UCSR0B = ((0<<TXEN0)|(0<<RXEN0)|(0<<UDRIE0)|(0<<TXCIE0)|(0<<RXCIE0));
+//	mySerial.print("Off UCSR0B=");
+//	mySerial.println(UCSR0B,BIN);
 	//Set Master SPI Mode
 	UCSR0C = (
 			(0<<UCPOL0)|	//Bit 0 - UCPOLn: Clock polarity
@@ -309,6 +571,11 @@ void setup() {
 							//Bit 5:3 - Reserved bits in MSPI mode3
 			(1<<UMSEL00)|	//Bit 7:6 - UMSELn1:0: USART mode select (MSPI=11)
 			(1<<UMSEL01));
+//	mySerial.print("SPI UCSR0C=");
+//	mySerial.println(UCSR0C,BIN);
+
+//	mySerial.println(UBRR0H,BIN);
+//	mySerial.println(UBRR0L,BIN);
 
 	//Enable UART receiver with no interrupts
 	UCSR0B = ((1<<TXEN0)	//Bit 3 – TXENn: Transmitter Enable n
@@ -316,6 +583,18 @@ void setup() {
 			|(0<<UDRIE0)	//Bit 5 – UDRIEn: USART Data Register Empty Interrupt Enable n
 			|(0<<TXCIE0)	//Bit 6 – TXCIEn: TX Complete Interrupt Enable n
 			|(0<<RXCIE0));	//Bit 7 – RXCIEn: RX Complete Interrupt Enable n
+//	mySerial.print("On UCSR0B=");
+//	mySerial.println(UCSR0B,BIN);
+
+//#define MSPIBAUD 8000000
+//#define MSPIBAUD 230400
+//#define MSPIBAUD 115200
+//#define MSPIBAUD 9600
+//#define MSPIUBRR F_CPU/16/MSPIBAUD-1
+//	UBRR0H = (unsigned char)(MSPIUBRR>>8);
+//	UBRR0L = (unsigned char)MSPIUBRR;
+//	UBRR0L = 0x00;
+//	UBRR0L = 0x00;
 
 	ShiftPWM.SetAmountOfRegisters(numRegisters);
 	ShiftPWM.Start(pwmFrequency,maxBrightness);
@@ -353,6 +632,34 @@ void setup() {
 		}
 	}
 
+//	mySerial.println("PWMUSART");
+	while(0){
+		for(char a=9,b; a>0; a--){
+			b=(1<<a);
+//			mySerial.println("UDR0");
+//			mySerial.println(b,BIN);
+			for(int a=0; a<0xfff; a++){
+				digitalWrite(ShiftPWM_latchPin,LOW);
+				for(int a=0; a<2; a++){
+	//				UDR0 = 0x01; // Send the byte to the USART_MSPI
+					UDR0 = b; // Send the byte to the USART_MSPI
+					//vvvv Wait for TX sent vvvv
+					while (!(UCSR0A & _BV(TXC0)));    // wait for last send to finish and retreive answer. Retreive must be done, otherwise the USART_MSPI will not work.
+					UCSR0A |= _BV(TXC0);//sbi
+					//^^^^ Wait for TX sent ^^^^
+				}
+				digitalWrite(ShiftPWM_latchPin,HIGH);
+			}
+			delay(500);
+		}
+	}
+//	cli(); //Disable interrupts
+
+
+//	Serial.begin(4800);
+//	Serial.println("Start H uart");
+//	delay(1000);
+
 
 //	PROGMEMprint(stringDOTKLOK);
 //	Serial.println(REV);
@@ -361,6 +668,20 @@ void setup() {
 	ANSI.eraseScreen();
 	ANSI.home();
 #endif
+
+//	if(DEBUG){
+//		Serial.println("DEBUG true, serial port open at 57600");
+//		Serial.print("Avail mem = ");
+//		Serial.println(availableMemory());
+//	}
+//	else{
+//		Serial.print("DK "); Serial.println(REV);
+//		Serial.println("DEBUG false, serial port closed");
+//		Serial.end();
+//	}
+
+  // general set up
+  pinMode(13, OUTPUT);
 
   // RTC setup
   Wire.begin();

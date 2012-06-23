@@ -33,7 +33,10 @@ public:
 
 public:
 	void Start(int ledFrequency, unsigned char max_Brightness);
+	void FadeIn(unsigned char delayVal);
+	void FadeOut(unsigned char delayVal);
 	void SetAmountOfRegisters(unsigned char newAmount);
+	void PrintInterruptLoad(void);
 	void OneByOneSlow(void);
 	void OneByOneFast(void);
 	void SetOne(int pin, unsigned char value);
@@ -49,7 +52,10 @@ public:
 private:
 	void OneByOne_core(int delaytime);
 	bool IsValidPin(int pin);
+	void InitTimer1(void);
+	void InitTimer2(void);
 	int m_prescaler;
+	bool LoadNotTooHigh(void);
 	const int m_timer;
 
 

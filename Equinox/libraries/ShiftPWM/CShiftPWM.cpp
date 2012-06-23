@@ -23,6 +23,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include "CShiftPWM.h"
+#include <WProgram.h>
+
+
+#include "../SoftwareSerial/SoftwareSerial.h"
+extern SoftwareSerial mySerial;
 
 extern const bool ShiftPWM_invertOutputs;
 
@@ -57,7 +62,7 @@ bool CShiftPWM::IsValidPin(int pin){
 //jc		mySerial.print(m_amountOfOutputs);
 //jc		mySerial.print(" , numbered 0-");
 //jc		mySerial.println(m_amountOfOutputs-1);
-//jc		delay(1000);
+		delay(1000);
 		return 0;
 	}
 }
@@ -200,6 +205,28 @@ void CShiftPWM::SetAmountOfRegisters(unsigned char newAmount){
 	}
 }
 
+bool CShiftPWM::LoadNotTooHigh(void){
+	// This function calculates if the interrupt load would become higher than 0.9 and prints an error if it would.
+	// This is with inverted outputs, which is worst case. Without inverting, it would be 42 per register.
+	float interruptDuration = 97+43* (float) m_amountOfRegisters; //
+	float interruptFrequency = (float) m_ledFrequency* (float) m_maxBrightness;
+	float load = interruptDuration*interruptFrequency/F_CPU;
+
+	if(load > 0.9){
+//jc
+//jc		mySerial.print("New interrupt duration ="); Serial.print(interruptDuration); mySerial.println("clock cycles");
+//jc				mySerial.print("New interrupt frequency ="); mySerial.print(interruptFrequency); mySerial.println("Hz");
+//jc				mySerial.print("New interrupt load would be ");
+//jc				mySerial.print(load);
+//jc				mySerial.println(" , which is too high.");
+		return 0;
+	}
+	else{
+		return 1;
+	}
+
+}
+
 void CShiftPWM::Start(int ledFrequency, unsigned char maxBrightness){
 	// Configure and enable timer1 or timer 2 for a compare and match A interrupt.    
 
@@ -219,3 +246,185 @@ void CShiftPWM::Start(int ledFrequency, unsigned char maxBrightness){
 		cli(); //Disable interrupts
 	}
 }
+
+
+
+void CShiftPWM::FadeIn(unsigned char delayVal){
+//	for(unsigned char cycle=0;cycle<maxBrightness;cycle++)
+//		maxBrightness++;delay(delayVal);
+}
+void CShiftPWM::FadeOut(unsigned char delayVal){
+//	for(unsigned char cycle=maxBrightness;cycle>0;cycle--)
+//	  	maxBrightness--;delay(delayVal);
+}
+
+void CShiftPWM::InitTimer1(void){
+	/* Configure timer1 in CTC mode: clear the timer on compare match 
+	* See the Atmega328 Datasheet 15.9.2 for an explanation on CTC mode.
+	* See table 15-4 in the datasheet. */
+
+	bitSet(TCCR1B,WGM12);
+	bitClear(TCCR1B,WGM13);
+	bitClear(TCCR1A,WGM11);
+	bitClear(TCCR1A,WGM10);
+
+
+	/*  Select clock source: internal I/O clock, without a prescaler
+	*  This is the fastest possible clock source for the highest accuracy.
+	*  See table 15-5 in the datasheet. */
+
+	bitSet(TCCR1B,CS10);
+	bitClear(TCCR1B,CS11);
+	bitClear(TCCR1B,CS12);
+
+	/* The timer will generate an interrupt when the value we load in OCR1A matches the timer value.
+	* One period of the timer, from 0 to OCR1A will therefore be (OCR1A+1)/(timer clock frequency).
+	* We want the frequency of the timer to be (LED frequency)*(number of brightness levels)
+	* So the value we want for OCR1A is: timer clock frequency/(LED frequency * number of bightness levels)-1 */
+	m_prescaler = 1;
+	OCR1A = round((float) F_CPU/((float) m_ledFrequency*((float) m_maxBrightness+1)))-1;
+	/* Finally enable the timer interrupt 
+	/* See datasheet  15.11.8) */
+	bitSet(TIMSK1,OCIE1A);
+}
+
+void CShiftPWM::InitTimer2(void){
+	/* Configure timer2 in CTC mode: clear the timer on compare match 
+	* See the Atmega328 Datasheet 15.9.2 for an explanation on CTC mode.
+	* See table 17-8 in the datasheet. */
+
+	bitClear(TCCR2B,WGM22);
+	bitSet(TCCR2A,WGM21);
+	bitClear(TCCR2A,WGM20);
+
+	/*  Select clock source: internal I/O clock, calculate most suitable prescaler
+	*  This is only an 8 bit timer, so choose the prescaler so that OCR2A fits in 8 bits.
+	*  See table 15-5 in the datasheet. */
+	int compare_value =  round((float) F_CPU/((float) m_ledFrequency*((float) m_maxBrightness+1))-1);
+	if(compare_value <= 255){
+		m_prescaler = 1;
+		bitClear(TCCR2B,CS22); bitClear(TCCR2B,CS21); bitClear(TCCR2B,CS20);
+	}
+	else if(compare_value/8 <=255){
+		m_prescaler = 8;
+		bitClear(TCCR2B,CS22); bitSet(TCCR2B,CS21); bitClear(TCCR2B,CS20);
+	}
+	else 
+		if(compare_value/32 <=255){
+			m_prescaler = 32;
+			bitClear(TCCR2B,CS22); bitSet(TCCR2B,CS21); bitSet(TCCR2B,CS20);
+		}
+		else if(compare_value/64 <= 255){
+			m_prescaler = 64;
+			bitSet(TCCR2B,CS22); bitClear(TCCR2B,CS21); bitClear(TCCR2B,CS20);
+		}
+		else if(compare_value/128 <= 255){
+			m_prescaler = 128;
+			bitSet(TCCR2B,CS22); bitClear(TCCR2B,CS21); bitSet(TCCR2B,CS20);
+		}
+		else if(compare_value/256 <= 255){
+			m_prescaler = 256;
+			bitSet(TCCR2B,CS22); bitSet(TCCR2B,CS21); bitClear(TCCR2B,CS20);
+		}
+
+		/* The timer will generate an interrupt when the value we load in OCR2A matches the timer value.
+		* One period of the timer, from 0 to OCR2A will therefore be (OCR2A+1)/(timer clock frequency).
+		* We want the frequency of the timer to be (LED frequency)*(number of brightness levels)
+		* So the value we want for OCR2A is: timer clock frequency/(LED frequency * number of bightness levels)-1 */
+		OCR2A = round(   (  (float) F_CPU / (float) m_prescaler ) /  ( (float) m_ledFrequency*( (float) m_maxBrightness+1) ) -1);
+		/* Finally enable the timer interrupt 
+		/* See datasheet  15.11.8) */
+		bitSet(TIMSK2,OCIE2A);
+}
+
+
+void CShiftPWM::PrintInterruptLoad(void){
+	//This function prints information on the interrupt settings for ShiftPWM
+	//It runs a delay loop 2 times: once with interrupts enabled, once disabled.
+	//From the difference in duration, it can calculate the load of the interrupt on the program.
+
+	unsigned long start1,end1,time1,start2,end2,time2,k;
+	double load, cycles_per_int, interrupt_frequency;
+
+
+	if(m_timer==1){
+		if(TIMSK1 & (1<<OCIE1A)){
+			// interrupt is enabled, continue
+		}
+		else{
+			// interrupt is disabled
+//jc			mySerial.println("Interrupt is disabled.");
+			return;
+		}
+	}
+	else if(m_timer==2){
+		if(TIMSK2 & (1<<OCIE2A)){
+			// interrupt is enabled, continue
+		}
+		else{
+			// interrupt is disabled
+//jc			mySerial.println("Interrupt is disabled.");
+			return;
+		}
+	}
+
+	//run with interrupt enabled
+	start1 = micros();
+	for(k=0; k<100000; k++){
+		delayMicroseconds(1); 
+	}
+	end1 = micros();  
+	time1 = end1-start1; 
+
+	//Disable Interrupt
+	if(m_timer==1){ 
+		bitClear(TIMSK1,OCIE1A);
+	}
+	else if(m_timer==2){
+		bitClear(TIMSK2,OCIE2A);
+	}
+
+
+	// run with interrupt disabled
+	start2 = micros();
+	for(k=0; k<100000; k++){
+		delayMicroseconds(1); 
+	}
+	end2 = micros();
+	time2 = end2-start2;
+
+	// ready for calculations
+	load = (double)(time1-time2)/(double)(time1);
+	if(m_timer==1){   
+		interrupt_frequency = (F_CPU/m_prescaler)/(OCR1A+1);
+	}
+	else if(m_timer==2){
+		interrupt_frequency = (F_CPU/m_prescaler)/(OCR2A+1);  
+	}
+	cycles_per_int = load*(F_CPU/interrupt_frequency);
+
+	//Ready to print information
+//jc	mySerial.print("Load of interrupt: ");   mySerial.println(load,10);
+//jc	mySerial.print("Clock cycles per interrupt: ");   mySerial.println(cycles_per_int);
+//jc	mySerial.print("Interrupt frequency: "); mySerial.print(interrupt_frequency);   mySerial.println(" Hz");
+//jc	mySerial.print("PWM frequency: "); mySerial.print(interrupt_frequency/(m_maxBrightness+1)); mySerial.println(" Hz");
+
+	if(m_timer==1){   
+//jc		mySerial.println("Timer1 in use for highest precision.");
+//jc		mySerial.println("Include servo.h to use timer2.");
+//jc		mySerial.print("OCR1A: "); mySerial.println(OCR1A, DEC);
+//jc		mySerial.print("Prescaler: "); mySerial.println(m_prescaler);
+
+		//Re-enable Interrupt	
+		bitSet(TIMSK1,OCIE1A); 
+	}
+	else if(m_timer==2){
+//jc				mySerial.println("Timer2 in use, because Timer1 is used by servo library.");
+//jc				mySerial.print("OCR2A: "); mySerial.println(OCR2A, DEC);
+//jc				mySerial.print("Presclaler: "); mySerial.println(m_prescaler);
+
+		//Re-enable Interrupt	
+		bitSet(TIMSK2,OCIE2A); 
+	}
+}
+

@@ -29,7 +29,7 @@
 
 #include "debug_frmwrk.h"
 //#include "eq_clock.h"
-#include "ShiftPWM.h"
+//#include "ShiftPWM.h"
 #include "wifi.h"
 #include "g2100.h"
 //	void stack_init(void);
@@ -72,8 +72,6 @@ int main(void){
 	in case the user application uses interrupts */
 	SCB->VTOR = (USER_FLASH_START & 0x1FFFFF80);
 
-
-
 	//Debug functions output to com1/8n1/115200
 	//does this need to be first??
 	//TODO
@@ -89,7 +87,6 @@ int main(void){
 	SYSTICK_InternalInit(1); // from NXP - 1ms interval
 	SYSTICK_IntCmd(ENABLE);
 	SYSTICK_Cmd(ENABLE);_DBG("[OK]-SYSTICK_Cmd()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
-//	delay_ms(1);
 
 	// Initialize USB<->Serial
 	serial_init();_DBG("[OK]-serial_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
@@ -98,36 +95,21 @@ int main(void){
 	serial_writestr("Start\r\nOK\r\n");
 
 	// Init RTC module
-	RTC_time_Init();_DBG("[OK]-RTC_time_Init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
+    RTC_time_Init();_DBG("[OK]-RTC_time_Init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
 
-	//TODO check if RTC IRQ needs disabling
-	/* Disable RTC interrupt */
-    NVIC_DisableIRQ(RTC_IRQn);
-    /* preemption = 1, sub-priority = 1 */
-    NVIC_SetPriority(RTC_IRQn, ((0x01<<3)|0x01));
-    //TODO check if rtc is running
-/*    if (!RTC.isrunning()) {
-    	_DBG("[ERR]-!RTC.isrunning()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
-        // following line sets the RTC to the date & time this sketch was compiled
-        RTC.adjust(DateTime(__DATE__, __TIME__));
-    }
-*/
+    LED_init();_DBG("[OK]-LED_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
+    LED_test();_DBG("[OK]-LED_test()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
 
-	//Setup SSP port for led drivers
-	LED_init();_DBG("[OK]-LED_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
-	LED_test();_DBG("[OK]-LED_test()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
 
-	// wifi init
-//	WiFi_init();_DBG("[OK]-WiFi_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
+	// Wifi init
+	WiFi_init();_DBG("[OK]-WiFi_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
 
-	// main loop
-//	_DBG("[INFO]-WiFi_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
 	// main loop
 	long timer1, steptimeout, discard;
 	for (;;){
 		// Wifi Loop
-		//TODO change to interrupt
-//		WiFi_loop();
+		WiFi_loop();
+//		LED_loop();
 
 		/* Power save - Do every 100ms */
 		#define DELAY1 100
