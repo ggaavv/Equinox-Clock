@@ -36,13 +36,14 @@
 /*
         LED Pins
 */
-
-#define LED_CS_PORT			0
-#define LED_CS_PIN			16
-#define LED_CS_BIT			(1 << LED_CS_PIN)
+/*
+//For Equinox clock board
 #define LED_LE_PORT			0
-#define LED_LE_PIN			19
-#define LED_LE_BIT			(1 << LED_LE_PIN)
+#define LED_LE_PIN			16
+#define LED_LE_BIT			(1 << LED_CS_PIN)
+#define LED_OE_PORT			0
+#define LED_OE_PIN			19
+#define LED_OE_BIT			(1 << LED_LE_PIN)
 #define LED_SCK_PORT     	0
 #define LED_SCK_PIN			15
 #define LED_SCK_BIT			(1 << LED_SCK_PIN)
@@ -51,6 +52,25 @@
 #define LED_MISO_BIT		(1 << LED_MISO_PIN)
 #define LED_MOSI_PORT		0
 #define LED_MOSI_PIN		18
+#define LED_MOSI_BIT		(1 << LED_MOSI_PIN)
+
+#define LED_SPI_CHN			0
+*/
+//For DEV board
+#define LED_LE_PORT			0
+#define LED_LE_PIN			6
+#define LED_LE_BIT			(1 << LED_CS_PIN)
+#define LED_OE_PORT			0//not connected but can use
+#define LED_OE_PIN			10
+#define LED_OE_BIT			(1 << LED_LE_PIN)
+#define LED_SCK_PORT     	0
+#define LED_SCK_PIN			7
+#define LED_SCK_BIT			(1 << LED_SCK_PIN)
+#define LED_MISO_PORT		0
+#define LED_MISO_PIN		8
+#define LED_MISO_BIT		(1 << LED_MISO_PIN)
+#define LED_MOSI_PORT		0
+#define LED_MOSI_PIN		9
 #define LED_MOSI_BIT		(1 << LED_MOSI_PIN)
 
 #define LED_SPI_CHN			0
