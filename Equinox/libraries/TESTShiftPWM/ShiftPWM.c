@@ -76,7 +76,7 @@ void LED_init(){
 
 void LED_test(){
 	uint16_t t, temp, send_data;
-	_DBG("[INFO]-LED_test()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD32(__LINE__);_DBG(")\r\n");
+	_DBG("[INFO]-LED_test()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
 	FIO_ClearValue(LED_OE_PORT, LED_OE_BIT);//LED's on.
 
@@ -93,7 +93,7 @@ void LED_test(){
 		if(1)
 			delay_ms(100);
 		else {
-			_DBG("[INPUT]*press any key to continue*");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD32(__LINE__);_DBG(")\r\n");
+			_DBG("[INPUT]*press any key to continue*");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 			t = _DG;//wait for key press
 		}
 	}
