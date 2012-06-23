@@ -8,9 +8,38 @@
 #include "debug_frmwrk.h"
 #include "lpc17xx_rtc.h"
 
+#define DOW_LEN 3
+#define NUM_DAYS_OF_WEEK 7
+#define DAYS_OF_WEEK_MAX_LEN 10
+static unsigned char DayOfWeekName[NUM_DAYS_OF_WEEK][DAYS_OF_WEEK_MAX_LEN] = {
+"Sunday",
+"Monday",
+"Tuesday",
+"Wednesday",
+"Thursday",
+"Friday",
+"Saturday"
+};
 
-void RTC_IRQHandler(void)
-{
+#define MONTH_LEN 3
+#define NUM_MONTHS 12
+#define MONTH_MAX_LEN 10
+static unsigned char Month_of_the_year[NUM_MONTHS][MONTH_MAX_LEN] = {
+"January",
+"February",
+"March",
+"April",
+"May",
+"June",
+"July",
+"August",
+"September",
+"October",
+"November",
+"December"
+};
+
+void RTC_IRQHandler(void){
 	uint32_t secval;
 
 	/* This is increment counter interrupt*/
@@ -36,6 +65,8 @@ void RTC_IRQHandler(void)
 		// Clear pending interrupt
 		RTC_ClearIntPending(LPC_RTC, RTC_INT_ALARM);
 	}
+
+	RTC_print_time();
 }
 
 
@@ -59,7 +90,8 @@ void RTC_time_Init(){
 		/* Enable rtc (starts increase the tick counter and second counter register) */
 		RTC_ResetClockTickCounter(LPC_RTC);
 		//				 yyyy  mm  dd  Dom Dow  ss  mm  hh
-		RTC_time_SetTime(2012,  6, 11, 1,  163, 10, 50, 20);
+//		RTC_time_SetTime(2012,  6, 11, 1,  163, 10, 50, 20);
+		RTC_set_default_time_to_compiled();
 	        // following line sets the RTC to the date & time this sketch was compiled
 //	        RTC.adjust(DateTime(__DATE__, __TIME__)); //TODO: get this to work
     }
@@ -81,4 +113,54 @@ void RTC_time_SetTime(uint32_t year, uint32_t month, uint32_t dayOfM, uint32_t d
 	if (min!=NULL)		RTC_SetTime (LPC_RTC, RTC_TIMETYPE_MINUTE, min);
 	if (hour!=NULL)		RTC_SetTime (LPC_RTC, RTC_TIMETYPE_HOUR, hour);
 
+}
+
+void RTC_time_GetTime(uint32_t year, uint32_t month, uint32_t dayOfM, uint32_t dayOfW, uint32_t dayOfY, uint32_t hour, uint32_t min, uint32_t sec) {
+
+}
+
+static uint8_t conv2d(const char* p) {
+    uint8_t v = 0;
+    if ('0' <= *p && *p <= '9')
+        v = *p - '0';
+    return 10 * v + *++p - '0';
+}
+
+void RTC_set_default_time_to_compiled(void) {
+
+    switch (__DATE__[0]) {
+        case 'J': m = __DATE__[1] == 'a' ? 1 : m = __DATE__[2] == 'n' ? 6 : 7; break;
+        case 'F': m = 2; break;
+        case 'A': m = __DATE__[2] == 'r' ? 4 : 8; break;
+        case 'M': m = __DATE__[2] == 'r' ? 3 : 5; break;
+        case 'S': m = 9; break;
+        case 'O': m = 10; break;
+        case 'N': m = 11; break;
+        case 'D': m = 12; break;
+    }
+
+    RTC_SetTime (LPC_RTC, RTC_TIMETYPE_YEAR, conv2d(__DATE__[0] + 9));
+	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_MONTH, conv2d(__TIME__ + 3));
+	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_DAYOFMONTH, conv2d(__TIME__ + 4));
+	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_HOUR, conv2d(__TIME__));
+	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_MINUTE, conv2d(__TIME__ + 3));
+	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_SECOND, conv2d(__TIME__ + 6));
+
+}
+
+void RTC_print_time(void){
+	uart_writestr("\n");
+	uart_writestr(RTC_GetTime(LPC_RTC, RTC_TIMETYPE_DAYOFMONTH));
+	uart_writestr(" ");
+	uart_writestr(Month_of_the_year[RTC_GetTime(LPC_RTC, RTC_TIMETYPE_DAYOFMONTH)]);
+	uart_writestr(" ");
+	uart_writestr(RTC_GetTime(LPC_RTC, RTC_TIMETYPE_YEAR));
+
+	uart_writestr("\n");
+	uart_writestr(RTC_GetTime(LPC_RTC, RTC_TIMETYPE_HOUR));
+	uart_writestr(" ");
+	uart_writestr(RTC_GetTime(LPC_RTC, RTC_TIMETYPE_MINUTE));
+	uart_writestr(" ");
+	uart_writestr(RTC_GetTime(LPC_RTC, RTC_TIMETYPE_SECOND));
+	uart_writestr("\n");
 }
