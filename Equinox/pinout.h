@@ -59,7 +59,7 @@
 //For DEV board
 #define LED_LE_PORT			0
 #define LED_LE_PIN			6
-#define LED_LE_BIT			(1 << LED_CS_PIN)
+#define LED_LE_BIT			(1 << LED_LE_PIN)
 #define LED_OE_PORT			0//not connected but can use
 #define LED_OE_PIN			10
 #define LED_OE_BIT			(1 << LED_LE_PIN)
