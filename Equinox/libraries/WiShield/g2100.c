@@ -545,7 +545,8 @@ void zg_drv_process()
       break;
    case DRV_STATE_GET_MAC:
       // get MAC address
-	   uart_writestr("\n// get MAC address");
+	  _DBG("[INFO]-// get MAC address");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
+//	   uart_writestr("\n// get MAC address");
       zg_buf[0] = ZG_CMD_WT_FIFO_MGMT;
       zg_buf[1] = ZG_MAC_TYPE_MGMT_REQ;
       zg_buf[2] = ZG_MAC_SUBTYPE_MGMT_REQ_GET_PARAM;
@@ -564,7 +565,8 @@ void zg_drv_process()
          break;
       case ZG_SECURITY_TYPE_WEP:
          // Install all four WEP keys on G2100
-   	   uart_writestr("\n// Install all four WEP keys on G2100");
+    	 _DBG("[INFO]-// Install all four WEP keys on G2100");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
+//   	   uart_writestr("\n// Install all four WEP keys on G2100");
          zg_buf[0] = ZG_CMD_WT_FIFO_MGMT;
          zg_buf[1] = ZG_MAC_TYPE_MGMT_REQ;
          zg_buf[2] = ZG_MAC_SUBTYPE_MGMT_REQ_WEP_KEY;
@@ -579,7 +581,8 @@ void zg_drv_process()
       case ZG_SECURITY_TYPE_WPA:
       case ZG_SECURITY_TYPE_WPA2:
          // Initiate PSK calculation on G2100
-      	   uart_writestr("\n// Initiate PSK calculation on G2100");
+    	 _DBG("[INFO]-// Initiate PSK calculation on G2100");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
+//      	 uart_writestr("\n// Initiate PSK calculation on G2100");
          zg_buf[0] = ZG_CMD_WT_FIFO_MGMT;
          zg_buf[1] = ZG_MAC_TYPE_MGMT_REQ;
          zg_buf[2] = ZG_MAC_SUBTYPE_MGMT_REQ_CALC_PSK;
@@ -597,7 +600,8 @@ void zg_drv_process()
       break;
    case DRV_STATE_INSTALL_PSK:
       // Install the PSK key on G2100
-  	   uart_writestr("\n// Install the PSK key on G2100");
+  	  _DBG("[INFO]-// Install the PSK key on G2100");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
+//  	   uart_writestr("\n// Install the PSK key on G2100");
       zg_buf[0] = ZG_CMD_WT_FIFO_MGMT;
       zg_buf[1] = ZG_MAC_TYPE_MGMT_REQ;
       zg_buf[2] = ZG_MAC_SUBTYPE_MGMT_REQ_PMK_KEY;
@@ -611,7 +615,8 @@ void zg_drv_process()
       break;
    case DRV_STATE_ENABLE_CONN_MANAGE:
       // enable connection manager
-  	   uart_writestr("\n// enable connection manager");
+	  _DBG("[INFO]-// enable connection manager");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
+//  	   uart_writestr("\n// enable connection manager");
       zg_buf[0] = ZG_CMD_WT_FIFO_MGMT;
       zg_buf[1] = ZG_MAC_TYPE_MGMT_REQ;
       zg_buf[2] = ZG_MAC_SUBTYPE_MGMT_REQ_CONNECT_MANAGE;
@@ -637,7 +642,8 @@ void zg_drv_process()
       zg_connect_req_t* cmd = (zg_connect_req_t*)&zg_buf[3];
 
       // start connection to AP
- 	   uart_writestr("\n// start connection to AP");
+      _DBG("[INFO]-// start connection to AP");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
+// 	   uart_writestr("\n// start connection to AP");
       zg_buf[0] = ZG_CMD_WT_FIFO_MGMT;
       zg_buf[1] = ZG_MAC_TYPE_MGMT_REQ;
       zg_buf[2] = ZG_MAC_SUBTYPE_MGMT_REQ_CONNECT;
@@ -673,7 +679,7 @@ void zg_drv_process()
    case DRV_STATE_IDLE:
       break;
    }
-//   _DBG("[END]-zg_drv_process()");_DBD_(__LINE__);_DBG_(__FILE__);
+//   _DBG("[END]-zg_drv_process()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
 }
 
 // END
