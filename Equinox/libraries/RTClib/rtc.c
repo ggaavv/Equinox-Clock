@@ -93,6 +93,7 @@ void RTC_time_Init(){
 		//				 yyyy  mm  dd  Dom Dow  ss  mm  hh
 //		RTC_time_SetTime(2012,  6, 11, 1,  163, 10, 50, 20);
 		RTC_set_default_time_to_compiled();
+//		RTC_WriteGPREG(LPC_RTC, 4, 0xaa);
 	        // following line sets the RTC to the date & time this sketch was compiled
 //	        RTC.adjust(DateTime(__DATE__, __TIME__)); //TODO: get this to work
     }
@@ -110,7 +111,7 @@ void RTC_time_SetTime(uint32_t year, uint32_t month, uint32_t dayOfM, uint32_t d
 	if (year!=NULL) 	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_YEAR, year);
 	if (month!=NULL)	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_MONTH, month);
 	if (dayOfM!=NULL)	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_DAYOFMONTH, dayOfM);
-	if (dayOfW!=NULL)	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_DAYOFMONTH, dayOfW);
+	if (dayOfW!=NULL)	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_DAYOFWEEK, dayOfW);
 	if (dayOfY!=NULL)	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_DAYOFYEAR, dayOfY);
 	if (sec!=NULL)		RTC_SetTime (LPC_RTC, RTC_TIMETYPE_SECOND, sec);
 	if (min!=NULL)		RTC_SetTime (LPC_RTC, RTC_TIMETYPE_MINUTE, min);
@@ -149,9 +150,10 @@ void RTC_set_default_time_to_compiled(void) {
     _DBG("[INFO]-__DATE__[0]=");_DBD(__DATE__[0]);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
     _DBG("[INFO]-conv2d(__DATE__[0]=");_DBD(conv2d(__DATE__[0]));_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
     _DBG("[INFO]-conv2d(__DATE__[0] + 9)=");_DBD(conv2d(__DATE__[0] + 9));_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
-    RTC_SetTime (LPC_RTC, RTC_TIMETYPE_YEAR, conv2d(__DATE__[0] + 9));
-	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_MONTH, conv2d(__TIME__ + 3));
-	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_DAYOFMONTH, conv2d(__TIME__ + 4));
+    RTC_SetTime (LPC_RTC, RTC_TIMETYPE_YEAR, conv2d(__DATE__ + 9));
+	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_MONTH, conv2d(__DATE__ + 3));
+//	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_DAYOFMONTH, month_as_number);
+	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_DAYOFMONTH, conv2d(__DATE__ + 4));
 	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_HOUR, conv2d(__TIME__));
 	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_MINUTE, conv2d(__TIME__ + 3));
 	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_SECOND, conv2d(__TIME__ + 6));
@@ -179,7 +181,7 @@ void RTC_print_time(void){
 	_DBG("[INFO]-Date=");
 	_DBD(RTC_GetTime(LPC_RTC, RTC_TIMETYPE_DAYOFMONTH));
 	_DBG("/");
-	_DBD(Month_of_the_year[RTC_GetTime(LPC_RTC, RTC_TIMETYPE_DAYOFMONTH)]);
+	_DBD(RTC_GetTime(LPC_RTC, RTC_TIMETYPE_MONTH));
 	_DBG("/");
 	_DBD(RTC_GetTime(LPC_RTC, RTC_TIMETYPE_YEAR));
 	_DBG("\r\n");
