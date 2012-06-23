@@ -173,7 +173,7 @@ void RTC_print_time(void){
 	uart_writestr("\r\n");
 */
 
-	_DBG("[INFO]-Date");
+	_DBG("[INFO]-Date=");
 	_DBD(RTC_GetTime(LPC_RTC, RTC_TIMETYPE_DAYOFMONTH));
 	_DBG("/");
 	_DBD(Month_of_the_year[RTC_GetTime(LPC_RTC, RTC_TIMETYPE_DAYOFMONTH)]);
@@ -181,7 +181,7 @@ void RTC_print_time(void){
 	_DBD(RTC_GetTime(LPC_RTC, RTC_TIMETYPE_YEAR));
 	_DBG("\r\n");
 
-	_DBG("[INFO]-Time");
+	_DBG("[INFO]-Time=");
 	_DBD(RTC_GetTime(LPC_RTC, RTC_TIMETYPE_HOUR));
 	_DBG(":");
 	_DBD(RTC_GetTime(LPC_RTC, RTC_TIMETYPE_MINUTE));
