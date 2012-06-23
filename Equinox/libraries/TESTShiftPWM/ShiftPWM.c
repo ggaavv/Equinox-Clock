@@ -80,7 +80,7 @@ void LED_test(){
 
 	FIO_ClearValue(LED_OE_PORT, LED_OE_BIT);//LED's on.
 
-	_DBG("Sending: ");
+	_DBG("[INFO]-Sending: ");
 	for(temp=0; temp<16; temp++){
 		send_data = 1<<temp;
 		_DBH16(send_data);_DBG(", ");
