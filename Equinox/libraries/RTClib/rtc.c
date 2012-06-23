@@ -97,7 +97,7 @@ void RTC_time_Init(){
 	        // following line sets the RTC to the date & time this sketch was compiled
 //	        RTC.adjust(DateTime(__DATE__, __TIME__)); //TODO: get this to work
     }
-//	RTC_CntIncrIntConfig (LPC_RTC, RTC_TIMETYPE_SECOND, ENABLE);
+	RTC_CntIncrIntConfig (LPC_RTC, RTC_TIMETYPE_SECOND, ENABLE);
 
     RTC_print_time();
 

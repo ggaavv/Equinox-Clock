@@ -88,8 +88,7 @@ void WiFi_init(){
 
 //	attachInterrupt(INT_PIN, zg_isr, FALLING);
 
-	zg_init();
-	_DBG("[OK]-zg_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
+	zg_init();_DBG("[OK]-zg_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
 
 	while(zg_get_conn_state() != 1) {
 //		_DBG("BEFORE\n while(zg_get_conn_state() != 1) {");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
