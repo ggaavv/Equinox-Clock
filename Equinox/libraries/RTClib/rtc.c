@@ -86,7 +86,8 @@ void RTC_time_Init(){
 //    uart_send_32_Hex(RTC_ReadGPREG(LPC_RTC, 4));
     if (!(RTC_ReadGPREG(LPC_RTC, 4)==(0xaa)))
     {
-    	_DBG("Setting clock time");_DBG("LN:");_DBD(__LINE__);_DBG(" File:");_DBG_(__FILE__);
+    	_DBG("[INFO]-Setting clock time");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
+    	_DBG("[INFO]-__DATE__=");_DBG(__DATE__);_DBG(", __TIME__=");_DBG_(__TIME__);
 		/* Enable rtc (starts increase the tick counter and second counter register) */
 		RTC_ResetClockTickCounter(LPC_RTC);
 		//				 yyyy  mm  dd  Dom Dow  ss  mm  hh
@@ -96,6 +97,8 @@ void RTC_time_Init(){
 //	        RTC.adjust(DateTime(__DATE__, __TIME__)); //TODO: get this to work
     }
 //	RTC_CntIncrIntConfig (LPC_RTC, RTC_TIMETYPE_SECOND, ENABLE);
+
+    RTC_print_time();
 
     /* Enable RTC interrupt */
     NVIC_EnableIRQ(RTC_IRQn);
@@ -131,7 +134,9 @@ void RTC_set_default_time_to_compiled(void) {
 	uint8_t month_as_number;
 
     switch (__DATE__[0]) {
-        case 'J': month_as_number = __DATE__[1] == 'a' ? 1 : month_as_number = __DATE__[2] == 'n' ? 6 : 7; break;
+    	//TODO sort month j,j,j
+ //   	case 'J': month_as_number = __DATE__[1] == 'a' ? 1 : month_as_number = __DATE__[2] == 'n' ? 6 : 7; break;
+    	case 'J': month_as_number = 1; break;
         case 'F': month_as_number = 2; break;
         case 'A': month_as_number = __DATE__[2] == 'r' ? 4 : 8; break;
         case 'M': month_as_number = __DATE__[2] == 'r' ? 3 : 5; break;
@@ -151,18 +156,36 @@ void RTC_set_default_time_to_compiled(void) {
 }
 
 void RTC_print_time(void){
-	uart_writestr("\n");
+	/*
+//	uart_writestr("\r\n");
 	uart_writestr(RTC_GetTime(LPC_RTC, RTC_TIMETYPE_DAYOFMONTH));
-	uart_writestr(" ");
+	uart_writestr("/");
 	uart_writestr(Month_of_the_year[RTC_GetTime(LPC_RTC, RTC_TIMETYPE_DAYOFMONTH)]);
-	uart_writestr(" ");
+	uart_writestr("/");
 	uart_writestr(RTC_GetTime(LPC_RTC, RTC_TIMETYPE_YEAR));
 
-	uart_writestr("\n");
+	uart_writestr("\r\n");
 	uart_writestr(RTC_GetTime(LPC_RTC, RTC_TIMETYPE_HOUR));
-	uart_writestr(" ");
+	uart_writestr(":");
 	uart_writestr(RTC_GetTime(LPC_RTC, RTC_TIMETYPE_MINUTE));
-	uart_writestr(" ");
+	uart_writestr(":");
 	uart_writestr(RTC_GetTime(LPC_RTC, RTC_TIMETYPE_SECOND));
-	uart_writestr("\n");
+	uart_writestr("\r\n");
+*/
+
+	_DBG("[INFO]-Date");
+	_DBD(RTC_GetTime(LPC_RTC, RTC_TIMETYPE_DAYOFMONTH));
+	_DBG("/");
+	_DBD(Month_of_the_year[RTC_GetTime(LPC_RTC, RTC_TIMETYPE_DAYOFMONTH)]);
+	_DBG("/");
+	_DBD(RTC_GetTime(LPC_RTC, RTC_TIMETYPE_YEAR));
+	_DBG("\r\n");
+
+	_DBG("[INFO]-Time");
+	_DBD(RTC_GetTime(LPC_RTC, RTC_TIMETYPE_HOUR));
+	_DBG(":");
+	_DBD(RTC_GetTime(LPC_RTC, RTC_TIMETYPE_MINUTE));
+	_DBG(":");
+	_DBD(RTC_GetTime(LPC_RTC, RTC_TIMETYPE_SECOND));
+	_DBG("\r\n");
 }

@@ -75,7 +75,7 @@ int main(void){
 	//Debug functions output to com1/8n1/115200
 	//does this need to be first??
 	//TODO
-	debug_frmwrk_init();_DBG("[OK]-debug_frmwrk_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
+	debug_frmwrk_init();_DBG_("\r\n\r\n\r\n\r\n\r\n**BOOTED**");_DBG("[OK]-debug_frmwrk_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
 
 	//eraseScreen
 //	_DBG(0x1B);//_DBG(ESCAPE);
@@ -91,8 +91,9 @@ int main(void){
 	// Initialize USB<->Serial
 	serial_init();_DBG("[OK]-serial_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
 
-	uart_writestr("Start\r\nOK\r\n");
-	serial_writestr("Start\r\nOK\r\n");
+	uart_writestr("[OK]-uart_Start");
+	serial_writestr("[OK]-serial_Start");
+	_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
 
 	// Init RTC module
     RTC_time_Init();_DBG("[OK]-RTC_time_Init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD(__LINE__);_DBG(")\r\n");
