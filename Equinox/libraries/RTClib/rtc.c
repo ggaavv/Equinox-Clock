@@ -48,8 +48,8 @@ void RTC_IRQHandler(void){
 		secval = RTC_GetTime (LPC_RTC, RTC_TIMETYPE_SECOND);
 
 		/* Send debug information */
-		_DBG ("Second: "); _DBD(secval);
-		_DBG_("");
+//		_DBG ("Second: "); _DBD(secval);
+//		_DBG_("");
 
 		// Clear pending interrupt
 		RTC_ClearIntPending(LPC_RTC, RTC_INT_COUNTER_INCREASE);
@@ -135,24 +135,65 @@ void RTC_set_default_time_to_compiled(void) {
 	uint8_t month_as_number;
 
     switch (__DATE__[0]) {
-    	//TODO sort month j,j,j
- //   	case 'J': month_as_number = __DATE__[1] == 'a' ? 1 : month_as_number = __DATE__[2] == 'n' ? 6 : 7; break;
-    	case 'J': month_as_number = 1; break;
-        case 'F': month_as_number = 2; break;
-        case 'A': month_as_number = __DATE__[2] == 'r' ? 4 : 8; break;
-        case 'M': month_as_number = __DATE__[2] == 'r' ? 3 : 5; break;
-        case 'S': month_as_number = 9; break;
-        case 'O': month_as_number = 10; break;
-        case 'N': month_as_number = 11; break;
-        case 'D': month_as_number = 12; break;
+    	case 'J':
+    		switch (__DATE__[1]) {
+    			case 'a':
+    				month_as_number = 1;
+    				break;
+    			default:
+    				switch (__DATE__[2]) {
+    					case 'n':
+    						month_as_number = 6;
+    						break;
+    					case 'l':
+    						month_as_number = 7;
+    						break;
+    				}
+    		}
+    		break;
+        case 'F':
+        	month_as_number = 2;
+        	break;
+//        case 'A': month_as_number = __DATE__[2] == 'r' ? 4 : 8; break;
+        case 'A':
+        	switch (__DATE__[2]) {
+        		case 'r':
+        			month_as_number = 4;
+        			break;
+        		case 'g':
+        			month_as_number = 8;
+        			break;
+        	}
+//        case 'M': month_as_number = __DATE__[2] == 'r' ? 3 : 5; break;
+        case 'M':
+        	switch (__DATE__[2]) {
+    			case 'r':
+    				month_as_number = 3;
+    				break;
+    			case 'y':
+    				month_as_number = 5;
+    				break;
+        	}
+        case 'S':
+        	month_as_number = 9;
+        	break;
+        case 'O':
+        	month_as_number = 10;
+        	break;
+        case 'N':
+        	month_as_number = 11;
+        	break;
+        case 'D':
+        	month_as_number = 12;
+        	break;
     }
 
     _DBG("[INFO]-__DATE__[0]=");_DBD(__DATE__[0]);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
     _DBG("[INFO]-conv2d(__DATE__[0]=");_DBD(conv2d(__DATE__[0]));_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
     _DBG("[INFO]-conv2d(__DATE__[0] + 9)=");_DBD(conv2d(__DATE__[0] + 9));_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+    _DBG("[INFO]-month_as_number");_DBD(month_as_number);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
     RTC_SetTime (LPC_RTC, RTC_TIMETYPE_YEAR, conv2d(__DATE__ + 9));
-	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_MONTH, conv2d(__DATE__ + 3));
-//	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_DAYOFMONTH, month_as_number);
+	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_MONTH, month_as_number);
 	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_DAYOFMONTH, conv2d(__DATE__ + 4));
 	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_HOUR, conv2d(__TIME__));
 	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_MINUTE, conv2d(__TIME__ + 3));
