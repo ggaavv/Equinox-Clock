@@ -97,7 +97,7 @@ void RTC_time_Init(){
 		//				 yyyy  mm  dd  Dom Dow  ss  mm  hh
 //		RTC_time_SetTime(2012,  6, 11, 1,  163, 10, 50, 20);
 		RTC_set_default_time_to_compiled();
-//		RTC_WriteGPREG(LPC_RTC, 4, 0xaa);
+		RTC_WriteGPREG(LPC_RTC, 4, 0xaa);
 	        // following line sets the RTC to the date & time this sketch was compiled
 //	        RTC.adjust(DateTime(__DATE__, __TIME__)); //TODO: get this to work
     }
@@ -244,6 +244,7 @@ void RTC_set_default_time_to_compiled(void) {
         	break;
     }
     RTC_SetTime (LPC_RTC, RTC_TIMETYPE_YEAR, conv2d(__DATE__ + 7)*100 + conv2d(__DATE__ + 9));
+//    RTC_SetTime (LPC_RTC, RTC_TIMETYPE_YEAR, conv2d(__DATE__ + 9) + 2000);
 	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_MONTH, month_as_number);
 	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_DAYOFMONTH, conv2d(__DATE__ + 4));
 	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_HOUR, conv2d(__TIME__));
@@ -252,11 +253,7 @@ void RTC_set_default_time_to_compiled(void) {
 }
 
 void RTC_print_time(void){
-	_DBG("[INFO]-Day Of x: ");
-//	_DBG("Week: ");_DBD(RTC_GetTime(LPC_RTC, RTC_TIMETYPE_DAYOFWEEK));
-
-
-	_DBG("\r\n");
+	_DBG("[INFO]-Day Of week: ");_DBD(RTC_GetTime(LPC_RTC, RTC_TIMETYPE_DAYOFWEEK));_DBG("\r\n");
 
 	_DBG("[INFO]-Date=");
 	_DBD(RTC_GetTime(LPC_RTC, RTC_TIMETYPE_DAYOFMONTH));
