@@ -8,17 +8,22 @@
 #include "debug_frmwrk.h"
 #include "lpc17xx_rtc.h"
 
+#define DSTEurope 1
+#define SECONDS_PER_DAY 86400L
+#define SECONDS_FROM_1970_TO_2000 946684800
+static uint8_t daysInMonth [12] = { 31,28,31,30,31,30,31,31,30,31,30,31 };
+
 #define DOW_LEN 3
 #define NUM_DAYS_OF_WEEK 7
 #define DAYS_OF_WEEK_MAX_LEN 10
 static unsigned char DayOfWeekName[NUM_DAYS_OF_WEEK][DAYS_OF_WEEK_MAX_LEN] = {
-"Sunday",
 "Monday",
 "Tuesday",
 "Wednesday",
 "Thursday",
 "Friday",
-"Saturday"
+"Saturday",
+"Sunday"
 };
 
 #define MONTH_LEN 3
@@ -69,7 +74,6 @@ void RTC_IRQHandler(void){
 	RTC_print_time();
 }
 
-
 void RTC_time_Init(){
 
 	// Init RTC module
@@ -106,28 +110,77 @@ void RTC_time_Init(){
 
 }
 
-void RTC_time_SetTime(uint32_t year, uint32_t month, uint32_t dayOfM, uint32_t dayOfW, uint32_t dayOfY, uint32_t hour, uint32_t min, uint32_t sec) {
-
+void RTC_time_SetTime(uint16_t year, uint8_t month, uint8_t dayOfM, uint8_t hour, uint8_t min, uint8_t sec) {
 	if (year!=NULL) 	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_YEAR, year);
 	if (month!=NULL)	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_MONTH, month);
 	if (dayOfM!=NULL)	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_DAYOFMONTH, dayOfM);
-	if (dayOfW!=NULL)	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_DAYOFWEEK, dayOfW);
-	if (dayOfY!=NULL)	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_DAYOFYEAR, dayOfY);
+//	if ((year!=NULL) && (month!=NULL) && (dayOfM!=NULL))	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_DAYOFWEEK, dayOfWeekManual(year, month, dayOfM)); //TODO: no idea why this wont compile
+//	if ((year!=NULL) && (month!=NULL) && (dayOfM!=NULL))	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_DAYOFYEAR, dateoftheyear(year, month, dayOfM)); //TODO: no idea why this wont compile
 	if (sec!=NULL)		RTC_SetTime (LPC_RTC, RTC_TIMETYPE_SECOND, sec);
 	if (min!=NULL)		RTC_SetTime (LPC_RTC, RTC_TIMETYPE_MINUTE, min);
 	if (hour!=NULL)		RTC_SetTime (LPC_RTC, RTC_TIMETYPE_HOUR, hour);
-
 }
 
-void RTC_time_GetTime(uint32_t year, uint32_t month, uint32_t dayOfM, uint32_t dayOfW, uint32_t dayOfY, uint32_t hour, uint32_t min, uint32_t sec) {
-
+void RTC_time_GetTime(uint16_t* year, uint8_t* month, uint8_t* dayOfM, uint8_t* dayOfW, uint8_t* dayOfY, uint8_t* hour, uint8_t* min, uint8_t* sec) {
+	year = RTC_GetTime(LPC_RTC, RTC_TIMETYPE_YEAR);
+	month = RTC_GetTime(LPC_RTC, RTC_TIMETYPE_MONTH);
+	dayOfM = RTC_GetTime(LPC_RTC, RTC_TIMETYPE_DAYOFMONTH);
+	dayOfW = RTC_GetTime(LPC_RTC, RTC_TIMETYPE_DAYOFWEEK);
+	dayOfY = RTC_GetTime(LPC_RTC, RTC_TIMETYPE_DAYOFYEAR);
+	hour = RTC_GetTime(LPC_RTC, RTC_TIMETYPE_HOUR);
+	min = RTC_GetTime(LPC_RTC, RTC_TIMETYPE_SECOND);
+	sec = RTC_GetTime(LPC_RTC, RTC_TIMETYPE_HOUR);
 }
 
-static uint8_t conv2d(const char* p) {
+// number of days since 2000/01/01, valid for 2001..2099
+uint16_t date2days(uint16_t year, uint8_t month, uint8_t dayOfM) {
+    if (year >= 2000)
+    	year -= 2000;
+    uint16_t days = dayOfM;
+    for (uint8_t i = 1; i < month; ++i)
+        days += daysInMonth[i] - 1;
+    if (month > 2 && year % 4 == 0)
+        ++days;
+    return days + (year + 3) / 4 - 1;  //TODO: check if this is correct!!!
+}
+
+// number of days since 2000/01/01, valid for 2001..2099
+uint16_t dateoftheyear(uint16_t year, uint8_t month, uint8_t dayOfM) {
+    if (year >= 2000)
+    	year -= 2000;
+    uint16_t days = dayOfM;
+    for (uint8_t i = 1; i < month; ++i)
+        days += daysInMonth[i] - 1;
+    if (month > 2 && year % 4 == 0)
+        ++days;
+    return days + 365 * year + (year + 3) / 4 - 1;
+}
+
+// convert date into seconds
+long time2long(uint16_t days, uint8_t hour, uint8_t min, uint8_t sec) {
+    return ((days * 24L + hour) * 60 + min) * 60 + sec;
+}
+
+// find day of the week
+uint8_t dayOfWeekManual(uint16_t year, uint8_t month, uint8_t dayOfM) {
+    uint16_t day = date2days(year, month, dayOfM);
+    return (day + 6) % 7; // Jan 1, 2000 is a Saturday, i.e. returns 6
+}
+
+// convert char to uint8_t for time
+uint8_t conv2d(const char* p) {
     uint8_t v = 0;
     if ('0' <= *p && *p <= '9')
         v = *p - '0';
     return 10 * v + *++p - '0';
+}
+
+uint32_t RTC_time_GetUnixtime() {
+  uint32_t t;
+  uint16_t days = date2days(RTC_GetTime (LPC_RTC, RTC_TIMETYPE_DAYOFMONTH), RTC_GetTime (LPC_RTC, RTC_TIMETYPE_MONTH), RTC_GetTime (LPC_RTC, RTC_TIMETYPE_DAYOFMONTH));
+  t = time2long(days, RTC_GetTime (LPC_RTC, RTC_TIMETYPE_HOUR), RTC_GetTime (LPC_RTC, RTC_TIMETYPE_MINUTE), RTC_GetTime (LPC_RTC, RTC_TIMETYPE_SECOND));
+  t += SECONDS_FROM_1970_TO_2000; // seconds from 1970 to 2000
+  return t;
 }
 
 void RTC_set_default_time_to_compiled(void) {
@@ -149,6 +202,7 @@ void RTC_set_default_time_to_compiled(void) {
     						month_as_number = 7;
     						break;
     				}
+    			break;
     		}
     		break;
         case 'F':
@@ -164,6 +218,7 @@ void RTC_set_default_time_to_compiled(void) {
         			month_as_number = 8;
         			break;
         	}
+        	break;
 //        case 'M': month_as_number = __DATE__[2] == 'r' ? 3 : 5; break;
         case 'M':
         	switch (__DATE__[2]) {
@@ -174,6 +229,7 @@ void RTC_set_default_time_to_compiled(void) {
     				month_as_number = 5;
     				break;
         	}
+        	break;
         case 'S':
         	month_as_number = 9;
         	break;
@@ -187,44 +243,27 @@ void RTC_set_default_time_to_compiled(void) {
         	month_as_number = 12;
         	break;
     }
-
-    _DBG("[INFO]-__DATE__[0]=");_DBD(__DATE__[0]);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-    _DBG("[INFO]-conv2d(__DATE__[0]=");_DBD(conv2d(__DATE__[0]));_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-    _DBG("[INFO]-conv2d(__DATE__[0] + 9)=");_DBD(conv2d(__DATE__[0] + 9));_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-    _DBG("[INFO]-month_as_number");_DBD(month_as_number);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-    RTC_SetTime (LPC_RTC, RTC_TIMETYPE_YEAR, conv2d(__DATE__ + 9));
+    RTC_SetTime (LPC_RTC, RTC_TIMETYPE_YEAR, conv2d(__DATE__ + 7)*100 + conv2d(__DATE__ + 9));
 	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_MONTH, month_as_number);
 	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_DAYOFMONTH, conv2d(__DATE__ + 4));
 	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_HOUR, conv2d(__TIME__));
 	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_MINUTE, conv2d(__TIME__ + 3));
 	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_SECOND, conv2d(__TIME__ + 6));
-
 }
 
 void RTC_print_time(void){
-	/*
-//	uart_writestr("\r\n");
-	uart_writestr(RTC_GetTime(LPC_RTC, RTC_TIMETYPE_DAYOFMONTH));
-	uart_writestr("/");
-	uart_writestr(Month_of_the_year[RTC_GetTime(LPC_RTC, RTC_TIMETYPE_DAYOFMONTH)]);
-	uart_writestr("/");
-	uart_writestr(RTC_GetTime(LPC_RTC, RTC_TIMETYPE_YEAR));
+	_DBG("[INFO]-Day Of x: ");
+//	_DBG("Week: ");_DBD(RTC_GetTime(LPC_RTC, RTC_TIMETYPE_DAYOFWEEK));
 
-	uart_writestr("\r\n");
-	uart_writestr(RTC_GetTime(LPC_RTC, RTC_TIMETYPE_HOUR));
-	uart_writestr(":");
-	uart_writestr(RTC_GetTime(LPC_RTC, RTC_TIMETYPE_MINUTE));
-	uart_writestr(":");
-	uart_writestr(RTC_GetTime(LPC_RTC, RTC_TIMETYPE_SECOND));
-	uart_writestr("\r\n");
-*/
+
+	_DBG("\r\n");
 
 	_DBG("[INFO]-Date=");
 	_DBD(RTC_GetTime(LPC_RTC, RTC_TIMETYPE_DAYOFMONTH));
 	_DBG("/");
 	_DBD(RTC_GetTime(LPC_RTC, RTC_TIMETYPE_MONTH));
 	_DBG("/");
-	_DBD(RTC_GetTime(LPC_RTC, RTC_TIMETYPE_YEAR));
+	_DBD16(RTC_GetTime(LPC_RTC, RTC_TIMETYPE_YEAR));
 	_DBG("\r\n");
 
 	_DBG("[INFO]-Time=");

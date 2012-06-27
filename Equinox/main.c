@@ -35,7 +35,7 @@
 //	void stack_init(void);
 //	void stack_process(void);
 
-#include "uart.h"   // TODO: remove after debugging
+//#include "uart.h"   // TODO: remove after debugging
 #include "lpc17xx_gpio.h"
 #include "debug.h"
 

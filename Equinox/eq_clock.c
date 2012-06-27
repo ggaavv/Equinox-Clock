@@ -223,8 +223,8 @@ PORTD=11111111
 void LED_init(){
 	//TODO lsb first spi mode 0 0?
 	
-	GPIO_SetDir(LED_CS_PORT, LED_CS_BIT, 1);
-	GPIO_SetValue(LED_CS_PORT, LED_CS_BIT);
+	GPIO_SetDir(LED_OE_PORT, LED_OE_BIT, 1);
+	GPIO_SetValue(LED_OE_PORT, LED_OE_BIT);
 
 	GPIO_SetDir(LED_LE_PORT, LED_LE_BIT, 1);
 	GPIO_SetValue(LED_LE_PORT, LED_LE_BIT);
