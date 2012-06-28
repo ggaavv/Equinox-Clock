@@ -17,8 +17,7 @@
 
 #include "debug_frmwrk.h"
 #include "lpc17xx_rtc.h"
-
-
+#include "rtc.h"
 
 void RTC_IRQHandler(void);
 void RTC_time_Init();
@@ -36,7 +35,10 @@ uint8_t GetMM();
 uint8_t GetSS();
 void RTC_time_SetTime(uint16_t year, uint8_t month, uint8_t dayOfM, uint8_t hour, uint8_t min, uint8_t sec);
 void RTC_time_GetTime(uint16_t* year, uint8_t* month, uint8_t* dayOfM, uint8_t* dayOfW, uint8_t* dayOfY, uint8_t* hour, uint8_t* min, uint8_t* sec);
+//Calculate if it is daylight saving
+#if defined DST
 uint8_t RTC_DST(uint16_t year, uint8_t month, uint8_t dayOfM, uint8_t hour);
+#endif;
 // number of days since 2000/01/01, valid for 2001..2099
 uint16_t date2days(uint16_t year, uint8_t month, uint8_t dayOfM);
 // number of days since 2000/01/01, valid for 2001..2099
@@ -53,6 +55,10 @@ uint32_t Convert_To_Unixtime(uint16_t year, uint8_t month, uint8_t dayOfM, uint8
 void DST_check_and_correct();
 void RTC_set_default_time_to_compiled(void);
 void RTC_print_time(void);
+void unix_to_hh_mm_ss (uint32_t t);
+uint32_t dst_correction_needed();
+uint32_t dst_correction_needed_t_y(uint32_t t, uint16_t year);
+void DSTyearly();
 
 
 #endif /* RTC_H_ */
