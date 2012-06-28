@@ -6,8 +6,9 @@
  */
 
 #include "debug_frmwrk.h"
-#include "lpc17xx_rtc.h"
+#include "rtc.h"
 
+#define DST
 #define DSTEurope 1
 #define SECONDS_PER_DAY 86400L
 #define SECONDS_FROM_1970_TO_2000 946684800
@@ -43,6 +44,9 @@ static unsigned char Month_of_the_year[NUM_MONTHS][MONTH_MAX_LEN] = {
 "November",
 "December"
 };
+
+#define beginDSTMonth 3
+#define endDSTMonth 10
 
 void RTC_IRQHandler(void){
 	uint32_t secval;
@@ -110,26 +114,61 @@ void RTC_time_Init(){
 
 }
 
+// Set time without British summer time added
 void RTC_time_SetTime(uint16_t year, uint8_t month, uint8_t dayOfM, uint8_t hour, uint8_t min, uint8_t sec) {
 	if (year!=NULL) 	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_YEAR, year);
 	if (month!=NULL)	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_MONTH, month);
 	if (dayOfM!=NULL)	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_DAYOFMONTH, dayOfM);
-//	if ((year!=NULL) && (month!=NULL) && (dayOfM!=NULL))	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_DAYOFWEEK, dayOfWeekManual(year, month, dayOfM)); //TODO: no idea why this wont compile
-//	if ((year!=NULL) && (month!=NULL) && (dayOfM!=NULL))	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_DAYOFYEAR, dateoftheyear(year, month, dayOfM)); //TODO: no idea why this wont compile
+	if ((year!=NULL) && (month!=NULL) && (dayOfM!=NULL))	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_DAYOFWEEK, dayOfWeekManual(year, month, dayOfM));
+	if ((year!=NULL) && (month!=NULL) && (dayOfM!=NULL))	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_DAYOFYEAR, dateoftheyear(year, month, dayOfM));
 	if (sec!=NULL)		RTC_SetTime (LPC_RTC, RTC_TIMETYPE_SECOND, sec);
 	if (min!=NULL)		RTC_SetTime (LPC_RTC, RTC_TIMETYPE_MINUTE, min);
 	if (hour!=NULL)		RTC_SetTime (LPC_RTC, RTC_TIMETYPE_HOUR, hour);
 }
 
-void RTC_time_GetTime(uint16_t* year, uint8_t* month, uint8_t* dayOfM, uint8_t* dayOfW, uint8_t* dayOfY, uint8_t* hour, uint8_t* min, uint8_t* sec) {
+// Get time with British summer time added
+void RTC_time_GetTime(uint16_t *year, uint8_t *month, uint8_t *dayOfM, uint8_t *dayOfW, uint8_t *dayOfY, uint8_t *hour, uint8_t *min, uint8_t *sec) {
 	year = RTC_GetTime(LPC_RTC, RTC_TIMETYPE_YEAR);
 	month = RTC_GetTime(LPC_RTC, RTC_TIMETYPE_MONTH);
 	dayOfM = RTC_GetTime(LPC_RTC, RTC_TIMETYPE_DAYOFMONTH);
 	dayOfW = RTC_GetTime(LPC_RTC, RTC_TIMETYPE_DAYOFWEEK);
 	dayOfY = RTC_GetTime(LPC_RTC, RTC_TIMETYPE_DAYOFYEAR);
-	hour = RTC_GetTime(LPC_RTC, RTC_TIMETYPE_HOUR);
+	uint8_t GMThour = RTC_GetTime(LPC_RTC, RTC_TIMETYPE_HOUR);
+	hour = (GMThour - RTC_DST(&year, &month, &dayOfM, &GMThour));
 	min = RTC_GetTime(LPC_RTC, RTC_TIMETYPE_SECOND);
 	sec = RTC_GetTime(LPC_RTC, RTC_TIMETYPE_HOUR);
+}
+
+//Calculate if it is daylight saving
+uint8_t RTC_DST(uint16_t year, uint8_t month, uint8_t dayOfM, uint8_t hour){
+#if defined DST
+	uint8_t DST_Y_N;
+	// last sunday of march
+	// last sunday of october
+	// see for equasion: http://www.webexhibits.org/daylightsaving/i.html
+	if ((month >= 3) && (month <= 10)){
+		if ((dayOfM >= (31 - (5* year /4 + 4) % 7)) && (dayOfM <= (31 - (5 * year /4 + 1) % 7))){
+			if ((dayOfM > (31 - (5* year /4 + 4) % 7)) && (dayOfM < (31 - (5 * year /4 + 1) % 7))){
+				DST_Y_N = 1;
+				return DST_Y_N;
+			}
+			if (dayOfM == (31 - (5* year /4 + 4) % 7)){
+				if (hour >= 1){
+					DST_Y_N = 1;
+					return DST_Y_N;
+				}
+			}
+			if (dayOfM == (31 - (5 * year /4 + 1) % 7)){
+				if (hour <= 1){
+					DST_Y_N = 1;
+					return DST_Y_N;
+				}
+			}
+		}
+	}
+#endif
+	DST_Y_N = 0;
+	return DST_Y_N;
 }
 
 // number of days since 2000/01/01, valid for 2001..2099
@@ -179,6 +218,14 @@ uint32_t RTC_time_GetUnixtime() {
   uint32_t t;
   uint16_t days = date2days(RTC_GetTime (LPC_RTC, RTC_TIMETYPE_DAYOFMONTH), RTC_GetTime (LPC_RTC, RTC_TIMETYPE_MONTH), RTC_GetTime (LPC_RTC, RTC_TIMETYPE_DAYOFMONTH));
   t = time2long(days, RTC_GetTime (LPC_RTC, RTC_TIMETYPE_HOUR), RTC_GetTime (LPC_RTC, RTC_TIMETYPE_MINUTE), RTC_GetTime (LPC_RTC, RTC_TIMETYPE_SECOND));
+  t += SECONDS_FROM_1970_TO_2000; // seconds from 1970 to 2000
+  return t;
+}
+
+uint32_t RTC_time_FindUnixtime(uint16_t year, uint8_t month, uint8_t dayOfM, uint8_t hour, uint8_t min, uint8_t sec) {
+  uint32_t t;
+  uint16_t days = date2days(year, month, dayOfM);
+  t = time2long(days, hour, min, sec);
   t += SECONDS_FROM_1970_TO_2000; // seconds from 1970 to 2000
   return t;
 }
