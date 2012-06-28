@@ -546,7 +546,7 @@ void zg_drv_process()
    case DRV_STATE_GET_MAC:
       // get MAC address
 	  _DBG("[INFO]-// get MAC address");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-	  _DBG("[INFO]-if locked up g2100 cannot be seen");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+	  _DBG("[INFO]-if this is last printed wifi info, then the g2100 probably cannot be seen");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 //	   uart_writestr("\n// get MAC address");
       zg_buf[0] = ZG_CMD_WT_FIFO_MGMT;
       zg_buf[1] = ZG_MAC_TYPE_MGMT_REQ;
