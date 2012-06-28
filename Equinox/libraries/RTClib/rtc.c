@@ -195,7 +195,7 @@ void RTC_IRQHandler(void){
 		RTC_ClearIntPending(LPC_RTC, RTC_INT_ALARM);
 	}
 
-	RTC_print_time();
+//	RTC_print_time();
 }
 
 void RTC_time_Init(){
@@ -209,8 +209,8 @@ void RTC_time_Init(){
 	RTC_CalibCounterCmd(LPC_RTC, DISABLE);
 
     //Set time if no data in GPREG
-//    if (!(RTC_ReadGPREG(LPC_RTC, 4)==(0xaa)))
-//    {
+    if (!(RTC_ReadGPREG(LPC_RTC, 4)==(0xaa)))
+    {
     	_DBG("[INFO]-Setting clock time");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
     	_DBG("[INFO]-__DATE__=");_DBG(__DATE__);_DBG(", __TIME__=");_DBG(__TIME__);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 		/* Enable rtc (starts increase the tick counter and second counter register) */
@@ -218,12 +218,12 @@ void RTC_time_Init(){
 		//				 yyyy  mm  dd  Dom Dow  ss  mm  hh
 //		RTC_time_SetTime(2012,  6, 11, 1,  163, 10, 50, 20);
 		RTC_set_default_time_to_compiled();
-		DST_check_and_correct();
+
 		RTC_WriteGPREG(LPC_RTC, 4, 0xaa);
-//    }
+    }
 		RTC_CntIncrIntConfig (LPC_RTC, RTC_TIMETYPE_SECOND, ENABLE);
 //		RTC_CntIncrIntConfig (LPC_RTC, RTC_TIMETYPE_MINUTE, ENABLE);
-
+		DST_check_and_correct();
     RTC_print_time();
 
     /* Enable RTC interrupt */
@@ -315,7 +315,7 @@ uint8_t GetSS() {
 void RTC_time_SetTime(uint16_t year, uint8_t month, uint8_t dayOfM, uint8_t hour, uint8_t min, uint8_t sec) {
 	uint32_t unixt = Convert_To_Unixtime(year, month, dayOfM, hour, min, sec);
 	unix_to_hh_mm_ss(unixt-dst_correction_needed_t_y(year, unixt));
-	_DBG("[INFO] - time_temp.hh=");_DBD(time_temp.hh);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//	_DBG("[INFO] - time_temp.hh=");_DBD(time_temp.hh);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 	if (year!=NULL) 	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_YEAR, year);
 	if (month!=NULL)	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_MONTH, month);
 	if (dayOfM!=NULL)	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_DAYOFMONTH, dayOfM);
@@ -324,6 +324,7 @@ void RTC_time_SetTime(uint16_t year, uint8_t month, uint8_t dayOfM, uint8_t hour
 	if (time_temp.ss!=NULL)		RTC_SetTime (LPC_RTC, RTC_TIMETYPE_SECOND, time_temp.ss);
 	if (time_temp.mm!=NULL)		RTC_SetTime (LPC_RTC, RTC_TIMETYPE_MINUTE, time_temp.mm);
 	if (time_temp.hh!=NULL)		RTC_SetTime (LPC_RTC, RTC_TIMETYPE_HOUR, time_temp.hh);
+	DSTyearly();
 }
 
 
@@ -462,30 +463,32 @@ void DST_check_and_correct() {
 	time.mm = min;
 	time.ss = sec;
 
+	time.unix = Convert_To_Unixtime(time.year, time.month, time.dom, time.hh, time.mm, time.ss);
 
-	_DBG("[INFO] - time_temp.hh=");_DBD(time_temp.hh);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//	_DBG("[INFO] - time.hh=");_DBD(time.hh);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
 //	time_temp.unix = RTC_time_GetUnixtime();
+
 	if(dst_correction_needed()) {
+//		_DBG("[INFO] - dst_correction_needed()=");_DBD(dst_correction_needed());_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 		time.unix = Convert_To_Unixtime(time.year, time.month, time.dom, time.hh, time.mm, time.ss)+DST_CORRECTION_VALUE_SEC;
 		unix_to_hh_mm_ss(time.unix);
 		time.hh = time_temp.hh;
 		time.mm = time_temp.mm;
 		time.ss = time_temp.ss;
-		_DBG("[INFO] - dst_correction_needed()=true");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-	}
+		}
 
-	else {
-		time.unix = Convert_To_Unixtime(time.year, time.month, time.dom, time.hh, time.mm, time.ss);
-		time.hh = hour;
-		time.mm = min;
-		time.ss = sec;
-		_DBG("[INFO] - dst_correction_needed()=false");_DBD(time_temp.hh);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-	}
-
+//	else {
+//		time.unix = Convert_To_Unixtime(time.year, time.month, time.dom, time.hh, time.mm, time.ss);
+//		time.hh = hour;
+//		time.mm = min;
+//		time.ss = sec;
+//		_DBG("[INFO] - dst_correction_needed()=false");_DBD(time_temp.hh);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//	}
 
 
-	_DBG("[INFO] - time_temp.hh=");_DBD(time_temp.hh);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+
+//	_DBG("[INFO] - time_temp.hh=");_DBD(time_temp.hh);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
 }
 
@@ -583,6 +586,7 @@ uint32_t dst_correction_needed_t_y(uint32_t t, uint16_t year) {
 void DSTyearly() {
 	//Calculate DST's every year
 	if(time.dst_last_update_year != time.year) {
+		_DBG("[INFO] - time.dst_last_update_year != time.year");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 		time.DST_begin_calculated = begin_DST_unix(time.year);
 		time.DST_end_calculated = end_DST_unix(time.year);
 		time.dst_last_update_year = time.year;

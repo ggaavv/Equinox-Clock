@@ -582,6 +582,7 @@ void zg_drv_process()
       case ZG_SECURITY_TYPE_WPA:
       case ZG_SECURITY_TYPE_WPA2:
          // Initiate PSK calculation on G2100
+    	  RTC_print_time();
     	 _DBG("[INFO]-// Initiate PSK calculation on G2100");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 //      	 uart_writestr("\n// Initiate PSK calculation on G2100");
          zg_buf[0] = ZG_CMD_WT_FIFO_MGMT;
