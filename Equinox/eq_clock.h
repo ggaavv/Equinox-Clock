@@ -12,9 +12,9 @@
 
 void LED_init();
 
-const prog_uchar stringDOTKLOK[] = {"DOTKLOK "};
-const prog_uchar stringRTC_NOT_running[] = {"RTC NOT running!\r\n"};
-const prog_uchar stringRTC_running[] = {"RTC running\r\n"};
+const char stringDOTKLOK[] = {"DOTKLOK "};
+const char stringRTC_NOT_running[] = {"RTC NOT running!\r\n"};
+const char stringRTC_running[] = {"RTC running\r\n"};
 
 int availableMemory();
 void dailyCheck(void);
