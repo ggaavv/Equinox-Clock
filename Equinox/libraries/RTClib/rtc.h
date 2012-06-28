@@ -37,7 +37,7 @@ static unsigned char Month_of_the_year[NUM_MONTHS][MONTH_MAX_LEN]
 */
 
 void RTC_IRQHandler(void);
-void RTC_time_Init()
+void RTC_time_Init();
 void RTC_time_SetTime(uint16_t year, uint8_t month, uint8_t dayOfM, uint8_t hour, uint8_t min, uint8_t sec);
 void RTC_time_GetTime(uint16_t* year, uint8_t* month, uint8_t* dayOfM, uint8_t* dayOfW, uint8_t* dayOfY, uint8_t* hour, uint8_t* min, uint8_t* sec);
 // number of days since 2000/01/01, valid for 2001..2099

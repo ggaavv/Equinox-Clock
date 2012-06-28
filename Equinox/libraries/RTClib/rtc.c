@@ -7,6 +7,7 @@
 
 #include "debug_frmwrk.h"
 #include "lpc17xx_rtc.h"
+#include "rtc.h"
 
 #define DSTEurope 1
 #define SECONDS_PER_DAY 86400L
@@ -74,6 +75,13 @@ void RTC_IRQHandler(void){
 	RTC_print_time();
 }
 
+
+// find day of the week
+uint8_t dayOfWeekManual(uint16_t year, uint8_t month, uint8_t dayOfM) {
+    uint16_t day = date2days(year, month, dayOfM);
+    return (day + 6) % 7; // Jan 1, 2000 is a Saturday, i.e. returns 6
+}
+
 void RTC_time_Init(){
 
 	// Init RTC module
@@ -114,7 +122,7 @@ void RTC_time_SetTime(uint16_t year, uint8_t month, uint8_t dayOfM, uint8_t hour
 	if (year!=NULL) 	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_YEAR, year);
 	if (month!=NULL)	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_MONTH, month);
 	if (dayOfM!=NULL)	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_DAYOFMONTH, dayOfM);
-//	if ((year!=NULL) && (month!=NULL) && (dayOfM!=NULL))	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_DAYOFWEEK, dayOfWeekManual(year, month, dayOfM)); //TODO: no idea why this wont compile
+	if ((year!=NULL) && (month!=NULL) && (dayOfM!=NULL))	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_DAYOFWEEK, dayOfWeekManual(year, month, dayOfM)); //TODO: no idea why this wont compile
 //	if ((year!=NULL) && (month!=NULL) && (dayOfM!=NULL))	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_DAYOFYEAR, dateoftheyear(year, month, dayOfM)); //TODO: no idea why this wont compile
 	if (sec!=NULL)		RTC_SetTime (LPC_RTC, RTC_TIMETYPE_SECOND, sec);
 	if (min!=NULL)		RTC_SetTime (LPC_RTC, RTC_TIMETYPE_MINUTE, min);
@@ -159,12 +167,6 @@ uint16_t dateoftheyear(uint16_t year, uint8_t month, uint8_t dayOfM) {
 // convert date into seconds
 long time2long(uint16_t days, uint8_t hour, uint8_t min, uint8_t sec) {
     return ((days * 24L + hour) * 60 + min) * 60 + sec;
-}
-
-// find day of the week
-uint8_t dayOfWeekManual(uint16_t year, uint8_t month, uint8_t dayOfM) {
-    uint16_t day = date2days(year, month, dayOfM);
-    return (day + 6) % 7; // Jan 1, 2000 is a Saturday, i.e. returns 6
 }
 
 // convert char to uint8_t for time
