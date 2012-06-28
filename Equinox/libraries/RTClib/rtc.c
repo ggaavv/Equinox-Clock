@@ -75,13 +75,6 @@ void RTC_IRQHandler(void){
 	RTC_print_time();
 }
 
-
-// find day of the week
-uint8_t dayOfWeekManual(uint16_t year, uint8_t month, uint8_t dayOfM) {
-    uint16_t day = date2days(year, month, dayOfM);
-    return (day + 6) % 7; // Jan 1, 2000 is a Saturday, i.e. returns 6
-}
-
 void RTC_time_Init(){
 
 	// Init RTC module
@@ -92,12 +85,9 @@ void RTC_time_Init(){
 	RTC_Cmd(LPC_RTC, ENABLE);
 	RTC_CalibCounterCmd(LPC_RTC, DISABLE);
 
-    // Set bit 32 of General purpose register 4 to one after configuring time
-    // If no 1 set to default time
-//	RTC_WriteGPREG(LPC_RTC, 4, 0xaa);
-//    uart_send_32_Hex(RTC_ReadGPREG(LPC_RTC, 4));
-    if (!(RTC_ReadGPREG(LPC_RTC, 4)==(0xaa)))
-    {
+    //Set time if no data in GPREG
+//    if (!(RTC_ReadGPREG(LPC_RTC, 4)==(0xaa)))
+//    {
     	_DBG("[INFO]-Setting clock time");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
     	_DBG("[INFO]-__DATE__=");_DBG(__DATE__);_DBG(", __TIME__=");_DBG_(__TIME__);
 		/* Enable rtc (starts increase the tick counter and second counter register) */
@@ -106,10 +96,9 @@ void RTC_time_Init(){
 //		RTC_time_SetTime(2012,  6, 11, 1,  163, 10, 50, 20);
 		RTC_set_default_time_to_compiled();
 		RTC_WriteGPREG(LPC_RTC, 4, 0xaa);
-	        // following line sets the RTC to the date & time this sketch was compiled
-//	        RTC.adjust(DateTime(__DATE__, __TIME__)); //TODO: get this to work
-    }
-	RTC_CntIncrIntConfig (LPC_RTC, RTC_TIMETYPE_SECOND, ENABLE);
+//    }
+//		RTC_CntIncrIntConfig (LPC_RTC, RTC_TIMETYPE_SECOND, ENABLE);
+		RTC_CntIncrIntConfig (LPC_RTC, RTC_TIMETYPE_MINUTE, ENABLE);
 
     RTC_print_time();
 
@@ -169,6 +158,12 @@ long time2long(uint16_t days, uint8_t hour, uint8_t min, uint8_t sec) {
     return ((days * 24L + hour) * 60 + min) * 60 + sec;
 }
 
+// find day of the week
+uint8_t dayOfWeekManual(uint16_t year, uint8_t month, uint8_t dayOfM) {
+    uint16_t day = date2days(year, month, dayOfM);
+    return (day + 6) % 7; // Jan 1, 2000 is a Saturday, i.e. returns 6
+}
+
 // convert char to uint8_t for time
 uint8_t conv2d(const char* p) {
     uint8_t v = 0;
@@ -189,6 +184,19 @@ void RTC_set_default_time_to_compiled(void) {
 
 	uint8_t month_as_number;
 
+	switch (__DATE__[0]) {
+	 // case 'J': month_as_number = __DATE__[1] == 'a' ? 1 : month_as_number = __DATE__[2] == 'n' ? 6 : 7; break;
+	    case 'J': month_as_number = __DATE__[1] == 'a' ? 1 : __DATE__[2] == 'n' ? 6 : 7; break;
+	    case 'F': month_as_number = 2; break;
+	    case 'A': month_as_number = __DATE__[2] == 'r' ? 4 : 8; break;
+	    case 'M': month_as_number = __DATE__[2] == 'r' ? 3 : 5; break;
+	    case 'S': month_as_number = 9; break;
+	    case 'O': month_as_number = 10; break;
+	    case 'N': month_as_number = 11; break;
+	    case 'D': month_as_number = 12; break;
+	}
+	_DBG("[INFO] - month_as_number=");_DBD(month_as_number);_DBG("\r\n");
+/*
     switch (__DATE__[0]) {
     	case 'J':
     		switch (__DATE__[1]) {
@@ -245,6 +253,7 @@ void RTC_set_default_time_to_compiled(void) {
         	month_as_number = 12;
         	break;
     }
+*/
     RTC_SetTime (LPC_RTC, RTC_TIMETYPE_YEAR, conv2d(__DATE__ + 7)*100 + conv2d(__DATE__ + 9));
 //    RTC_SetTime (LPC_RTC, RTC_TIMETYPE_YEAR, conv2d(__DATE__ + 9) + 2000);
 	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_MONTH, month_as_number);
