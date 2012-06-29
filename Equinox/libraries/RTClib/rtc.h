@@ -22,6 +22,7 @@
 
 struct {
 	uint32_t unix;		// updated once a second
+	uint32_t unix_utc;		// updated once a second
 	uint16_t year;		// updated once a second
 	uint8_t month;		// updated once a second
 	uint8_t dom;		// updated once a second
@@ -30,13 +31,23 @@ struct {
 	uint8_t hh;			// updated once a second
 	uint8_t mm;			// updated once a second
 	uint8_t ss;			// updated once a second
+	uint8_t hh_utc;			// updated once a second
+	uint8_t mm_utc;			// updated once a second
+	uint8_t ss_utc;			// updated once a second
+	uint8_t set_hh;			// updated once a second
+	uint8_t set_mm;			// updated once a second
+	uint8_t set_ss;			// updated once a second
+	uint8_t get_hh;			// updated once a second
+	uint8_t get_mm;			// updated once a second
+	uint8_t get_ss;			// updated once a second
 	uint32_t DST_begin_calculated;	// updated once a year
 	uint32_t DST_end_calculated;	// updated once a year
 	uint16_t dst_last_update_year;	// updated once a year
 	uint32_t dst_correction;		// updated once
 	uint32_t sunrise_unix; // updated once a day
 	uint32_t sunset_unix;  // updated once a day
-} time,time_temp;
+//	uint32_t use_utc;
+} time;
 
 void RTC_IRQHandler(void);
 void RTC_time_Init();
@@ -53,10 +64,6 @@ uint8_t GetHH();
 uint8_t GetMM();
 uint8_t GetSS();
 void RTC_time_SetTime(uint16_t year, uint8_t month, uint8_t dayOfM, uint8_t hour, uint8_t min, uint8_t sec);
-//Calculate if it is daylight saving
-#if defined DST
-uint8_t RTC_DST(uint16_t year, uint8_t month, uint8_t dayOfM, uint8_t hour);
-#endif;
 // number of days since 2000/01/01, valid for 2001..2099
 uint16_t date2days(uint16_t year, uint8_t month, uint8_t dayOfM);
 // number of days since 2000/01/01, valid for 2001..2099
@@ -72,7 +79,8 @@ uint32_t RTC_time_FindUnixtime(uint16_t year, uint8_t month, uint8_t dayOfM, uin
 void DST_check_and_correct();
 void RTC_set_default_time_to_compiled(void);
 void RTC_print_time(void);
-void unix_to_hh_mm_ss (uint32_t t);
+void unix_to_hh_mm_ss_get(uint32_t t);
+void unix_to_hh_mm_ss_set(uint32_t t);
 uint32_t dst_correction_needed();
 uint32_t dst_correction_needed_t_y(uint32_t t, uint16_t year);
 void DSTyearly();
