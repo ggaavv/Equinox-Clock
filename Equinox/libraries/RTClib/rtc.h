@@ -19,6 +19,25 @@
 #include "lpc17xx_rtc.h"
 #include "rtc.h"
 
+
+struct {
+	uint32_t unix;		// updated once a second
+	uint16_t year;		// updated once a second
+	uint8_t month;		// updated once a second
+	uint8_t dom;		// updated once a second
+	uint8_t dow;		// updated once a second
+	uint8_t doy;		// updated once a second
+	uint8_t hh;			// updated once a second
+	uint8_t mm;			// updated once a second
+	uint8_t ss;			// updated once a second
+	uint32_t DST_begin_calculated;	// updated once a year
+	uint32_t DST_end_calculated;	// updated once a year
+	uint16_t dst_last_update_year;	// updated once a year
+	uint32_t dst_correction;		// updated once
+	uint32_t sunrise_unix; // updated once a day
+	uint32_t sunset_unix;  // updated once a day
+} time,time_temp;
+
 void RTC_IRQHandler(void);
 void RTC_time_Init();
 void dailyCheck(void);
@@ -34,7 +53,6 @@ uint8_t GetHH();
 uint8_t GetMM();
 uint8_t GetSS();
 void RTC_time_SetTime(uint16_t year, uint8_t month, uint8_t dayOfM, uint8_t hour, uint8_t min, uint8_t sec);
-void RTC_time_GetTime(uint16_t* year, uint8_t* month, uint8_t* dayOfM, uint8_t* dayOfW, uint8_t* dayOfY, uint8_t* hour, uint8_t* min, uint8_t* sec);
 //Calculate if it is daylight saving
 #if defined DST
 uint8_t RTC_DST(uint16_t year, uint8_t month, uint8_t dayOfM, uint8_t hour);
@@ -51,7 +69,6 @@ uint8_t dayOfWeekManual(uint16_t year, uint8_t month, uint8_t dayOfM);
 uint8_t conv2d(const char* p);
 uint32_t RTC_time_GetUnixtime();
 uint32_t RTC_time_FindUnixtime(uint16_t year, uint8_t month, uint8_t dayOfM, uint8_t hour, uint8_t min, uint8_t sec);
-uint32_t Convert_To_Unixtime(uint16_t year, uint8_t month, uint8_t dayOfM, uint8_t hour, uint8_t min, uint8_t sec);
 void DST_check_and_correct();
 void RTC_set_default_time_to_compiled(void);
 void RTC_print_time(void);

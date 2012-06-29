@@ -6,12 +6,11 @@
  */
 
 #include "debug_frmwrk.h"
-#include "lpc17xx_rtc.h"
 #include "rtc.h"
 
 
 #define DSTEurope
-#define DSTUSA
+//#define DSTUSA
 #define DS3231_I2C_ADDRESS 0x68
 
 #define SECONDS_PER_DAY 86400L
@@ -41,8 +40,8 @@
 #define end_DST_Min 0
 #define end_DST_dayOfMonth(x) (31 - (5 * x /4 + 1) % 7)
 #define DST_CORRECTION_VALUE_SEC 60*60
-//#elif DSTUSA
-#else
+#endif
+#ifdef DSTUSA
 //TODO correct month/hour
 #define begin_DST_Month=3;
 #define begin_DST_Hour=1;
@@ -56,55 +55,14 @@
 //#else
 //#error echo "no dst set"
 #endif
-#define begin_DST_unix(x) Convert_To_Unixtime(x, begin_DST_Month, begin_DST_dayOfMonth(x), begin_DST_Hour, begin_DST_Min, 0)
-#define end_DST_unix(x) Convert_To_Unixtime(x, end_DST_Month, end_DST_dayOfMonth(x), end_DST_Hour, end_DST_Min, 0)
+#define begin_DST_unix(x) RTC_time_FindUnixtime(x, begin_DST_Month, begin_DST_dayOfMonth(x), begin_DST_Hour, begin_DST_Min, 0)
+#define end_DST_unix(x) RTC_time_FindUnixtime(x, end_DST_Month, end_DST_dayOfMonth(x), end_DST_Hour, end_DST_Min, 0)
 
 //volitile
 uint32_t DST_CORRECTION=0;
 uint32_t LAST_DST_UPDATE_YEAR=0;
 
 uint32_t SECOND_INC=0;
-
-struct {
-	uint32_t unix;//only updated every minute
-
-	uint16_t year;
-	uint8_t month;
-	uint8_t dom;
-	uint8_t dow;
-	uint8_t doy;
-	uint8_t hh;
-	uint8_t mm;
-	uint8_t ss;
-	uint32_t DST_begin_calculated;
-	uint32_t DST_end_calculated;
-	uint16_t dst_last_update_year;
-	uint32_t dst_correction;
-} time;
-
-struct {
-	uint32_t unix;
-	uint16_t year;
-	uint8_t month;
-	uint8_t dom;
-	uint8_t dow;
-	uint8_t doy;
-	uint8_t hh;
-	uint8_t mm;
-	uint8_t ss;
-	uint32_t DST_begin_calculated;
-	uint32_t DST_end_calculated;
-	uint16_t dst_last_update_year;
-	uint32_t dst_correction;
-} time_temp;
-
-//uint32_t begin_DST_unix(uint32_t year) {
-//	return Convert_To_Unixtime(year, begin_DST_Month, (31 - (5* year /4 + 4) % 7), begin_DST_Hour, begin_DST_Min, 0);
-//}
-
-//uint32_t end_DST_unix(uint32_t year) {
-//	return Convert_To_Unixtime(year, end_DST_Month, (31 - (5 * year /4 + 1) % 7), end_DST_Hour, end_DST_Min, 0);
-//}
 
 static uint8_t daysInMonth [12] = { 31,28,31,30,31,30,31,31,30,31,30,31 };
 
@@ -139,70 +97,51 @@ static unsigned char Month_of_the_year[NUM_MONTHS][MONTH_MAX_LEN] = {
 "December"
 };
 
-#define beginDSTMonth 3
-#define endDSTMonth 10
-
-
 void RTC_IRQHandler(void){
 	uint32_t secval;
-
-	/* This is increment counter interrupt*/
-	if (RTC_GetIntPending(LPC_RTC, RTC_INT_COUNTER_INCREASE))
-	{
+	// This is increment counter interrupt
+	if (RTC_GetIntPending(LPC_RTC, RTC_INT_COUNTER_INCREASE)){
 		secval = RTC_GetTime (LPC_RTC, RTC_TIMETYPE_SECOND);
-
-		/* Send debug information */
-//		_DBG ("Second: "); _DBD(secval);
-//		_DBG_("");
 
 		// Clear pending interrupt
 		RTC_ClearIntPending(LPC_RTC, RTC_INT_COUNTER_INCREASE);
 
-
 		SECOND_INC=1;
 
-			//Check for serial input
-		//	checkSerial();
-
-		//run daily checks at 00:00:00
-		if(!RTC_GetTime(LPC_RTC, RTC_TIMETYPE_HOUR)&&!RTC_GetTime(LPC_RTC, RTC_TIMETYPE_MINUTE)&&!RTC_GetTime(LPC_RTC, RTC_TIMETYPE_SECOND))
-			dailyCheck();
-
-		//run  checks at xx:00:00
-		if(!RTC_GetTime(LPC_RTC, RTC_TIMETYPE_MINUTE)&&!RTC_GetTime(LPC_RTC, RTC_TIMETYPE_SECOND))
-			hourlyCheck();
-
-		//run  checks at xx:xx:00
-		if(!RTC_GetTime(LPC_RTC, RTC_TIMETYPE_SECOND))
-			minutelyCheck();
-
 		secondlyCheck();
+		//run  checks at xx:xx:00
+		if(!RTC_GetTime(LPC_RTC, RTC_TIMETYPE_SECOND)){
+			minutelyCheck();
+			//run  checks at xx:00:00
+			if(!RTC_GetTime(LPC_RTC, RTC_TIMETYPE_MINUTE)){
+				hourlyCheck();
+				//run daily checks at 00:00:00
+				if(!RTC_GetTime(LPC_RTC, RTC_TIMETYPE_HOUR)){
+					dailyCheck();
+				}
+			}
+		}
+	}
 
+	// Continue to check the Alarm match
+	if (RTC_GetIntPending(LPC_RTC, RTC_INT_ALARM)){
 		//custom alarms
 	//	for(uint8_t alarmNo=0; alarms[alarmNo]; alarmNo++) {
 	//
 	//	}
-
-	}
-
-	/* Continue to check the Alarm match*/
-	if (RTC_GetIntPending(LPC_RTC, RTC_INT_ALARM))
-	{
 		/* Send debug information */
 		_DBG_ ("ALARM 10s matched!");
 
 		// Clear pending interrupt
 		RTC_ClearIntPending(LPC_RTC, RTC_INT_ALARM);
 	}
-
-//	RTC_print_time();
 }
 
 void RTC_time_Init(){
 
 	// Init RTC module
 	RTC_Init(LPC_RTC);
-	/* Disable RTC interrupt */
+	// Disable RTC interrupt
     NVIC_DisableIRQ(RTC_IRQn);
     NVIC_SetPriority(RTC_IRQn, 8); // set according to main.c
 	RTC_Cmd(LPC_RTC, ENABLE);
@@ -213,7 +152,7 @@ void RTC_time_Init(){
     {
     	_DBG("[INFO]-Setting clock time");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
     	_DBG("[INFO]-__DATE__=");_DBG(__DATE__);_DBG(", __TIME__=");_DBG(__TIME__);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-		/* Enable rtc (starts increase the tick counter and second counter register) */
+		// Enable rtc (starts increase the tick counter and second counter register)
 		RTC_ResetClockTickCounter(LPC_RTC);
 		//				 yyyy  mm  dd  Dom Dow  ss  mm  hh
 //		RTC_time_SetTime(2012,  6, 11, 1,  163, 10, 50, 20);
@@ -222,11 +161,11 @@ void RTC_time_Init(){
 		RTC_WriteGPREG(LPC_RTC, 4, 0xaa);
     }
 		RTC_CntIncrIntConfig (LPC_RTC, RTC_TIMETYPE_SECOND, ENABLE);
-//		RTC_CntIncrIntConfig (LPC_RTC, RTC_TIMETYPE_MINUTE, ENABLE);
 		DST_check_and_correct();
+
     RTC_print_time();
 
-    /* Enable RTC interrupt */
+    // Enable RTC interrupt
     NVIC_EnableIRQ(RTC_IRQn);
 
 }
@@ -238,8 +177,6 @@ void dailyCheck(void) {
 	//calculate sunrise/sunset at
 //	mySun.Rise(time_now.month(),time_now.day());
 //	mySun.Set(time_now.month(),time_now.day());
-	//Calculate DST's every year
-	DSTyearly();
 }
 
 void hourlyCheck(void) {
@@ -248,35 +185,14 @@ void hourlyCheck(void) {
 void minutelyCheck(void) {
 	//TODO update brightness
 
-	//Checks and adjusts time for DST
-	DST_check_and_correct();
+
+	//Calculate DST's every year
+	DSTyearly();
 }
 
-
-
 void secondlyCheck(void) {
-//	uint16_t year;
-//	uint8_t month, dom, dow, doy, hour, min, sec;
-	uint8_t sec;
-//	year = RTC_GetTime(LPC_RTC, RTC_TIMETYPE_YEAR);
-//	month = RTC_GetTime(LPC_RTC, RTC_TIMETYPE_MONTH);
-//	dom = RTC_GetTime(LPC_RTC, RTC_TIMETYPE_DAYOFMONTH);
-//	dow = RTC_GetTime(LPC_RTC, RTC_TIMETYPE_DAYOFWEEK);
-//	doy = RTC_GetTime(LPC_RTC, RTC_TIMETYPE_DAYOFYEAR);
-//	hour = RTC_GetTime(LPC_RTC, RTC_TIMETYPE_HOUR);
-//	min = RTC_GetTime(LPC_RTC, RTC_TIMETYPE_MINUTE);
-	sec = RTC_GetTime(LPC_RTC, RTC_TIMETYPE_SECOND);
-
-//	time.year = year;
-//	time.month = month;
-//	time.dom = dom;
-//	time.dow = dow;
-//	time.doy = doy;
-//	time.hh = hour;
-//	time.mm = min;
-	time.ss = sec;
-
-//	time_temp.unix = RTC_time_GetUnixtime();
+	//Checks and adjusts time for DST
+	DST_check_and_correct();
 }
 
 uint16_t GetY() {
@@ -313,7 +229,7 @@ uint8_t GetSS() {
 
 
 void RTC_time_SetTime(uint16_t year, uint8_t month, uint8_t dayOfM, uint8_t hour, uint8_t min, uint8_t sec) {
-	uint32_t unixt = Convert_To_Unixtime(year, month, dayOfM, hour, min, sec);
+	uint32_t unixt = RTC_time_FindUnixtime(year, month, dayOfM, hour, min, sec);
 	unix_to_hh_mm_ss(unixt-dst_correction_needed_t_y(year, unixt));
 //	_DBG("[INFO] - time_temp.hh=");_DBD(time_temp.hh);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 	if (year!=NULL) 	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_YEAR, year);
@@ -326,53 +242,6 @@ void RTC_time_SetTime(uint16_t year, uint8_t month, uint8_t dayOfM, uint8_t hour
 	if (time_temp.hh!=NULL)		RTC_SetTime (LPC_RTC, RTC_TIMETYPE_HOUR, time_temp.hh);
 	DSTyearly();
 }
-
-
-void RTC_time_GetTime(uint16_t* year, uint8_t* month, uint8_t* dayOfM, uint8_t* dayOfW, uint8_t* dayOfY, uint8_t* hour, uint8_t* min, uint8_t* sec) {
-	year = RTC_GetTime(LPC_RTC, RTC_TIMETYPE_YEAR);
-	month = RTC_GetTime(LPC_RTC, RTC_TIMETYPE_MONTH);
-	dayOfM = RTC_GetTime(LPC_RTC, RTC_TIMETYPE_DAYOFMONTH);
-	dayOfW = RTC_GetTime(LPC_RTC, RTC_TIMETYPE_DAYOFWEEK);
-	dayOfY = RTC_GetTime(LPC_RTC, RTC_TIMETYPE_DAYOFYEAR);
-	hour = RTC_GetTime(LPC_RTC, RTC_TIMETYPE_HOUR);
-
-	min = RTC_GetTime(LPC_RTC, RTC_TIMETYPE_MINUTE);
-	sec = RTC_GetTime(LPC_RTC, RTC_TIMETYPE_SECOND);
-
-}
-
-//Calculate if it is daylight saving
-#if defined DST
-uint8_t RTC_DST(uint16_t year, uint8_t month, uint8_t dayOfM, uint8_t hour){
-uint8_t DST_Y_N;
-// last sunday of march
-// last sunday of october
-// see for equasion: http://www.webexhibits.org/daylightsaving/i.html
-if ((month >= 3) && (month <= 10)){
-if ((dayOfM >= (31 - (5* year /4 + 4) % 7)) && (dayOfM <= (31 - (5 * year /4 + 1) % 7))){
-if ((dayOfM > (31 - (5* year /4 + 4) % 7)) && (dayOfM < (31 - (5 * year /4 + 1) % 7))){
-DST_Y_N = 1;
-return DST_Y_N;
-}
-if (dayOfM == (31 - (5* year /4 + 4) % 7)){
-if (hour >= 1){
-DST_Y_N = 1;
-return DST_Y_N;
-}
-}
-if (dayOfM == (31 - (5 * year /4 + 1) % 7)){
-if (hour <= 1){
-DST_Y_N = 1;
-return DST_Y_N;
-}
-}
-}
-}
-DST_Y_N = 0;
-return DST_Y_N;
-}
-#endif
-
 
 // number of days since 2000/01/01, valid for 2001..2099
 uint16_t date2days(uint16_t year, uint8_t month, uint8_t dayOfM) {
@@ -433,14 +302,6 @@ uint32_t RTC_time_FindUnixtime(uint16_t year, uint8_t month, uint8_t dayOfM, uin
   return t;
 }
 
-uint32_t Convert_To_Unixtime(uint16_t year, uint8_t month, uint8_t dayOfM, uint8_t hour, uint8_t min, uint8_t sec) {
-  uint32_t t;
-  uint16_t days = date2days(year, month, dayOfM);
-  t = time2long(days, hour, min, sec);
-  t += SECONDS_FROM_1970_TO_2000;  // seconds from 1970 to 2000
-  return t;
-}
-
 void DST_check_and_correct() {
 	uint16_t year;
 	uint8_t month, dom, dow, doy, hour, min, sec;
@@ -463,7 +324,7 @@ void DST_check_and_correct() {
 	time.mm = min;
 	time.ss = sec;
 
-	time.unix = Convert_To_Unixtime(time.year, time.month, time.dom, time.hh, time.mm, time.ss);
+	time.unix = RTC_time_FindUnixtime(time.year, time.month, time.dom, time.hh, time.mm, time.ss);
 
 //	_DBG("[INFO] - time.hh=");_DBD(time.hh);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
@@ -471,25 +332,12 @@ void DST_check_and_correct() {
 
 	if(dst_correction_needed()) {
 //		_DBG("[INFO] - dst_correction_needed()=");_DBD(dst_correction_needed());_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-		time.unix = Convert_To_Unixtime(time.year, time.month, time.dom, time.hh, time.mm, time.ss)+DST_CORRECTION_VALUE_SEC;
+		time.unix += DST_CORRECTION_VALUE_SEC;
 		unix_to_hh_mm_ss(time.unix);
 		time.hh = time_temp.hh;
 		time.mm = time_temp.mm;
-		time.ss = time_temp.ss;
-		}
-
-//	else {
-//		time.unix = Convert_To_Unixtime(time.year, time.month, time.dom, time.hh, time.mm, time.ss);
-//		time.hh = hour;
-//		time.mm = min;
-//		time.ss = sec;
-//		_DBG("[INFO] - dst_correction_needed()=false");_DBD(time_temp.hh);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-//	}
-
-
-
-//	_DBG("[INFO] - time_temp.hh=");_DBD(time_temp.hh);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-
+//		time.ss = time_temp.ss;
+	}
 }
 
 void RTC_set_default_time_to_compiled(void) {
@@ -497,7 +345,6 @@ void RTC_set_default_time_to_compiled(void) {
 	uint8_t month_as_number;
 
 	switch (__DATE__[0]) {
-	 // case 'J': month_as_number = __DATE__[1] == 'a' ? 1 : month_as_number = __DATE__[2] == 'n' ? 6 : 7; break;
 	    case 'J': month_as_number = __DATE__[1] == 'a' ? 1 : __DATE__[2] == 'n' ? 6 : 7; break;
 	    case 'F': month_as_number = 2; break;
 	    case 'A': month_as_number = __DATE__[2] == 'r' ? 4 : 8; break;
