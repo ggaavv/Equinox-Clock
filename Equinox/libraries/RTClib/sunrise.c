@@ -1,4 +1,18 @@
+
+
 #include "sunrise.h"
+#include "rtc.h"
+
+
+//Northampton, England, Europe - Latitude/Longitude and Timezone
+const float latitude = 52;
+const float longitude = -0.9;
+const float timezone = 0;
+
+
+unsigned char sunsetDim,sunriseBrighten;
+float lat,lon, zenith, rd, tz;
+unsigned char riseHour,setHour,nHour,riseMinute,setMinute,nMinute;
 
 //extern void ht1632_screenBrightness(unsigned char brightness);
 

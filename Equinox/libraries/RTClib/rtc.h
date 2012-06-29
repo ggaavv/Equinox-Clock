@@ -8,12 +8,6 @@
 #ifndef RTC_H_
 #define RTC_H_
 
-/*
- * rtc.c
- *
- *  Created on: 10 Jun 2012
- *      Author: gavin
- */
 
 #include "debug_frmwrk.h"
 #include "lpc17xx_rtc.h"

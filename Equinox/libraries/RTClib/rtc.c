@@ -7,6 +7,7 @@
 
 #include "debug_frmwrk.h"
 #include "rtc.h"
+#include "sunrise.h"
 
 
 #define DSTEurope

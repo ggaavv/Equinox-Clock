@@ -288,15 +288,6 @@ const bool ShiftPWM_invertOutputs = 0; // if invertOutputs is 1, outputs will be
 #define RAINBOW 2
 unsigned char DISPLAYING = OFF;
 
-//#include <stdlib.h>
-
-// global clock variables
-extern RTC_DS3231 RTC;
-extern DST DST;
-extern DateTime time_now;
-//extern Ansiterm ANSI;
-//extern WiShield WiFi;
-Sunrise mySun(52,-0.9,0);//Northampton, England, Europe - Latitude/Longitude and Timezone
 
 //Alarms format {y, m, dow, d, hh, mm, ss} (0xff all)/(dow 0b10000000-mon)
 //unsigned char alarms[2][7] = { { 0xff, 0xff, 0b1111101, 0xff, 6, 0} };
@@ -320,29 +311,6 @@ unsigned long int b4_time;
 
 extern int animation;
 extern int ani_max;
-
-//extern void udpapp_init(void);
-//extern void send_request(void);
-
-#define rxPin 0
-#define txPin 1 //19
-
-// set up a new serial port
-//SoftwareSerial mySerial =  SoftwareSerial(rxPin, txPin);
-
-/*** UTILITY FUNCTIONS ***/
-
-// debugging tool only:
-// used to estimate available mem
-// obtainted from arduino.cc forum
-// not sure how accurate this is
-int availableMemory() {
-  int size = 8192;
-  byte *buf;
-  while ((buf = (byte *) malloc(--size)) == NULL);
-  free(buf);
-  return size;
-}
 
 int setupPAMTimer(){
 	  //Setup Timer
@@ -468,13 +436,6 @@ void setup() {
 	// TODO: Move to INIT!!!!
 
 
-//	mySerial.begin(4800); //Only 4800 works to PC
-//	mySerial.print("Built:");
-//	mySerial.print(__DATE__);
-//	mySerial.print(".");
-//	mySerial.println(__TIME__);
-//	delay(500);
-//	mySerial.println("Start S uart");
 
 	//setup shiftpwm pins
 	pinMode(ShiftPWM_dataPin, OUTPUT);
@@ -721,11 +682,6 @@ void setup() {
 //cli();mySerial.println("loop begin");//sei();
 
 
-#ifdef WIFI_ENABLED
-//	WiFi.init();
-//	udpapp_init();
-//	Serial.println("after wifi init");
-#endif
 
 } // end setup()
 
