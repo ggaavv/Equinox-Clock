@@ -189,7 +189,8 @@ SRC = \
 	$(APPLIBDIR)/RTClib/rtc.c \
 	$(APPLIBDIR)/R2C2/uart.c \
 	$(APPLIBDIR)/R2C2/sersendf.c \
-	$(APPLIBDIR)/R2C2/sermsg.c
+	$(APPLIBDIR)/R2C2/sermsg.c \
+	$(APPLIBDIR)/RTClib/sunrise.c
 	
 #	$(APPLIBDIR)/WiShield/g2100.c \
 #	$(APPLIBDIR)/WiShield/network.c \

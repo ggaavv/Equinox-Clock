@@ -1,10 +1,8 @@
-#include "Sunrise.h"
-#include <Math.h>
-#include <WProgram.h>
+#include "sunrise.h"
 
 //extern void ht1632_screenBrightness(unsigned char brightness);
 
-Sunrise::Sunrise(float latitude, float longitude, float timezone){
+Sunrise(float latitude, float longitude, float timezone){
 	rd=57.295779513082322;
 	lat=latitude/rd;
   	lon=-longitude/rd;
@@ -18,34 +16,35 @@ Sunrise::Sunrise(float latitude, float longitude, float timezone){
   	nHour=255;
   	nMinute=0;
 }
-void Sunrise::Actual(){
+
+void Sunrise_Actual(){
 	zenith=1.579522973054868;
 }
-void Sunrise::Civil(){
+void Sunrise_Civil(){
   zenith=1.675516081914556;
 }
 
-void Sunrise::Nautical(){
+void Sunrise_Nautical(){
   zenith=1.780235837034216;
 }
 
-void Sunrise::Astronomical(){
+void Sunrise_Astronomical(){
   zenith=1.884955592153876;
 }
 
-void Sunrise::Rise(unsigned char  month, unsigned char  day){
-  Sunrise::Compute(month, day, READ_SUNRISE);
+void Sunrise_Rise(unsigned char  month, unsigned char  day){
+  Sunrise_Compute(month, day, READ_SUNRISE);
 }
 
-void Sunrise::Set(unsigned char  month, unsigned char  day){
-  Sunrise::Compute(month, day, READ_SUNSET);
+void Sunrise_Set(unsigned char  month, unsigned char  day){
+  Sunrise_Compute(month, day, READ_SUNSET);
 }
 
-void Sunrise::Noon(unsigned char  month, unsigned char  day){
-	Sunrise::Compute(month, day, READ_NOON);
+void Sunrise_Noon(unsigned char  month, unsigned char  day){
+	Sunrise_Compute(month, day, READ_NOON);
 }
 
-int Sunrise::Compute(unsigned char month, unsigned char  day, int rs) {
+int Sunrise_Compute(unsigned char month, unsigned char  day, int rs) {
   float y, decl, eqt, ha;
   unsigned char a;
   int doy, minutes;
@@ -116,7 +115,7 @@ int Sunrise::Compute(unsigned char month, unsigned char  day, int rs) {
 }
 
 // hours and minutes must be GMT time??
-unsigned char Sunrise::isSunRisen(unsigned char hour, unsigned char minute) {
+unsigned char Sunrise_isSunRisen(unsigned char hour, unsigned char minute) {
 	unsigned int riseM, setM, timeM;
 
 	//Converts time into minutes for easy comparing
@@ -136,15 +135,15 @@ unsigned char Sunrise::isSunRisen(unsigned char hour, unsigned char minute) {
 #endif
 	if( (riseM<=timeM) && (timeM<setM) ) {
 //		ht1632_screenBrightness(SUNRISEN_BRIGHNESS);
-		sunriseBrighten=true;
-		sunsetDim=false;
-		return true;
+		sunriseBrighten=TRUE;
+		sunsetDim=FALSE;
+		return TRUE;
 	}
 	else {
 //		ht1632_screenBrightness(SUNSET_BRIGHNESS);
-		sunsetDim=true;
-		sunriseBrighten=false;
-		return false;
+		sunsetDim=TRUE;
+		sunriseBrighten=FALSE;
+		return FALSE;
 	}
 }
 
