@@ -60,9 +60,9 @@ void LED_init(){
 
 	/* initialize SSP configuration structure */
 	SSP_CFG_Type SSP_ConfigStruct;
-	SSP_ConfigStruct.CPHA = SSP_CPHA_SECOND;
+	SSP_ConfigStruct.CPHA = SSP_CPHA_FIRST;
 	SSP_ConfigStruct.CPOL = SSP_CPOL_LO;
-	SSP_ConfigStruct.ClockRate = 10000000; /* TLC5927 max freq = 30Mhz */
+	SSP_ConfigStruct.ClockRate = 30000000; /* TLC5927 max freq = 30Mhz */
 	SSP_ConfigStruct.Databit = SSP_DATABIT_16;
 	SSP_ConfigStruct.Mode = SSP_MASTER_MODE;
 	SSP_ConfigStruct.FrameFormat = SSP_FRAME_SPI;
@@ -81,22 +81,25 @@ void LED_test(){
 	FIO_ClearValue(LED_OE_PORT, LED_OE_BIT);//LED's on.
 
 	_DBG("[INFO]-Sending: ");
-	for(temp=0; temp<16; temp++){
+//	while(1){
+	for(temp=0; temp<3; temp++){
 		send_data = 1<<temp;
 		_DBH16(send_data);_DBG(", ");
-		FIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
 
 		SSP_SendData(LPC_SSP1, send_data);
-		while(!SSP_GetStatus(LPC_SSP1,SSP_STAT_TXFIFO_NOTFULL));//Wait if TX buffer full
+		while(!SSP_GetStatus(LPC_SSP1,SSP_STAT_BUSY));//Wait if TX buffer full
+//		delay_ms(1);
 
 		FIO_SetValue(LED_LE_PORT, LED_LE_BIT);
+		FIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
 		if(1)
 			delay_ms(100);
 		else {
-			_DBG("[INPUT]*press any key to continue*");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+			_DBG("[INPUT]*press any key*");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 			t = _DG;//wait for key press
 		}
 	}
+//	}
 	_DBG("\r\n");
 
 }
