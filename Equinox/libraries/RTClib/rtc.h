@@ -14,6 +14,11 @@
 #include "rtc.h"
 
 
+typedef enum {
+	DAY = 0,
+	NIGHT = 1
+} Day_Night_Num;
+
 struct {
 	uint32_t unix;		// updated once a second
 	uint32_t unix_utc;		// updated once a second
@@ -38,17 +43,25 @@ struct {
 	uint32_t DST_end_calculated;	// updated once a year
 	uint16_t dst_last_update_year;	// updated once a year
 	uint32_t dst_correction;		// updated once
-	uint32_t sunrise_unix; // updated once a day
-	uint32_t sunset_unix;  // updated once a day
+	uint32_t sunrise_unix;	// updated once a day
+	uint32_t sunset_unix;	// updated once a day
+	uint32_t noon_unix;  	// updated once a day
+	uint32_t day_night;  	// updated once a day
 //	uint32_t use_utc;
 } time;
 
 void RTC_IRQHandler(void);
 void RTC_time_Init();
-void dailyCheck(void);
-void hourlyCheck(void);
-void minutelyCheck(void);
+
+// Interrupt checks
 void secondlyCheck(void);
+void hourlyCheck(void) ;
+void minutelyCheck(void);
+void dailyCheck(void);
+void weeklyCheck(void);
+void monthlyCheck(void);
+void yearlyCheck(void);
+
 uint16_t GetY();
 uint8_t GetM();
 uint8_t GetDOM();

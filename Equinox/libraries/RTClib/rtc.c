@@ -12,7 +12,6 @@
 
 #define DSTEurope
 //#define DSTUSA
-#define DS3231_I2C_ADDRESS 0x68
 
 #define SECONDS_PER_DAY 86400L
 #define SECONDS_FROM_1970_TO_2000 946684800
@@ -119,6 +118,18 @@ void RTC_IRQHandler(void){
 				//run daily checks at 00:00:00
 				if(!RTC_GetTime(LPC_RTC, RTC_TIMETYPE_HOUR)){
 					dailyCheck();
+					//run weekly checks at Mon 00:00:00
+					if(1 == RTC_GetTime(LPC_RTC, RTC_TIMETYPE_DAYOFWEEK)){
+						weeklyCheck();
+						//run weekly checks at 1st Mon 00:00:00
+						if(1 == RTC_GetTime(LPC_RTC, RTC_TIMETYPE_DAYOFMONTH)){
+							monthlyCheck();
+							//run weekly checks at Jan 1st Mon 00:00:00
+							if(1 == RTC_GetTime(LPC_RTC, RTC_TIMETYPE_MONTH)){
+								yearlyCheck();
+							}
+						}
+					}
 				}
 			}
 		}
@@ -166,7 +177,8 @@ void RTC_time_Init(){
 	minutelyCheck();
 	hourlyCheck();
 	dailyCheck();
-    DSTyearly();
+	weeklyCheck();
+	yearlyCheck();
 
     RTC_print_time();
 
@@ -174,32 +186,39 @@ void RTC_time_Init(){
 	RTC_CntIncrIntConfig (LPC_RTC, RTC_TIMETYPE_SECOND, ENABLE);
     // Enable RTC interrupt
     NVIC_EnableIRQ(RTC_IRQn);
-
 }
 
-
-
-
-void dailyCheck(void) {
-	//calculate sunrise/sunset at
-//	mySun.Rise(time_now.month(),time_now.day());
-//	mySun.Set(time_now.month(),time_now.day());
+void secondlyCheck(void) {
+	//Checks and adjusts time for DST
+	DST_check_and_correct();
 }
 
 void hourlyCheck(void) {
 }
 
 void minutelyCheck(void) {
-	//TODO update brightness
-
-
-	//Calculate DST's every year
-	DSTyearly();
+	if ((time.sunrise_unix < time.unix) && (time.sunset_unix < time.unix)){
+		time.day_night = DAY;
+		//TODO update brightness
+	}
 }
 
-void secondlyCheck(void) {
-	//Checks and adjusts time for DST
-	DST_check_and_correct();
+void dailyCheck(void) {
+	//calculate sunrise/sunset for the day    // Done at 00:00:00 so unix time should be start of day
+	time.sunrise_unix = time.unix + (60 * Sunrise_Compute(time.month, time.dom, READ_SUNRISE));
+	time.sunset_unix = time.unix + (60 * Sunrise_Compute(time.month, time.dom, READ_SUNSET));
+	time.noon_unix = time.unix + (60 * Sunrise_Compute(time.month, time.dom, READ_NOON));
+}
+
+void weeklyCheck(void){
+}
+
+void monthlyCheck(void){
+}
+
+void yearlyCheck(void){
+	//Calculate DST's every year
+	DSTyearly();
 }
 
 uint16_t GetY() {

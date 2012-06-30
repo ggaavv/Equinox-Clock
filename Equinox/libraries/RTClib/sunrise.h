@@ -4,36 +4,26 @@
 
 #include "debug_frmwrk.h"
 
+typedef enum {
+	READ_SUNSET = 0,
+	READ_SUNRISE = 1,
+	READ_NOON = 2
+} Sunrise_Num;
 
-#define READ_SUNSET 1
-#define READ_SUNRISE 2
-#define READ_NOON 3
+//Northampton, England, Europe - Latitude/Longitude and Timezone
+#define latitude 52
+#define longitude -0.9
+#define timezone 0
 
-#define SUNRISEN_BRIGHNESS 15
-#define SUNSET_BRIGHNESS 2
+#define zenith 1.579522973054868	// Sunrise_Actual
+//#define zenith 1.675516081914556	// Sunrise_Civil
+//#define zenith 1.780235837034216	// Sunrise_Nautical
+//#define zenith 1.884955592153876	//Sunrise_Astronomica
 
+//#define SUNRISEN_BRIGHNESS 15
+//#define SUNSET_BRIGHNESS 2
 
-  Sunrise(float, float, float);
-  void Actual();
-  void Civil();
-  void Nautical();
-  void Astronomical();
-  void Rise(unsigned char ,unsigned char );
-  void Set(unsigned char ,unsigned char );
-  void Noon(unsigned char ,unsigned char );
-  unsigned char sunsetHour();// const	{ return setHour; } ;
-  unsigned char sunsetMinute();// const	{ return setMinute; } ;
-  unsigned char sunriseHour();// const	{ return riseHour; } ;
-  unsigned char sunriseMinute();// const	{ return riseMinute; } ;
-  unsigned char noonHour();// const	{ return nHour; } ;
-  unsigned char noonMinute();// const	{ return nMinute; } ;
-  unsigned char isSunRisen(unsigned char hour, unsigned char minute); //accurate to 1 hour
-  
-  unsigned char sunsetDim,sunriseBrighten;
-
-  int Sunrise_Compute(unsigned char month, unsigned char  day, int rs);
-  float lat,lon, zenith, rd, tz;
-  unsigned char riseHour,setHour,nHour,riseMinute,setMinute,nMinute;
-
+// Sunrise returns minutes
+int Sunrise(unsigned char month, unsigned char  day, int rs);
 
 #endif
