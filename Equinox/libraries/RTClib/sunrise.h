@@ -20,6 +20,8 @@ typedef enum {
 //#define zenith 1.780235837034216	// Sunrise_Nautical
 //#define zenith 1.884955592153876	//Sunrise_Astronomica
 
+#define rd 57.295779513082322
+
 //#define SUNRISEN_BRIGHNESS 15
 //#define SUNSET_BRIGHNESS 2
 

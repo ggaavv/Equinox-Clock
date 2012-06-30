@@ -15,13 +15,17 @@
 
 
 typedef enum {
-	DAY = 0,
-	NIGHT = 1
+	DAY,
+	NIGHT,
+	RISE_ONLY,
+	SET_ONLY,
+	ALL_DAY,
+	ALL_NIGHT
 } Day_Night_Num;
 
 struct {
 	uint32_t unix;		// updated once a second
-	uint32_t unix_utc;		// updated once a second
+	uint32_t unix_utc;	// updated once a second
 	uint16_t year;		// updated once a second
 	uint8_t month;		// updated once a second
 	uint8_t dom;		// updated once a second
@@ -44,9 +48,13 @@ struct {
 	uint16_t dst_last_update_year;	// updated once a year
 	uint32_t dst_correction;		// updated once
 	uint32_t sunrise_unix;	// updated once a day
+	uint32_t sunrise_unix_utc;	// updated once a day
 	uint32_t sunset_unix;	// updated once a day
+	uint32_t sunset_unix_utc;	// updated once a day
 	uint32_t noon_unix;  	// updated once a day
-	uint32_t day_night;  	// updated once a day
+	uint32_t noon_unix_utc;  	// updated once a day
+	uint8_t day_night;  	// updated once a day
+	uint8_t no_set_rise;  	// updated once a day
 //	uint32_t use_utc;
 } time;
 
@@ -71,10 +79,10 @@ uint8_t GetHH();
 uint8_t GetMM();
 uint8_t GetSS();
 void RTC_time_SetTime(uint16_t year, uint8_t month, uint8_t dayOfM, uint8_t hour, uint8_t min, uint8_t sec);
+// number of days since 20xx/01/01, valid for 2001..2099
+uint16_t days_from_20xx(uint16_t year, uint8_t month, uint8_t dayOfM);
 // number of days since 2000/01/01, valid for 2001..2099
-uint16_t date2days(uint16_t year, uint8_t month, uint8_t dayOfM);
-// number of days since 2000/01/01, valid for 2001..2099
-uint16_t dateoftheyear(uint16_t year, uint8_t month, uint8_t dayOfM);
+uint16_t days_from_2000(uint16_t year, uint8_t month, uint8_t dayOfM);
 // convert date into seconds
 long time2long(uint16_t days, uint8_t hour, uint8_t min, uint8_t sec);
 // find day of the week

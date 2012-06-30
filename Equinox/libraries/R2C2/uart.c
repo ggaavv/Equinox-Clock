@@ -133,3 +133,143 @@ void uart_send_32_Hex(char Data){
 	    }
 	}
 }
+/*
+void uart_send_float(float number){
+  uint8_t n = 0;
+  uint8_t digits = 10;
+  number = 1.5;
+
+  // Handle negative numbers
+  if (number < 0.0)
+  {
+	  uart_writestr("if (number < 0.0)");
+     n++;
+     uart_send('-');
+     number = -number;
+  }
+
+  // Round correctly so that print(1.999, 2) prints as "2.00"
+  float rounding = 0.5;
+  for (uint8_t i=0; i<digits; ++i)
+    rounding /= 10.0;uart_writestr("for (uint8_t i=0; i<digits; ++i)");
+
+  number += rounding;
+
+  // Extract the integer part of the number and print it
+  unsigned long int_part = (unsigned long)number;
+  float remainder = number - (float)int_part;
+  n ++;
+  uart_writestr("uart_send(int_part);");
+  uart_writestr(int_part);
+  uart_writestr("uart_send(int_part);");
+
+  // Print the decimal point, but only if there are digits beyond
+  if (digits > 0) {
+	n++;
+	uart_send(".");
+  }
+
+  // Extract digits from the remainder one at a time
+  while (digits-- > 0)
+  {
+    remainder *= 10.0;
+    int toPrint = (int)remainder;
+    n ++;
+    uart_send(toPrint);
+    remainder -= toPrint;
+  }
+}
+*/
+
+void uart_uint32(uint32_t v) {
+	uint8_t t = 0;
+	if (v >= 1000000000) {
+		for (t = 0; v >= 1000000000; v -= 1000000000, t++);
+		uart_send(t + '0');
+	}
+
+	if (v >= 100000000) {
+		for (t = 0; v >= 100000000; v -= 100000000, t++);
+		uart_send(t + '0');
+	}
+	else if (t != 0)
+		uart_send('0');
+
+	if (v >= 10000000) {
+		for (t = 0; v >= 10000000; v -= 10000000, t++);
+		uart_send(t + '0');
+	}
+	else if (t != 0)
+		uart_send('0');
+
+	if (v >= 1000000) {
+		for (t = 0; v >= 1000000; v -= 1000000, t++);
+		uart_send(t + '0');
+	}
+	else if (t != 0)
+		uart_send('0');
+
+	if (v >= 100000) {
+		for (t = 0; v >= 100000; v -= 100000, t++);
+		uart_send(t + '0');
+	}
+	else if (t != 0)
+		uart_send('0');
+
+	if (v >= 10000) {
+		for (t = 0; v >= 10000; v -= 10000, t++);
+		uart_send(t + '0');
+	}
+	else if (t != 0)
+		uart_send('0');
+
+	if (v >= 1000) {
+		for (t = 0; v >= 1000; v -= 1000, t++);
+		uart_send(t + '0');
+	}
+	else if (t != 0)
+		uart_send('0');
+
+	if (v >= 100) {
+		t = v / 100;
+		uart_send(t + '0');
+		v -= (t * 100);
+	}
+	else if (t != 0)
+		uart_send('0');
+
+	if (v >= 10) {
+	        /* 99 > v > 10 */
+		t = v / 10;
+		uart_send(t + '0');
+		v -= (t * 10);
+	}
+	else if (t != 0)
+		uart_send('0');
+
+	uart_send(v + '0');
+}
+
+void uart_send_float(double v){
+  if (v < 0)
+  {
+	  uart_send ('-');
+    v = -v;
+  }
+
+  /* print first part before '.' */
+  uart_uint32((uint32_t) v);
+
+  /* print the '.' */
+  uart_send('.');
+
+  /* print last part after '.' */
+  v = v - (int32_t)v;
+
+  v = v * 1000.0;
+  if (v < 100.0)
+	  uart_send('0');
+  if (v < 10.0)
+	  uart_send('0');
+  uart_uint32((uint32_t) v);
+}

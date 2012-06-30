@@ -173,14 +173,14 @@ void RTC_time_Init(){
 
 		RTC_WriteGPREG(LPC_RTC, 4, 0xaa);
     }
+
 	secondlyCheck();
 	minutelyCheck();
 	hourlyCheck();
 	dailyCheck();
 	weeklyCheck();
 	yearlyCheck();
-
-    RTC_print_time();
+	RTC_print_time();
 
     // Enable 1 sec interrupt
 	RTC_CntIncrIntConfig (LPC_RTC, RTC_TIMETYPE_SECOND, ENABLE);
@@ -197,17 +197,48 @@ void hourlyCheck(void) {
 }
 
 void minutelyCheck(void) {
+	time.day_night = NIGHT;
 	if ((time.sunrise_unix < time.unix) && (time.sunset_unix < time.unix)){
-		time.day_night = DAY;
+		if ((time.no_set_rise != RISE_ONLY) || (time.no_set_rise != SET_ONLY) || (time.no_set_rise != ALL_DAY) || (time.no_set_rise != ALL_NIGHT)){
+			time.day_night = DAY;
+
+		} else{
+			// TODO but not important
+		}
 		//TODO update brightness
 	}
 }
 
 void dailyCheck(void) {
-	//calculate sunrise/sunset for the day    // Done at 00:00:00 so unix time should be start of day
-	time.sunrise_unix = time.unix + (60 * Sunrise_Compute(time.month, time.dom, READ_SUNRISE));
-	time.sunset_unix = time.unix + (60 * Sunrise_Compute(time.month, time.dom, READ_SUNSET));
-	time.noon_unix = time.unix + (60 * Sunrise_Compute(time.month, time.dom, READ_NOON));
+	//calculate sunrise/sunset for the day
+	if ((0 < Sunrise_Compute(time.month, time.dom, READ_SUNRISE)) && (0 < Sunrise_Compute(time.month, time.dom, READ_SUNSET))){
+		_DBG("[INFO]-dailyCheck()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+		uint32_t unix_day_utc = RTC_time_FindUnixtime(time.year, time.month, time.dom, 0, 0, 0);
+		uint32_t unix_day = RTC_time_FindUnixtime(time.year, time.month, time.dom, 0, 0, 0);
+		time.sunrise_unix_utc = unix_day_utc + (60 * Sunrise_Compute(time.month, time.dom, READ_SUNRISE));
+		time.sunrise_unix = unix_day + (60 * Sunrise_Compute(time.month, time.dom, READ_SUNRISE));
+		time.sunset_unix_utc = unix_day_utc + (60 * Sunrise_Compute(time.month, time.dom, READ_SUNSET));
+		time.sunset_unix = unix_day + (60 * Sunrise_Compute(time.month, time.dom, READ_SUNSET));
+		time.noon_unix_utc = unix_day_utc + (60 * Sunrise_Compute(time.month, time.dom, READ_NOON));
+		time.noon_unix = unix_day + (60 * Sunrise_Compute(time.month, time.dom, READ_NOON));
+
+	} else {
+		//TODO but not important - Calculation for if the is no sunrise/set/both
+/*		if ((0 > Sunrise_Compute(time.month, time.dom, READ_SUNRISE)) && (0 > Sunrise_Compute(time.month, time.dom, READ_SUNSET))){
+
+		} else {
+			if (0 > Sunrise_Compute(time.month, time.dom, READ_SUNRISE)){
+				time.sunrise_unix = time.unix + (60 * Sunrise_Compute(time.month, time.dom, READ_SUNRISE));
+				time.sunset_unix = time.unix + (24 * 60 * 60);
+				time.no_set_rise = RISE_ONLY;
+			}
+			if (0 > Sunrise_Compute(time.month, time.dom, READ_SUNSET)){
+				time.sunset_unix = time.unix + (60 * Sunrise_Compute(time.month, time.dom, READ_SUNSET));
+				time.sunrise_unix = time.unix + (24 * 60 * 60);
+				time.no_set_rise = SET_ONLY;
+			}
+		}*/
+	}
 }
 
 void weeklyCheck(void){
@@ -260,7 +291,7 @@ void RTC_time_SetTime(uint16_t year, uint8_t month, uint8_t dom, uint8_t hh, uin
 	time.month = month;
 	time.dom = dom;
 	time.dow = dayOfWeekManual(year, month, dom);
-	time.doy = dateoftheyear(year, month, dom);
+	time.doy = days_from_20xx(year, month, dom);
 
 	if(begin_DST_unix(year)<=unixt && unixt<=end_DST_unix(year)) {
 		//correct for dst active
@@ -296,38 +327,38 @@ void RTC_time_SetTime(uint16_t year, uint8_t month, uint8_t dom, uint8_t hh, uin
 	if (time.mm_utc!=NULL)		RTC_SetTime (LPC_RTC, RTC_TIMETYPE_MINUTE, time.mm_utc);
 	if (time.hh_utc!=NULL)		RTC_SetTime (LPC_RTC, RTC_TIMETYPE_HOUR, time.hh_utc);
 
-    //forces dst calc
-    DSTyearly();
-	dailyCheck();
-	hourlyCheck();
-	minutelyCheck();
 	secondlyCheck();
-
- //   RTC_print_time();
+	minutelyCheck();
+	hourlyCheck();
+	dailyCheck();
+	weeklyCheck();
+	yearlyCheck();
+//    RTC_print_time();
 }
 
-// number of days since 2000/01/01, valid for 2001..2099
-uint16_t date2days(uint16_t year, uint8_t month, uint8_t dayOfM) {
+// number of days since 20xx/01/01, valid for 2001..2099
+uint16_t days_from_20xx(uint16_t year, uint8_t month, uint8_t dayOfM) {
     if (year >= 2000)
     	year -= 2000;
     uint16_t days = dayOfM;
     for (uint8_t i = 1; i < month; ++i)
-        days += daysInMonth[i]-1;
+        days += daysInMonth[i-1];
     if (month > 2 && year % 4 == 0)
         ++days;
     return days + (year + 3) / 4 - 1;  //TODO: check if this is correct!!!
 }
 
 // number of days since 2000/01/01, valid for 2001..2099
-uint16_t dateoftheyear(uint16_t year, uint8_t month, uint8_t dayOfM) {
-    if (year >= 2000)
-    	year -= 2000;
-    uint16_t days = dayOfM;
-    for (uint8_t i = 1; i < month; ++i)
-        days += daysInMonth[i]-1;
-    if (month > 2 && year % 4 == 0)
-        ++days;
-    return days + 365 * year + (year + 3) / 4 - 1;
+uint16_t days_from_2000(uint16_t y, uint8_t m, uint8_t d) {
+    if (y >= 2000)
+        y -= 2000;
+    uint16_t days = d;
+
+    for (uint8_t i = 1; i < m; i++)
+    	days += daysInMonth[i-1];
+    if (m > 2 && y % 4 == 0)
+        days++;
+    return days + 365 * y + (y + 3) / 4 - 1;
 }
 
 // convert date into seconds
@@ -337,7 +368,7 @@ long time2long(uint16_t days, uint8_t hour, uint8_t min, uint8_t sec) {
 
 // find day of the week
 uint8_t dayOfWeekManual(uint16_t year, uint8_t month, uint8_t dayOfM) {
-    uint16_t day = date2days(year, month, dayOfM);
+    uint16_t day = days_from_2000(year, month, dayOfM);
     return (day + 6) % 7; // Jan 1, 2000 is a Saturday, i.e. returns 6
 }
 
@@ -351,16 +382,15 @@ uint8_t conv2d(const char* p) {
 
 uint32_t RTC_time_GetUnixtime() {
   uint32_t t;
-  uint16_t days = date2days(RTC_GetTime (LPC_RTC, RTC_TIMETYPE_DAYOFMONTH), RTC_GetTime (LPC_RTC, RTC_TIMETYPE_MONTH), RTC_GetTime (LPC_RTC, RTC_TIMETYPE_DAYOFMONTH));
+  uint16_t days = days_from_2000(RTC_GetTime (LPC_RTC, RTC_TIMETYPE_YEAR), RTC_GetTime (LPC_RTC, RTC_TIMETYPE_MONTH), RTC_GetTime (LPC_RTC, RTC_TIMETYPE_DAYOFMONTH));
   t = time2long(days, RTC_GetTime (LPC_RTC, RTC_TIMETYPE_HOUR), RTC_GetTime (LPC_RTC, RTC_TIMETYPE_MINUTE), RTC_GetTime (LPC_RTC, RTC_TIMETYPE_SECOND));
   t += SECONDS_FROM_1970_TO_2000; // seconds from 1970 to 2000
   return t;
 }
 
 uint32_t RTC_time_FindUnixtime(uint16_t year, uint8_t month, uint8_t dayOfM, uint8_t hour, uint8_t min, uint8_t sec) {
-  uint32_t t;
-  uint16_t days = date2days(year, month, dayOfM);
-  t = time2long(days, hour, min, sec);
+  uint16_t days = days_from_2000(year, month, dayOfM);
+  uint32_t t = time2long(days, hour, min, sec);
   t += SECONDS_FROM_1970_TO_2000; // seconds from 1970 to 2000
   return t;
 }
@@ -375,7 +405,6 @@ void DST_check_and_correct() {
 	time.hh_utc = RTC_GetTime(LPC_RTC, RTC_TIMETYPE_HOUR);
 	time.mm_utc = RTC_GetTime(LPC_RTC, RTC_TIMETYPE_MINUTE);
 	time.ss_utc = RTC_GetTime(LPC_RTC, RTC_TIMETYPE_SECOND);
-
 	time.unix_utc = RTC_time_FindUnixtime(time.year, time.month, time.dom, time.hh_utc, time.mm_utc, time.ss_utc);
 
 //	_DBG("[INFO]-time.hh=");_DBD(time.hh);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
@@ -396,9 +425,7 @@ void DST_check_and_correct() {
 }
 
 void RTC_set_default_time_to_compiled(void) {
-
 	uint8_t month_as_number;
-
 	switch (__DATE__[0]) {
 	    case 'J': month_as_number = __DATE__[1] == 'a' ? 1 : __DATE__[2] == 'n' ? 6 : 7; break;
 	    case 'F': month_as_number = 2; break;
@@ -409,8 +436,6 @@ void RTC_set_default_time_to_compiled(void) {
 	    case 'N': month_as_number = 11; break;
 	    case 'D': month_as_number = 12; break;
 	}
-//	_DBG("[INFO]-month_as_number=");_DBD(month_as_number);_DBG("\r\n");
-
 	RTC_time_SetTime(
 			conv2d(__DATE__ + 7)*100 + conv2d(__DATE__ + 9),
 			month_as_number,
@@ -418,7 +443,6 @@ void RTC_set_default_time_to_compiled(void) {
 			conv2d(__TIME__),
 			conv2d(__TIME__ + 3),
 			conv2d(__TIME__ + 6));
-
 }
 
 void RTC_print_time(void){
@@ -438,11 +462,21 @@ void RTC_print_time(void){
 	_DBD(GetSS());
 	_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
+	_DBG("[INFO]- Unix: ");
+	uart_uint32(time.unix);
+	_DBG("  Sunrise: ");
+	uart_uint32(time.sunrise_unix);
+	_DBG("  Sunset: ");
+	uart_uint32(time.sunset_unix);
+	_DBG("  Noon: ");
+	uart_uint32(time.noon_unix);
+	_DBG("  Day/Night: ");
+	uart_uint32(time.day_night);
+	_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 }
 
 void unix_to_hh_mm_ss_get (uint32_t t) {
   t -= SECONDS_FROM_1970_TO_2000;    // bring to 2000 timestamp from 1970
-
     time.get_ss = t % 60;
     t /= 60;
     time.get_mm = t % 60;
@@ -452,7 +486,6 @@ void unix_to_hh_mm_ss_get (uint32_t t) {
 
 void unix_to_hh_mm_ss_set (uint32_t t) {
   t -= SECONDS_FROM_1970_TO_2000;    // bring to 2000 timestamp from 1970
-
     time.set_ss = t % 60;
     t /= 60;
     time.set_mm = t % 60;

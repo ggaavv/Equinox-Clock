@@ -30,12 +30,17 @@
 #ifndef	_UART_H
 #define	_UART_H
 
+#include "lpc_types.h"
+
 void uart_init(void);
 char uart_data_available(void);
 char uart_receive(void);
 void uart_send(char byte);
 void uart_writestr(char *data);
 void uart_send_32_Hex(char Data);
+
+void uart_uint32(uint32_t v);
+void uart_send_float(double v);
 
 // #define serial_writechar(x) uart_send(x)
 
