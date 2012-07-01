@@ -31,11 +31,7 @@
 #ifndef _PINOUT_H
 #define _PINOUT_H
 
-//#include "ios.h"
-
-/*
-        LED Pins
-*/
+//      LED Pins
 /*
 //For Equinox clock board
 #define LED_LE_PORT			0
@@ -75,10 +71,7 @@
 
 #define LED_SPI_CHN			0
 
-/*
-        Wifi Pins
-*/
-
+//      Wifi Pins
 /*
 //For Equinox clock board
 #define WF_CS_PORT			0
@@ -137,10 +130,17 @@
 #define WF_EINT3_PIN		13 //Using this one
 #define WF_EINT3_BIT		(1 <<  WF_EINT3_PIN) //Using this one
 
-
 #define WF_SPI_CHN			1
 #define WF_INT				1
 
+
+//      TMP100 Pins
+#define TMP100_SDA1_PORT	0
+#define TMP100_SDA1_PIN		0
+#define TMP100_SDA1_BIT		(1 <<  TMP100_SDA1_PIN)
+#define TMP100_SLC1_PORT	0
+#define TMP100_SLC1_PIN		1
+#define TMP100_SLC1_BIT		(1 <<  TMP100_SLC1_PIN)
 
 
 #endif  /* _PINOUT_H */
