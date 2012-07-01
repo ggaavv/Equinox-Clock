@@ -157,6 +157,7 @@ INCLUDES = $(APPLIBDIR)/CMSISv1p30_LPC17xx/inc \
 	 $(APPLIBDIR)/R2C2/ \
 	 $(APPLIBDIR)/WiShield/ \
 	 $(APPLIBDIR)/TESTShiftPWM/ \
+	 $(APPLIBDIR)/i2c/ \
 	 $(APPDIR)
 
 # List C source files here. (C dependencies are automatically generated.)
@@ -190,7 +191,9 @@ SRC = \
 	$(APPLIBDIR)/R2C2/uart.c \
 	$(APPLIBDIR)/R2C2/sersendf.c \
 	$(APPLIBDIR)/R2C2/sermsg.c \
-	$(APPLIBDIR)/RTClib/sunrise.c
+	$(APPLIBDIR)/RTClib/sunrise.c \
+	$(APPLIBDIR)/I2C/i2c.c\
+	$(APPLIBDIR)/I2C/MCP4018.c
 	
 #	$(APPLIBDIR)/WiShield/g2100.c \
 #	$(APPLIBDIR)/WiShield/network.c \

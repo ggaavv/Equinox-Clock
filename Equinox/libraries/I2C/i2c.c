@@ -9,6 +9,9 @@
 #include "lpc17xx_pinsel.h"
 #include "lpc17xx_gpio.h"
 #include "lpc17xx_i2c.h"
+#include "tmp100.h"
+#include "MCP4018.h"
+
 
 void I2C_init() {
 	// Initialize SDA pins
@@ -32,5 +35,11 @@ void I2C_init() {
 	// TMP100 supports fast up to 400kHz and high-speed up to 3.4MHz
 	I2C_Init(LPC_I2C1, 400000);
 	I2C_Cmd(LPC_I2C1, ENABLE);
+
+	// Configure TMP100 - temperature sensor
+	tmp100_set_reg();
+
+	// Configure Digital Pot
+	// TODO
 }
 
