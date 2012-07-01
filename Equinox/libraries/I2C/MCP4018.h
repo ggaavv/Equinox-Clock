@@ -35,8 +35,11 @@
 //#define TMP100_RES_12bits   0x03
 /*----------------------*/
 
-#define MCP4018_ADDR 		0x90
+#define MCP4018_ADDR 		0x5e
 
-
+#define MCP4018_OHM 		50000
+#define MCP4018_MAX 		0x7f
+#define MCP4018_MID 		0x3f
+#define MCP4018_MIN 		0x00
 
 #endif /* MCP4018_H_ */
