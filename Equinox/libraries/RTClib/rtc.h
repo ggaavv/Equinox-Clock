@@ -55,7 +55,7 @@ struct {
 	uint32_t noon_unix_utc;  	// updated once a day
 	uint8_t day_night;  	// updated once a day
 	uint8_t no_set_rise;  	// updated once a day
-	uint8_t second_inc		// updated once a second
+	uint8_t second_inc;		// updated once a second
 //	uint32_t use_utc;
 } time;
 

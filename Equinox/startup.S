@@ -159,8 +159,8 @@ __cs3_reset_cortex_m:
     blo   2b
 
 /* call __libc_init_array - needed for C++ support */
-/*    LDR     R0, =__libc_init_array */
-/*    BLX     R0 */
+    LDR     R0, =__libc_init_array
+    BLX     R0
 
 /* call system init in NXP's Device CMSIS code */
     LDR     R0, =SystemInit

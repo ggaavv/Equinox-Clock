@@ -30,19 +30,19 @@ void Print::write(const char *str) {
         write(*str++);
 }
 
-void Print::write(void *buffer, uint32 size) {
-    uint8 *ch = (uint8*)buffer;
+void Print::write(void *buffer, uint32_t size) {
+    uint8_t *ch = (uint8_t*)buffer;
     while (size--) {
         write(*ch++);
     }
 }
 
-void Print::print(uint8 b) {
+void Print::print(uint8_t b) {
     this->write(b);
 }
 
 void Print::print(char c) {
-    print((byte) c);
+    print((uint8_t) c);
 }
 
 void Print::print(const char str[]) {
@@ -98,7 +98,7 @@ void Print::println(const char c[]) {
     println();
 }
 
-void Print::println(uint8 b) {
+void Print::println(uint8_t b) {
     print(b);
     println();
 }
@@ -135,7 +135,7 @@ void Print::println(double n) {
 
 //------------------------------ Private Methods ------------------------------
 
-void Print::printNumber(unsigned long n, uint8 base) {
+void Print::printNumber(unsigned long n, uint8_t base) {
     unsigned char buf[8 * sizeof(long)]; // Assumes 8-bit chars.
     unsigned long i = 0;
 
@@ -155,7 +155,7 @@ void Print::printNumber(unsigned long n, uint8 base) {
                       'A' + buf[i - 1] - 10));
 }
 
-void Print::printFloat(double number, uint8 digits) {
+void Print::printFloat(double number, uint8_t digits) {
     // Handle negative numbers
     if (number < 0.0) {
         print('-');
@@ -164,7 +164,7 @@ void Print::printFloat(double number, uint8 digits) {
 
     // Round correctly so that print(1.999, 2) prints as "2.00"
     double rounding = 0.5;
-    for (uint8 i=0; i<digits; ++i) {
+    for (uint8_t i=0; i<digits; ++i) {
         rounding /= 10.0;
     }
 

@@ -73,7 +73,7 @@ const char host[] = {"Host: "};
 const char status[] = {"status="};
 
 /* Base64 Encoder data */
-const char base64Chars[] PROGMEM = {"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"};
+const char base64Chars[] = {"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"};
 
 
 #endif // ENABLE_CLIENT_MODE

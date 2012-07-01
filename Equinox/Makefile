@@ -165,6 +165,7 @@ INCLUDES = $(APPLIBDIR)/CMSISv1p30_LPC17xx/inc \
 SRC = \
 	$(wildcard $(APPLIBDIR)/LPCUSB/src/*.c) \
 	$(APPLIBDIR)/CMSISv1p30_LPC17xx/src/system_LPC17xx.c \
+	$(APPLIBDIR)/CMSISv1p30_LPC17xx/src/core_cm3.c \
 	$(wildcard $(APPLIBDIR)/NXP/Drivers/source/*.c) \
 	$(APPLIBDIR)/WiShield/g2100.c \
 	$(APPLIBDIR)/WiShield/network.c \
@@ -178,10 +179,8 @@ SRC = \
 	$(APPLIBDIR)/WiShield/uiplib.c \
 	$(APPLIBDIR)/WiShield/uip-neighbor.c \
 	$(APPLIBDIR)/WiShield/uip-split.c \
-	$(APPLIBDIR)/WiShield/webserver.c \
 	$(APPLIBDIR)/TESTShiftPWM/ShiftPWM.c \
 	$(APPSRC) \
-	main.c \
 	$(APPLIBDIR)/R2C2/sys_timer.c \
 	$(APPLIBDIR)/R2C2/serial.c \
 	$(APPLIBDIR)/R2C2/usb.c \
@@ -193,8 +192,12 @@ SRC = \
 	$(APPLIBDIR)/R2C2/sermsg.c \
 	$(APPLIBDIR)/RTClib/sunrise.c \
 	$(APPLIBDIR)/I2C/i2c.c\
-	$(APPLIBDIR)/I2C/MCP4018.c
+	$(APPLIBDIR)/I2C/MCP4018.c \
+	$(APPLIBDIR)/R2C2/syscalls.c \
+	statup_delay.c
 	
+#	main.c \
+#	$(APPLIBDIR)/WiShield/wiserver.c
 #	$(APPLIBDIR)/WiShield/g2100.c \
 #	$(APPLIBDIR)/WiShield/network.c \
 #	$(APPLIBDIR)/WiShield/psock.c \
@@ -210,6 +213,7 @@ SRC = \
 #	$(APPLIBDIR)/WiShield/webserver.c \
 #	$(APPLIBDIR)/WiShield/*.c \ ##compile error
 #	$(APPLIBDIR)/R2C2/*.c \
+#	$(APPLIBDIR)/WiShield/webserver.c \
 
 # List C source files here which must be compiled in ARM-Mode (no -mthumb).
 # use file-extension c for "c-only"-files
@@ -218,7 +222,10 @@ SRCARM =
 
 # List C++ source files here.
 # use file-extension .cpp for C++-files (not .C)
-CPPSRC = 
+CPPSRC = \
+	main.cpp \
+	$(APPLIBDIR)/WiShield/WiServer.cpp \
+	$(APPLIBDIR)/WiShield/Print.cpp
 
 # List C++ source files here which must be compiled in ARM-Mode.
 # use file-extension .cpp for C++-files (not .C)

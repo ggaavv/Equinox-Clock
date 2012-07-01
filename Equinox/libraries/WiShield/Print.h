@@ -22,7 +22,8 @@
 #define Print_h
 
 //#include <libmaple_types.h>
-#include <stdio.h> // for size_t
+//#include <stdio.h> // for size_t
+#include "lpc_types.h"
 
 #define DEC 10
 #define HEX 16
@@ -33,15 +34,15 @@
 class Print
 {
  private:
-    void printNumber(unsigned long, uint8);
-    void printFloat(double, uint8);
+    void printNumber(unsigned long, uint8_t);
+    void printFloat(double, uint8_t);
  public:
-    virtual void write(uint8) = 0;
+    virtual void write(uint8_t) = 0;
     virtual void write(const char *str);
-    virtual void write(void *, uint32);
+    virtual void write(void *, uint32_t);
     void print(char);
     void print(const char[]);
-    void print(uint8);
+    void print(uint8_t);
     void print(int);
     void print(unsigned int);
     void print(long);
@@ -51,7 +52,7 @@ class Print
     void println(void);
     void println(char);
     void println(const char[]);
-    void println(uint8);
+    void println(uint8_t);
     void println(int);
     void println(unsigned int);
     void println(long);
