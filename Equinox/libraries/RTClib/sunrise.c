@@ -1,9 +1,8 @@
 
 
 #include "sunrise.h"
-#include "rtc.h"
 
-
+// Sunrise returns minutes past 00:00:00 for the day
 int Sunrise_Compute(unsigned char month, unsigned char  day, int rs) {
 	float y, decl, eqt, ha, lat, lon, tz;
 	unsigned char a;

@@ -35,7 +35,7 @@
 #define TMP100_RES_12bits   0x03
 /*----------------------*/
 
-short tm_addr=0x90;
+#define TMP100_ADDR 		0x90
 
 
 
