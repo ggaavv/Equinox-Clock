@@ -4,11 +4,9 @@
 #include "rtc.h"
 
 
-
-
 int Sunrise_Compute(unsigned char month, unsigned char  day, int rs) {
 	float y, decl, eqt, ha, lat, lon, tz;
-	unsigned char a, riseHour, riseMinute, setHour, setMinute, nHour, nMinute ;
+	unsigned char a;
 	int doy, minutes;
 
 	// Calculate constants
@@ -35,10 +33,6 @@ int Sunrise_Compute(unsigned char month, unsigned char  day, int rs) {
 	//compute hour angle
 	ha=(  cos(zenith) / (cos(lat)*cos(decl)) -tan(lat) * tan(decl)  );
 	if(fabs(ha)>1){// we're in the (ant)arctic and there is no rise(or set) today!
-//		nHour=255;
-//		riseHour=255;
-//		setHour=255;
-//		return -1;
 		return -1;
 	}
 	ha=acos(ha);
@@ -52,21 +46,6 @@ int Sunrise_Compute(unsigned char month, unsigned char  day, int rs) {
 		minutes+= (tz*60);
 		if(minutes<0) minutes+=1440;
 		minutes%=1440;
-
-		// stuff hour into month, minute into day
-		if(rs==READ_SUNSET) {
-			setHour=minutes/60;
-			setMinute=minutes-setHour*60;
-			minutes = (setHour * 60) + setMinute;
-			return minutes;
-		}
-		if(rs==READ_SUNRISE) {
-			riseHour=minutes/60;
-			riseMinute=minutes-riseHour*60;
-			minutes = (riseHour * 60) + riseMinute;
-			return minutes;
-		}
-
 	}else if(rs==READ_NOON){
 		// computes minutes into the day of the event
 		minutes=720+4*lon*rd-eqt;
@@ -75,12 +54,7 @@ int Sunrise_Compute(unsigned char month, unsigned char  day, int rs) {
 		minutes+= (tz*60);
 		if(minutes<0) minutes+=1440;
 		minutes%=1440;
-
-		// stuff hour into month, minute into day
-		nHour=minutes/60;
-		nMinute=minutes-nHour*60;
-		minutes = (nHour * 60) + nMinute;
-		return minutes;
 	}
+	return minutes;
 }
 

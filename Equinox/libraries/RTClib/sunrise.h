@@ -5,9 +5,9 @@
 #include "debug_frmwrk.h"
 
 typedef enum {
-	READ_SUNSET = 0,
-	READ_SUNRISE = 1,
-	READ_NOON = 2
+	READ_SUNSET,
+	READ_SUNRISE,
+	READ_NOON
 } Sunrise_Num;
 
 //Northampton, England, Europe - Latitude/Longitude and Timezone
@@ -21,9 +21,6 @@ typedef enum {
 //#define zenith 1.884955592153876	//Sunrise_Astronomica
 
 #define rd 57.295779513082322
-
-//#define SUNRISEN_BRIGHNESS 15
-//#define SUNSET_BRIGHNESS 2
 
 // Sunrise returns minutes
 int Sunrise(unsigned char month, unsigned char  day, int rs);

@@ -45,7 +45,7 @@ struct {
 	uint8_t get_ss;			// updated once a second
 	uint32_t DST_begin_calculated;	// updated once a year
 	uint32_t DST_end_calculated;	// updated once a year
-	uint16_t dst_last_update_year;	// updated once a year
+//	uint16_t dst_last_update_year;	// updated once a year
 	uint32_t dst_correction;		// updated once
 	uint32_t sunrise_unix;	// updated once a day
 	uint32_t sunrise_unix_utc;	// updated once a day

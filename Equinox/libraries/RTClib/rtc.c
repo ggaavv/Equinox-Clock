@@ -201,7 +201,6 @@ void minutelyCheck(void) {
 	if ((time.sunrise_unix < time.unix) && (time.sunset_unix < time.unix)){
 		if ((time.no_set_rise != RISE_ONLY) || (time.no_set_rise != SET_ONLY) || (time.no_set_rise != ALL_DAY) || (time.no_set_rise != ALL_NIGHT)){
 			time.day_night = DAY;
-
 		} else{
 			// TODO but not important
 		}
@@ -214,13 +213,12 @@ void dailyCheck(void) {
 	if ((0 < Sunrise_Compute(time.month, time.dom, READ_SUNRISE)) && (0 < Sunrise_Compute(time.month, time.dom, READ_SUNSET))){
 		_DBG("[INFO]-dailyCheck()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 		uint32_t unix_day_utc = RTC_time_FindUnixtime(time.year, time.month, time.dom, 0, 0, 0);
-		uint32_t unix_day = RTC_time_FindUnixtime(time.year, time.month, time.dom, 0, 0, 0);
 		time.sunrise_unix_utc = unix_day_utc + (60 * Sunrise_Compute(time.month, time.dom, READ_SUNRISE));
-		time.sunrise_unix = unix_day + (60 * Sunrise_Compute(time.month, time.dom, READ_SUNRISE));
+		time.sunrise_unix = unix_day_utc + DST_CORRECTION_VALUE_SEC + (60 * Sunrise_Compute(time.month, time.dom, READ_SUNRISE));
 		time.sunset_unix_utc = unix_day_utc + (60 * Sunrise_Compute(time.month, time.dom, READ_SUNSET));
-		time.sunset_unix = unix_day + (60 * Sunrise_Compute(time.month, time.dom, READ_SUNSET));
+		time.sunset_unix = unix_day_utc + DST_CORRECTION_VALUE_SEC + (60 * Sunrise_Compute(time.month, time.dom, READ_SUNSET));
 		time.noon_unix_utc = unix_day_utc + (60 * Sunrise_Compute(time.month, time.dom, READ_NOON));
-		time.noon_unix = unix_day + (60 * Sunrise_Compute(time.month, time.dom, READ_NOON));
+		time.noon_unix = unix_day_utc + DST_CORRECTION_VALUE_SEC + (60 * Sunrise_Compute(time.month, time.dom, READ_NOON));
 
 	} else {
 		//TODO but not important - Calculation for if the is no sunrise/set/both
@@ -504,10 +502,10 @@ void DSTyearly() {
 	//Calculate DST's every year
 //	_DBG("[INFO]-time.dst_last_update_year=");_DBD16(time.dst_last_update_year);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 //	_DBG("[INFO]-time.year=");_DBD16(time.year);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-	if(time.dst_last_update_year != time.year) {
+//	if(time.dst_last_update_year != time.year) {
 //		_DBG("[INFO]-time.dst_last_update_year != time.year");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 		time.DST_begin_calculated = begin_DST_unix(time.year);
 		time.DST_end_calculated = end_DST_unix(time.year);
-		time.dst_last_update_year = time.year;
-	}
+//		time.dst_last_update_year = time.year;
+//	}
 }
