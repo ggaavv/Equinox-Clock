@@ -55,7 +55,6 @@ extern "C" {
 #define CR 13
 #define LF 10
 
-#define min(a,b)                ((a)<(b)?(a):(b))
 
 // Strings stored in program memory (defined in strings.c)
 extern const char httpOK[];
@@ -90,17 +89,6 @@ void Server::init(pageServingFunction function) {
 
 	// WiShield init
 	zg_init();
-
-#ifdef USE_DIG0_INTR
-	attachInterrupt(0, zg_isr, LOW);
-#endif
-
-#ifdef USE_DIG8_INTR
-	// set digital pin 8 on Arduino
-	// as ZG interrupt pin
-	PCICR |= (1<<PCIE0);
-	PCMSK0 |= (1<<PCINT0);
-#endif
 
 	while(zg_get_conn_state() != 1) {
 		zg_drv_process();
@@ -183,7 +171,7 @@ void Server::print_P(const char s[]) {
 
 void Server::println_P(const char c[]) {
 	this->print_P(c);
-//	this->println();
+	this->println();
 }
 
 
@@ -195,18 +183,18 @@ void Server::printTime(long t) {
 	int hours = mins / 60;
 
 	hours %= 24;
-//	this->print(hours / 10);
-//	this->print(hours % 10);
-//	this->print(':');
+	this->print(hours / 10);
+	this->print(hours % 10);
+	this->print(':');
 
 	mins %= 60;
-//	this->print(mins / 10);
-//	this->print(mins % 10);
-//	this->print(':');
+	this->print(mins / 10);
+	this->print(mins % 10);
+	this->print(':');
 
 	secs %= 60;
-//	this->print(secs / 10);
-//	this->print(secs % 10);
+	this->print(secs / 10);
+	this->print(secs % 10);
 }
 
 
@@ -346,7 +334,7 @@ void sendPage() {
 
 	// Start off with an HTTP OK response header and a blank line
 	WiServer.println_P(httpOK);
-//	WiServer.println();
+	WiServer.println();
 
 	// Call the application's 'sendPage' function and ask it to
 	// generate the requested page content.
@@ -355,7 +343,7 @@ void sendPage() {
 		// Reset the cursor and overwrite the HTTP OK header with a 404 message
 		uip_conn->appstate.cursor = 0;
 		WiServer.println_P(httpNotFound);
-//		WiServer.println();
+		WiServer.println();
 #ifdef DEBUG
  		Serial.println("URL Not Found");
 #endif // DEBUG

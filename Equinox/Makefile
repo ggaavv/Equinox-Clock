@@ -185,7 +185,6 @@ SRC = \
 	$(APPLIBDIR)/R2C2/serial.c \
 	$(APPLIBDIR)/R2C2/usb.c \
 	$(APPLIBDIR)/R2C2/serial_fifo.c \
-	wifi.c \
 	$(APPLIBDIR)/RTClib/rtc.c \
 	$(APPLIBDIR)/R2C2/uart.c \
 	$(APPLIBDIR)/R2C2/sersendf.c \
@@ -223,9 +222,10 @@ SRCARM =
 # List C++ source files here.
 # use file-extension .cpp for C++-files (not .C)
 CPPSRC = \
-	main.cpp \
 	$(APPLIBDIR)/WiShield/WiServer.cpp \
-	$(APPLIBDIR)/WiShield/Print.cpp
+	$(APPLIBDIR)/WiShield/Print.cpp \
+	Wifi.cpp \
+	Main.cpp
 
 # List C++ source files here which must be compiled in ARM-Mode.
 # use file-extension .cpp for C++-files (not .C)

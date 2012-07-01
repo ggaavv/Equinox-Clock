@@ -1,15 +1,19 @@
 
+#include "Wifi.h"
+#include "WiServer.h"
 
-#include "debug_frmwrk.h"
-#include "pinout.h"
-#include "lpc17xx_pinsel.h"
-#include "lpc17xx_gpio.h"
-#include "lpc17xx_ssp.h"
-#include "lpc17xx_exti.h"
-#include "g2100.h"
-
-
-
+extern "C" {
+	#include "debug_frmwrk.h"
+	#include "pinout.h"
+	#include "lpc17xx_pinsel.h"
+	#include "lpc17xx_gpio.h"
+	#include "lpc17xx_ssp.h"
+	#include "lpc17xx_exti.h"
+	#include "g2100.h"
+	#include "sys_timer.h"
+	void stack_init(void);
+	void stack_process(void);
+}
 
 
 void WiFi_init(){
@@ -88,14 +92,14 @@ void WiFi_init(){
 
 //	attachInterrupt(INT_PIN, zg_isr, FALLING);
 
-	zg_init();_DBG("[OK]-zg_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+	zg_init();//_DBG("[OK]-zg_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
 	while(zg_get_conn_state() != 1) {
 //		_DBG("BEFORE\n while(zg_get_conn_state() != 1) {");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 		zg_drv_process();
 //		_DBG("AFTER\nwhile(zg_get_conn_state() != 1) {");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 	}
-	_DBG("[OK]-Wifi Connected :)");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+	//_DBG("[OK]-Wifi Connected :)");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 	stack_init();
 }
 
@@ -106,7 +110,6 @@ void WiFi_loop(){
 	zg_drv_process();
 }
 
-
 // This is the webpage that is served up by the webserver
-const char webpage[] = {"HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<center><h1>Hello World!! I am WiShield</h1><form method=\"get\" action=\"0\">Toggle LED:<input type=\"submit\" name=\"0\" value=\"LED1\"></input></form></center>"};
+//const char webpage[] = {"HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<center><h1>Hello World!! I am WiShield</h1><form method=\"get\" action=\"0\">Toggle LED:<input type=\"submit\" name=\"0\" value=\"LED1\"></input></form></center>"};
 

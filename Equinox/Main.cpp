@@ -27,14 +27,13 @@
   POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include "wifi.h"
+
 extern "C" {
 	//#include "eq_clock.h"
 	//#include "ShiftPWM.h"
-	#include "wifi.h"
 	#include "eq_clock.h"
 	#include "g2100.h"
-	//	void stack_init(void);
-	//	void stack_process(void);
 
 	//#include "uart.h"   // TODO: remove after debugging
 	#include "lpc17xx_gpio.h"
@@ -79,10 +78,6 @@ extern "C" {
 #define USER_FLASH_START 0x3000 // For USB bootloader
 //#define USER_FLASH_START 0x0 // No USB bootloader
 #define BOOTLOADER_START 0x0 // To enter bootloader
-
-//void startup_delay(void){
-//	for (volatile unsigned long i = 0; i < 50000; i++) { ; }
-//}
 
 void execute_user_code(void){
  //  void (*user_code_entry)(void);
