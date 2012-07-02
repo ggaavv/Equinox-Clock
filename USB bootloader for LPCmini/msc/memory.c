@@ -67,7 +67,17 @@ void Prepare_Copy( uint32_t * src, uint32_t * dst, uint32_t len )
 
 int main (void) {
 
-   
+  /* Pull all pins low */
+  LPC_GPIO0->FIODIR = 0;
+  LPC_GPIO1->FIODIR = 0;
+  LPC_GPIO2->FIODIR = 0;
+  LPC_GPIO3->FIODIR = 0;
+  LPC_GPIO4->FIODIR = 0;
+  LPC_GPIO0->FIOCLR = 0xff;
+  LPC_GPIO1->FIOCLR = 0xff;
+  LPC_GPIO2->FIOCLR = 0xff;
+  LPC_GPIO3->FIOCLR = 0xff;
+  LPC_GPIO4->FIOCLR = 0xff;
 
   /* check_isp_entry_pin() function does not return if isp entry is not requested */
   if( user_code_present() )
