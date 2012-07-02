@@ -30,49 +30,22 @@
 #include "wifi.h"
 
 extern "C" {
-	//#include "eq_clock.h"
 	//#include "ShiftPWM.h"
 	#include "eq_clock.h"
 	#include "g2100.h"
-
-	//#include "uart.h"   // TODO: remove after debugging
-	#include "lpc17xx_gpio.h"
-	#include "debug.h"
-	#include "lpc17xx_exti.h"
-	#include "core_cm3.h"
-	#include "lpc17xx_nvic.h"
-	#include "sys_timer.h"
-	#include "lpc17xx_systick.h"
-	#include "serial.h"
-	#include "lpc17xx_rtc.h"
+//	#include "debug.h"
+//	#include "core_cm3.h"
 	#include "LPC17xx.h"
+	#include "lpc17xx_gpio.h"
+	#include "lpc17xx_exti.h"
+	#include "lpc17xx_nvic.h"
+	#include "lpc17xx_systick.h"
+	#include "lpc17xx_rtc.h"
 	#include "debug_frmwrk.h"
+	#include "sys_timer.h"
+	#include "serial.h"
 	#include "libraries/RTClib/rtc.h"
 	#include "ShiftPWM.h"
-
-/*
-//#include "eq_clock.h"
-//#include "ShiftPWM.h"
-#include "wifi.h"
-#include "eq_clock.h"
-#include "libraries/WiShield/g2100.h"
-//	void stack_init(void);
-//	void stack_process(void);
-
-//#include "uart.h"   // TODO: remove after debugging
-#include "libraries/NXP/Drivers/include/lpc17xx_gpio.h"
-#include "libraries/R2C2/debug.h"
-#include "libraries/NXP/Drivers/include/lpc17xx_exti.h"
-#include "libraries/CMSISv1p30_LPC17xx/inc/core_cm3.h"
-#include "libraries/NXP/Drivers/include/lpc17xx_nvic.h"
-#include "libraries/R2C2/sys_timer.h"
-#include "libraries/NXP/Drivers/include/lpc17xx_systick.h"
-#include "libraries/R2C2/serial.h"
-#include "libraries/NXP/Drivers/include/lpc17xx_rtc.h"
-#include "libraries/CMSISv1p30_LPC17xx/inc/LPC17xx.h"
-#include "libraries/NXP/Drivers/include/debug_frmwrk.h"
-#include "libraries/RTClib/rtc.h"
-#include "ShiftPWM.h"*/
 }
 
 #define USER_FLASH_START 0x3000 // For USB bootloader
@@ -152,8 +125,8 @@ int main(void){
 	// Initialize USB<->Serial
 	serial_init();//_DBG("[OK]-serial_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
-	uart_writestr("[OK]-uart_Start");
-	serial_writestr("[OK]-serial_Start");
+//	uart_writestr("[OK]-uart_Start");
+//	serial_writestr("[OK]-serial_Start");
 	//_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
 	// Init RTC module
