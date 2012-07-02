@@ -1,7 +1,7 @@
 .\obj\usbuser.o: usb\usbuser.c
 .\obj\usbuser.o: .\common\inc\LPC17xx.h
 .\obj\usbuser.o: .\common\inc\core_cm3.h
-.\obj\usbuser.o: C:\Keil\ARM\RV31\INC\stdint.h
+.\obj\usbuser.o: C:\Keil\ARM\RV31\Inc\stdint.h
 .\obj\usbuser.o: .\common\inc\system_LPC17xx.h
 .\obj\usbuser.o: .\common\inc\type.h
 .\obj\usbuser.o: usb\usb.h

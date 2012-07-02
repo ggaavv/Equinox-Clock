@@ -98,6 +98,24 @@ void WrCmdDat (uint32_t cmd, uint32_t val) {
 
 
 /*
+ *  Write Command to Endpoint
+ *    Parameters:      cmd:   Command
+ *                     val:   Data
+ *    Return Value:    None
+ */
+
+void WrCmdEP (uint32_t EPNum, uint32_t cmd){
+
+  LPC_USB->USBDevIntClr = CCEMTY_INT;
+  LPC_USB->USBCmdCode = CMD_SEL_EP(EPAdr(EPNum));
+  while ((LPC_USB->USBDevIntSt & CCEMTY_INT) == 0);
+  LPC_USB->USBDevIntClr = CCEMTY_INT;
+  LPC_USB->USBCmdCode = cmd;
+  while ((LPC_USB->USBDevIntSt & CCEMTY_INT) == 0);
+}
+
+
+/*
  *  Read Command Data
  *    Parameters:      cmd:   Command
  *    Return Value:    Data Value

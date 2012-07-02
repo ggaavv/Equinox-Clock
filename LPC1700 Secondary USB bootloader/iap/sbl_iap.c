@@ -214,31 +214,41 @@ uint32_t user_code_present(void)
 	    return (1);
 	}
 }
+
+uint32_t led_1to4 [4] = {1 << 18, 1 << 20, 1 << 21, 1 << 23};
+uint8_t led4 = 0;
+#define all_led_1to4 (led_1to4 [0] + led_1to4 [1] + led_1to4 [2] + led_1to4 [3])
+
 volatile unsigned long temp;
 void check_isp_entry_pin(void)
 {
 	unsigned long i,j;
-	LPC_GPIO1->FIODIR = 1 << 29;
-	LPC_GPIO1->FIOPIN = 1 << 29; // make LED ON to indicate that button may be pressed to enter bootloader
-	for(i=0; i < 35 ; i++)
+	uint8_t pin_pressed = 0;
+	LPC_GPIO1->FIODIR = all_led_1to4;
+	for(i=0; i < 20 ; i++)
 	{
+		if (led4 == 4) {led4 = 0;}
   		//if( (*(volatile uint32_t *)ISP_ENTRY_GPIO_REG) & (0x1<<ISP_ENTRY_PIN) == 0 )
 		if( (LPC_GPIO2->FIOPIN & ( 1 << 10)) == 0 )
 		{
-			
+			pin_pressed = 1;
 			break;
 		}
-
-		LPC_GPIO1->FIOPIN ^= 1 << 29; //  LED flasher
-		for(j=0;j< (1<<15);j++)
+		LPC_GPIO1->FIOPIN = led_1to4 [led4]; //  LED flasher
+		for(j=0;j< 12000;j++)
 		{
 			temp = j;		  
-		} 
+		}
+		LPC_GPIO1->FIOCLR = led_1to4 [led4]; //  LED flasher
+		for(j=0;j< 50000;j++)
+		{
+			temp = j;		  
+		}
+		led4++;
 	}
-	
-	LPC_GPIO1->FIOCLR = 1 << 29;
 	LPC_GPIO1->FIODIR = 0;
-	if( i == 35)
+	LPC_GPIO1->FIOCLR = all_led_1to4;
+	if( !pin_pressed )
 	{
 		execute_user_code();
 	}

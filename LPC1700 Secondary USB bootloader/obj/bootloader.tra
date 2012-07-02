@@ -14,13 +14,13 @@
 ### List of Objects: adding '".\obj\memory.o"'
 ### ADS-LD Command completed:
 --cpu Cortex-M3 ".\obj\core_cm3.o" ".\obj\system_lpc17xx.o" ".\obj\startup_lpc17xx.o" ".\obj\diskimg.o" ".\obj\mscuser.o" ".\obj\usbcore.o" ".\obj\usbdesc.o" ".\obj\usbhw.o" ".\obj\usbuser.o" ".\obj\sbl_iap.o" ".\obj\memory.o" --strict --scatter ".\obj\bootloader.sct" 
---autoat --summary_stderr --info summarysizes --map --xref --callgraph --symbols 
+--summary_stderr --info summarysizes --map --xref --callgraph --symbols 
 --info sizes --info totals --info unused --info veneers 
  --list ".\lst\bootloader.map" -o ".\obj\bootloader.axf"### Preparing Environment (PrepEnvAds)
 ### ADS-LD Output File: '.\obj\bootloader.axf'
 ### ADS-LD Command File: '.\obj\bootloader.lnp'
 ### Checking for dirty Components...
-### Creating CmdFile '.\obj\bootloader.lnp', Handle=0x00000378
+### Creating CmdFile '.\obj\bootloader.lnp', Handle=0x00000164
 ### Writing '.lnp' file
 ### ADS-LD Command file '.\obj\bootloader.lnp' is ready.
 ### ADS-LD: About to start ADS-LD Thread.
