@@ -346,7 +346,7 @@ typedef struct
        uint8_t  RESERVED6[39];
   __I  uint8_t  FIFOLVL;
 } LPC_UART_TypeDef;
-
+/*
 typedef struct
 {
   union {
@@ -378,7 +378,7 @@ typedef struct
        uint8_t  RESERVED6[39];
   __I  uint8_t  FIFOLVL;
 } LPC_UART0_TypeDef;
-
+*/
 typedef struct
 {
   union {
@@ -989,7 +989,7 @@ typedef struct
 #define LPC_TIM2              ((LPC_TIM_TypeDef       *) LPC_TIM2_BASE     )
 #define LPC_TIM3              ((LPC_TIM_TypeDef       *) LPC_TIM3_BASE     )
 #define LPC_RIT               ((LPC_RIT_TypeDef       *) LPC_RIT_BASE      )
-#define LPC_UART0             ((LPC_UART0_TypeDef     *) LPC_UART0_BASE    )
+#define LPC_UART0             ((LPC_UART_TypeDef     *) LPC_UART0_BASE    ) // TODO  Changed from LPC_UART0_TypeDef
 #define LPC_UART1             ((LPC_UART1_TypeDef     *) LPC_UART1_BASE    )
 #define LPC_UART2             ((LPC_UART_TypeDef      *) LPC_UART2_BASE    )
 #define LPC_UART3             ((LPC_UART_TypeDef      *) LPC_UART3_BASE    )

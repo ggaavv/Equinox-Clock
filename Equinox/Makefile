@@ -427,7 +427,7 @@ CFLAGS += -ffunction-sections -fdata-sections
 CFLAGS += -Wall -Wextra
 #CFLAGS += -pedantic
 CFLAGS += -Wimplicit -Wcast-align -Wpointer-arith
-CFLAGS += -Wredundant-decls -Wshadow -Wcast-qual -Wcast-align
+CFLAGS += -Wredundant-decls -Wshadow -Wcast-qual -Wcast-align -fpermissive
 CFLAGS += -Wa,-adhlns=$(addprefix $(OUTDIR)/, $(notdir $(addsuffix .lst, $(basename $<))))
 # Compiler flags to generate dependency files:
 #CFLAGS += -MD -MP -MF $(OUTDIR)/dep/$(@F).d 

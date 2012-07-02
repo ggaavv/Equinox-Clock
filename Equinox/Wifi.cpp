@@ -1,6 +1,8 @@
 
 #include "Wifi.h"
 #include "WiServer.h"
+#include <stdlib.h>
+#include <string.h>
 
 extern "C" {
 	#include "debug_frmwrk.h"
@@ -90,24 +92,39 @@ void WiFi_init(){
 	/* Enable SSP peripheral */
 	SSP_Cmd(LPC_SSP0, ENABLE);//TODO: change to LPC_SSP1 after debug
 
-//	attachInterrupt(INT_PIN, zg_isr, FALLING);
+//	zg_init();//_DBG("[OK]-zg_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
-	zg_init();//_DBG("[OK]-zg_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-
-	while(zg_get_conn_state() != 1) {
+//	while(zg_get_conn_state() != 1) {
 //		_DBG("BEFORE\n while(zg_get_conn_state() != 1) {");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-		zg_drv_process();
+//		zg_drv_process();
 //		_DBG("AFTER\nwhile(zg_get_conn_state() != 1) {");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-	}
+//	}
 	//_DBG("[OK]-Wifi Connected :)");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-	stack_init();
+//	stack_init();
+	WiServer.init(sendMyPage);
 }
 
+bool sendMyPage(char* URL) {
+
+    // Check if the requested URL matches "/"
+    if (strcmp(URL, "/") == 0) {
+        // Use WiServer's print and println functions to write out the page content
+        WiServer.print("<html>");
+        WiServer.print("Hello World!");
+        WiServer.print("</html>");
+
+        // URL was recognized
+        return true;
+    }
+    // URL not found
+    return false;
+}
 
 void WiFi_loop(){
-//	_DBG("WiFi_loop()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-	stack_process();
-	zg_drv_process();
+	_DBG("WiFi_loop()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//	stack_process();
+//	zg_drv_process();
+	WiServer.server_task();
 }
 
 // This is the webpage that is served up by the webserver
