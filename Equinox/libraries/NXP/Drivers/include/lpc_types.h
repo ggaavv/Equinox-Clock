@@ -41,7 +41,7 @@
 /**
  * @brief Boolean Type definition
  */
-typedef enum {FALSE = 0, TRUE = !FALSE} Bool;
+typedef enum {FALSE = 0, TRUE = !FALSE, LOW = 0, HIGH = !LOW} Bool;
 
 /**
  * @brief Flag Status and Interrupt Flag Status type definition

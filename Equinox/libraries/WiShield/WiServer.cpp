@@ -48,6 +48,8 @@ extern "C" {
 	#include "global-conf.h"
 	#include "debug_frmwrk.h"
 	#include "strings.c"
+	#include "pinout.h"
+	#include "lpc17xx_gpio.h"
 	void stack_init(void);
 	void stack_process(void);
 }
@@ -128,6 +130,8 @@ void Server::setIndicatorPins(int tx, int rx) {
 	txPin = tx;
 	rxPin = rx;
 	// Set pin modes as needed
+	if (tx != -1) GPIO_SetDir(LED1_PORT, LED1_BIT, 1);
+	if (rx != -1) GPIO_SetDir(LED2_PORT, LED2_BIT, 1);
 //	if (tx != -1) pinMode(tx, OUTPUT);
 //	if (rx != -1) pinMode(rx, OUTPUT);
 }
@@ -135,16 +139,24 @@ void Server::setIndicatorPins(int tx, int rx) {
 /*
  * Sets the TX pin (if enabled) to the specified value (HIGH or LOW)
  */
-//void setTXPin(byte value) {
+void setTXPin(uint8_t value) {
+	if (value)
+	GPIO_SetValue(LED1_PORT, LED1_BIT);
+	else
+	GPIO_ClearValue(LED1_PORT, LED1_BIT);
 //	if (txPin != -1) digitalWrite(txPin, value);
-//}
+}
 
 /*
  * Sets the RX pin (if enabled) to the specified value (HIGH or LOW)
  */
-//void setRXPin(byte value) {
+void setRXPin(uint8_t value) {
+	if (value)
+	GPIO_SetValue(LED2_PORT, LED2_BIT);
+	else
+	GPIO_ClearValue(LED2_PORT, LED2_BIT);
 //	if (rxPin != -1) digitalWrite(rxPin, value);
-//}
+}
 
 
 void Server::enableVerboseMode(boolean enable) {
@@ -254,7 +266,7 @@ void send() {
 	// Send the real bytes from the virtual buffer and record how many were sent
 	uip_send(uip_appdata, len);
 	app->sentCount = len;
-//	setTXPin(HIGH);
+	setTXPin(HIGH);
 }
 
 
@@ -499,17 +511,17 @@ void sendRequest() {
 
 	// Write out the request header
 	WiServer.print_P(isPost ? post : get);
-//	WiServer.print(req->URL);
+	WiServer.print(req->URL);
 	WiServer.println_P(http10);
 
 	// Host name
 	WiServer.print_P(host);
-//	WiServer.println(req->hostName);
+	WiServer.println(req->hostName);
 
 	// Auth data (if applicable)
 	if (req->auth) {
 		WiServer.print_P(authBasic);
-//		WiServer.println(req->auth);
+		WiServer.println(req->auth);
 	}
 
 	// User agent (WiServer, of course!)
@@ -532,14 +544,14 @@ void sendRequest() {
 		lengthFieldPos = app->cursor - 6; // 6 bytes for CR, LF, and 4 spaces
 
 		// Blank line to indicate end of header
-//		WiServer.println();
+		WiServer.println();
 
 		// Body starts here
 		contentStart = app->cursor;
 
 		// Print the body preamble if the request has one
 		if (req->bodyPreamble) {
-//			WiServer.print(req->bodyPreamble);
+			WiServer.print(req->bodyPreamble);
 		}
 
 		// Have the sketch provide the body for the POST
@@ -550,14 +562,14 @@ void sendRequest() {
 
 		// Move the cursor back to the content length value and write in the real length
 		app->cursor = lengthFieldPos;
-//		WiServer.print((int)(contentEnd - contentStart));
+		WiServer.print((int)(contentEnd - contentStart));
 
 		// Put the cursor back at the end of the body so that all of the data gets sent
 		app->cursor = contentEnd;
 
 	} else {
 		// Blank line to indicate end of GET header
-//		WiServer.println();
+		WiServer.println();
 	}
 
 	// Send the 'real' bytes in the buffer
@@ -575,6 +587,7 @@ void client_task_impl() {
 	if (uip_connected()) {
 
 		if (verbose) {
+			_DBG("Connected to ");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 //			Serial.print("Connected to ");
 //			Serial.println(req->hostName);
 		}
@@ -601,7 +614,7 @@ void client_task_impl() {
 	}
 
  	if (uip_newdata())  {
-// 		setRXPin(HIGH);
+ 		setRXPin(HIGH);
 
 		if (verbose) {
 			_DBG("RX ");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
@@ -643,7 +656,7 @@ void client_task_impl() {
 
 
 char getChar(int nibble) {
-	return 1;//base64Chars + nibble;
+	return base64Chars + nibble;
 }
 
 void storeBlock(char* src, char* dest, int len) {
@@ -686,8 +699,8 @@ char* Server::base64encode(char* data) {
 void server_app_task() {
 
 	// Clear the activity pins
-//	setTXPin(LOW);
-//	setRXPin(LOW);
+	setTXPin(LOW);
+	setRXPin(LOW);
 
 	// Check for an active connection
 	if (uip_conn) {

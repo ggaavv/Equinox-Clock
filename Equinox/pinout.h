@@ -143,4 +143,19 @@
 #define TMP100_SLC1_BIT		(1 <<  TMP100_SLC1_PIN)
 
 
+//		LPCMini LED's
+#define LED1_PORT			0
+#define LED1_PIN			18
+#define LED1_BIT			(1 <<  LED1_PIN)
+#define LED2_PORT			0
+#define LED2_PIN			20
+#define LED2_BIT			(1 <<  LED2_PIN)
+#define LED3_PORT			0
+#define LED3_PIN			21
+#define LED3_BIT			(1 <<  LED3_PIN)
+#define LED4_PORT			0
+#define LED4_PIN			23
+#define LED4_BIT			(1 <<  LED4_PIN)
+
+
 #endif  /* _PINOUT_H */
