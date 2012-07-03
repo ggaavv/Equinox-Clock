@@ -46,6 +46,8 @@ extern "C" {
 	#include "uip.h"
     #include "server.h"
 	#include "global-conf.h"
+	#include "debug_frmwrk.h"
+	#include "strings.c"
 	void stack_init(void);
 	void stack_process(void);
 }
@@ -108,7 +110,8 @@ void Server::init(pageServingFunction function) {
 
 #ifdef DEBUG
 	verbose = true;
-	Serial.println("WiServer init called");
+	_DBG("[INFO]-WiServer init called");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//	Serial.println("WiServer init called");
 #endif // DEBUG
 }
 
@@ -229,17 +232,23 @@ void send() {
 	len = len > (int)uip_conn->mss ? (int)uip_conn->mss : len;
 
 	if (verbose) {
+		_DBG("TX ");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+		_DBG(len);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 //		Serial.print("TX ");
 //		Serial.print(len);
 //		Serial.println(" bytes");
 	}
 
 #ifdef DEBUG
-	Serial.print(app->ackedCount);
-	Serial.print(" - ");
-	Serial.print(app->ackedCount + len - 1);
-	Serial.print(" of ");
-	Serial.println((int)app->cursor);
+	_DBG(app->ackedCount);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+	_DBG(" - ");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+	_DBG(app->ackedCount + len - 1);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+	_DBG(" of ");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//	Serial.print(app->ackedCount);
+//	Serial.print(" - ");
+//	Serial.print(app->ackedCount + len - 1);
+//	Serial.print(" of ");
+//	Serial.println((int)app->cursor);
 #endif // DEBUG
 
 	// Send the real bytes from the virtual buffer and record how many were sent
@@ -345,7 +354,8 @@ void sendPage() {
 		WiServer.println_P(httpNotFound);
 		WiServer.println();
 #ifdef DEBUG
- 		Serial.println("URL Not Found");
+		_DBG("URL Not Found");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+// 		Serial.println("URL Not Found");
 #endif // DEBUG
 	}
 	// Send the 'real' bytes in the buffer
@@ -397,6 +407,7 @@ void server_task_impl() {
 		// Process the received packet and check if a valid GET request had been received
 		if (processPacket((char*)uip_appdata, uip_datalen()) && app->request) {
 			if (verbose) {
+				_DBG("Processing request for ");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 //				Serial.print("Processing request for ");
 //				Serial.println((char*)app->request);
 			}
@@ -593,6 +604,9 @@ void client_task_impl() {
 // 		setRXPin(HIGH);
 
 		if (verbose) {
+			_DBG("RX ");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+			_DBG(uip_datalen());_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+			_DBG(" bytes from ");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 //			Serial.print("RX ");
 //			Serial.print(uip_datalen());
 //			Serial.print(" bytes from ");
@@ -609,6 +623,8 @@ void client_task_impl() {
 	if (uip_aborted() || uip_timedout() || uip_closed()) {
 		if (req != NULL) {
 			if (verbose) {
+				_DBG("Ended connection with ");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+				_DBG(req->hostName);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 //				Serial.print("Ended connection with ");
 //				Serial.println(req->hostName);
 			}
@@ -647,7 +663,7 @@ char* Server::base64encode(char* data) {
 	char* outP = out;
 	while (len > 0) {
 		
-		storeBlock(data, outP, min(len,3));
+		storeBlock(data, outP, MIN(len,3));
 		outP += 4;
 		data += 3;
 		len -= 3;
@@ -708,8 +724,10 @@ void Server::server_task() {
 
 		if (conn != NULL) {
 #ifdef DEBUG
-			Serial.print("Got connection for ");
-			Serial.println(queue->hostName);
+			_DBG("Got connection for ");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+			_DBG(queue->hostName);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//			Serial.print("Got connection for ");
+//			Serial.println(queue->hostName);
 #endif // DEBUG
 
 			// Attach the request object to its connection
