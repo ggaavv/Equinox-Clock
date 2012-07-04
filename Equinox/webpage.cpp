@@ -1,18 +1,17 @@
 /*
- * webpage.h
+ * webpage.c
  *
  *  Created on: 3 Jul 2011
  *      Author: Gavin
  */
 
-#ifndef WEBPAGE_H_
-#define WEBPAGE_H_
-
-#include "lpc_types.h"
+extern "C" {
 #include "libraries/RTClib/rtc.h"
+}
+#include "WiServer.h"
 
 
-void send_home_page(void){
+bool send_home_page(char* URL){
 	uint8_t i,j;
 //	char DOW[DOW_LEN_MAX] = DayOfWeekName[GetDOW()][DOW_LEN_MAX];
 	uint8_t DOM = GetDOM();
@@ -32,34 +31,44 @@ void send_home_page(void){
 	WiServer.print("<html><head><title>--==Equinox Clock==-- by Gavin and Jamie Clarke</title></head>");
 
 	// Title
-	WiServer.print("<body bgcolor="silver"><br /><h1 align="center"><font size="8" align="center"color="Red">--==Equinox Clock==--</font></h1><br />");
+	WiServer.print("<body bgcolor=\"silver\"><br /><h1 align=\"center\"><font size=\"8\" align=\"center\"color=\"Red\">--==Equinox Clock==--</font></h1><br />");
 
 
 
 	// Date drop down selection box
-	WiServer.print("<p><font size="3" color="Red" face="Comic Sans MS"> Enter Date: </font></p>");
+	WiServer.print("<p><font size=\"3\" color=\"Red\" face=\"Comic Sans MS\"> Enter Date: </font></p>");
 	WiServer.print("<select name=dow size=1>");
 	// Day of the Month
 	for (i = 0; i < NUM_DAYS_OF_WEEK; i++){
-		WiServer.print("<option name=dom value=" i "> " i " </option>")
+		WiServer.print("<option name=dom value=");
+		WiServer.print(i);
+		WiServer.print("> ");
+		WiServer.print(i);
+		WiServer.print(" </option>");
 	}
 	WiServer.print("</select>");
 	// Month
 	for (i = Y; i < Y + 20; i++){
-		WiServer.print("<option name=dom value=" i "> ");
-			for (j = 0; j < 3; j++){
-				WiServer.print(Month_of_the_year[i][j]);
-			}
+		WiServer.print("<option name=dom value=");
+		WiServer.print(i);
+		WiServer.print("> ");
+		for (j = 0; j < 3; j++){
+			WiServer.print(Month_of_the_year[i][j]);
+		}
 		WiServer.print(" </option>");
 	}
 	WiServer.print("</select>");
 	// Month
 	for (i = 0; i < NUM_DAYS_OF_WEEK; i++){
-		WiServer.print("<option name=dom value=" i "> " i " </option>")
+		WiServer.print("<option name=dom value=");
+		WiServer.print(i);
+		WiServer.print("> ");
+		WiServer.print(i);
+		WiServer.print(" </option>");
 	}
 	WiServer.print("</select><br />");
 	// Save + Reset
-	WiServer.print("<input type="submit" value="Send Date" /><input type="reset" value="Reset" />")
+	WiServer.print("<input type=\"submit\" value=\"Send Date\" /><input type=\"reset\" value=\"Reset\" />");
 	WiServer.print("</form>");
 
 
@@ -69,5 +78,4 @@ void send_home_page(void){
 
 };
 
-#endif /* WEBPAGE_H_ */
 

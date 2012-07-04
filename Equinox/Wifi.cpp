@@ -1,5 +1,6 @@
 
 #include "Wifi.h"
+#include "Webpage.h"
 #include "WiServer.h"
 #include <stdlib.h>
 #include <string.h>
@@ -13,7 +14,6 @@ extern "C" {
 	#include "lpc17xx_exti.h"
 	#include "g2100.h"
 	#include "sys_timer.h"
-	#include "Webpage.h"
 	void stack_init(void);
 	void stack_process(void);
 }

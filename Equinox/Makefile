@@ -225,7 +225,8 @@ CPPSRC = \
 	$(APPLIBDIR)/WiShield/WiServer.cpp \
 	$(APPLIBDIR)/WiShield/Print.cpp \
 	Wifi.cpp \
-	Main.cpp
+	Main.cpp \
+	webpage.cpp
 
 # List C++ source files here which must be compiled in ARM-Mode.
 # use file-extension .cpp for C++-files (not .C)
