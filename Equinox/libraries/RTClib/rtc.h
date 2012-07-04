@@ -38,7 +38,7 @@ const char DayOfWeekName[NUM_DAYS_OF_WEEK][DOW_LEN_MAX] = {
 #define MONTH_LEN_MAX 9
 #define NUM_MONTHS 12
 //#define MONTH_MAX_LEN 10
-const char Month_of_the_year[NUM_MONTHS][DOW_LEN_MAX] = {
+const char Month_of_the_year[NUM_MONTHS][MONTH_LEN_MAX] = {
 "January",
 "February",
 "March",

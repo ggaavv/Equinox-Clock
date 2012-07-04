@@ -102,7 +102,7 @@ void WiFi_init(){
 //	}
 	//_DBG("[OK]-Wifi Connected :)");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 //	stack_init();
-	WiServer.init(send_home_page);
+	WiServer.init(home_page);
 }
 
 /*bool sendMyPage(char* URL) {
