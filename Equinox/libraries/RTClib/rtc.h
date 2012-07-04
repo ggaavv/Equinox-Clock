@@ -9,10 +9,7 @@
 #define RTC_H_
 
 
-#include "debug_frmwrk.h"
-#include "lpc17xx_rtc.h"
-#include "rtc.h"
-
+#include "lpc_types.h"
 
 typedef enum {
 	DAY,
@@ -27,7 +24,7 @@ typedef enum {
 #define DOW_LEN_MAX 9
 #define NUM_DAYS_OF_WEEK 7
 //#define DAYS_OF_WEEK_MAX_LEN 10
-const char DayOfWeekName[NUM_DAYS_OF_WEEK][] = {
+const char DayOfWeekName[NUM_DAYS_OF_WEEK][DOW_LEN_MAX] = {
 "Monday",
 "Tuesday",
 "Wednesday",
@@ -41,7 +38,7 @@ const char DayOfWeekName[NUM_DAYS_OF_WEEK][] = {
 #define MONTH_LEN_MAX 9
 #define NUM_MONTHS 12
 //#define MONTH_MAX_LEN 10
-const char Month_of_the_year[NUM_MONTHS][] = {
+const char Month_of_the_year[NUM_MONTHS][DOW_LEN_MAX] = {
 "January",
 "February",
 "March",

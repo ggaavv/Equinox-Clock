@@ -6,6 +6,7 @@
  */
 
 #include "debug_frmwrk.h"
+#include "lpc17xx_rtc.h"
 #include "rtc.h"
 #include "sunrise.h"
 

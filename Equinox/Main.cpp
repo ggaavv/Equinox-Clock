@@ -27,7 +27,7 @@
   POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "wifi.h"
+#include "Wifi.h"
 
 extern "C" {
 	//#include "ShiftPWM.h"

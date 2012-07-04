@@ -224,9 +224,9 @@ SRCARM =
 CPPSRC = \
 	$(APPLIBDIR)/WiShield/WiServer.cpp \
 	$(APPLIBDIR)/WiShield/Print.cpp \
+	Webpage.cpp \
 	Wifi.cpp \
-	Main.cpp \
-	webpage.cpp
+	Main.cpp
 
 # List C++ source files here which must be compiled in ARM-Mode.
 # use file-extension .cpp for C++-files (not .C)
@@ -470,7 +470,7 @@ CPLUSPLUS_LIB = -lstdc++
 #  -Wl,...:     tell GCC to pass this to linker.
 #    -Map:      create map file
 #    --cref:    add cross reference to  map file
-LDFLAGS = -Wl,-Map=$(OUTDIR)/$(TARGET).map,--cref,--gc-sections
+LDFLAGS = -Wl,-Map=$(OUTDIR)/$(TARGET).map,--cref,--gc-sections,--allow-multiple-definition
 LDFLAGS += -lgcc -lc -lm 
 #LDFLAGS += $(CPLUSPLUS_LIB)
 LDFLAGS += $(patsubst %,-L%,$(EXTRA_LIBDIRS))

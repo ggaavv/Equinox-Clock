@@ -105,7 +105,7 @@ void WiFi_init(){
 	WiServer.init(send_home_page);
 }
 
-bool sendMyPage(char* URL) {
+/*bool sendMyPage(char* URL) {
 
     // Check if the requested URL matches "/"
     if (strcmp(URL, "/") == 0) {
@@ -119,7 +119,7 @@ bool sendMyPage(char* URL) {
     }
     // URL not found
     return false;
-}
+}*/
 
 void WiFi_loop(){
 	_DBG("WiFi_loop()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
