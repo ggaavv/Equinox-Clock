@@ -66,37 +66,6 @@ uint32_t SECOND_INC=0;
 
 static uint8_t daysInMonth [12] = { 31,28,31,30,31,30,31,31,30,31,30,31 };
 
-#define DOW_LEN 3
-#define NUM_DAYS_OF_WEEK 7
-#define DAYS_OF_WEEK_MAX_LEN 10
-const unsigned char DayOfWeekName[NUM_DAYS_OF_WEEK][DAYS_OF_WEEK_MAX_LEN] = {
-"Monday",
-"Tuesday",
-"Wednesday",
-"Thursday",
-"Friday",
-"Saturday",
-"Sunday"
-};
-
-#define MONTH_LEN 3
-#define NUM_MONTHS 12
-#define MONTH_MAX_LEN 10
-const unsigned char Month_of_the_year[NUM_MONTHS][MONTH_MAX_LEN] = {
-"January",
-"February",
-"March",
-"April",
-"May",
-"June",
-"July",
-"August",
-"September",
-"October",
-"November",
-"December"
-};
-
 void RTC_IRQHandler(void){
 	uint32_t secval;
 	// This is increment counter interrupt

@@ -23,6 +23,39 @@ typedef enum {
 	ALL_NIGHT
 } Day_Night_Num;
 
+#define DOW_LEN 3
+#define DOW_LEN_MAX 9
+#define NUM_DAYS_OF_WEEK 7
+//#define DAYS_OF_WEEK_MAX_LEN 10
+const char DayOfWeekName[NUM_DAYS_OF_WEEK][DOW_LEN_MAX] = {
+"Monday",
+"Tuesday",
+"Wednesday",
+"Thursday",
+"Friday",
+"Saturday",
+"Sunday"
+};
+
+#define MONTH_LEN 3
+#define MONTH_LEN_MAX 9
+#define NUM_MONTHS 12
+//#define MONTH_MAX_LEN 10
+const char Month_of_the_year[NUM_MONTHS][DOW_LEN_MAX] = {
+"January",
+"February",
+"March",
+"April",
+"May",
+"June",
+"July",
+"August",
+"September",
+"October",
+"November",
+"December"
+};
+
 struct {
 	uint32_t unix;		// updated once a second
 	uint32_t unix_utc;	// updated once a second

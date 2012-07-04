@@ -13,6 +13,7 @@ extern "C" {
 	#include "lpc17xx_exti.h"
 	#include "g2100.h"
 	#include "sys_timer.h"
+	#include "Webpage.h"
 	void stack_init(void);
 	void stack_process(void);
 }
@@ -101,7 +102,7 @@ void WiFi_init(){
 //	}
 	//_DBG("[OK]-Wifi Connected :)");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 //	stack_init();
-	WiServer.init(sendMyPage);
+	WiServer.init(send_home_page);
 }
 
 bool sendMyPage(char* URL) {

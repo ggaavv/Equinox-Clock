@@ -4,6 +4,6 @@
 
 void WiFi_init();
 void WiFi_loop();
-bool sendMyPage(char* URL);
+bool send_home_page(char* URL);
 
 #endif /* WIFI_H_ */

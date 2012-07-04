@@ -9,28 +9,63 @@
 #define WEBPAGE_H_
 
 #include "lpc_types.h"
-#include "rtc.h"
+#include "libraries/RTClib/rtc.h"
 
 
 void send_home_page(void){
+	uint8_t i,j;
+//	char DOW[DOW_LEN_MAX] = DayOfWeekName[GetDOW()][DOW_LEN_MAX];
+	uint8_t DOM = GetDOM();
+//	char M[DOW_LEN_MAX] = Month_of_the_year[GetM()][];
+	uint16_t Y = GetY();
+
+	uint8_t HH = GetHH();
+	uint8_t MM = GetMM();
+	uint8_t SS = GetSS();
+
+
+
+
 
 // Use WiServer's print and println functions to write out the page content
-	WiServer.print("HTTP/1.1 200 OK\r\nContent-Type:"
-			"text/html\r\n\r\n"
-			"<center>"
-			"<h1>Hello World!! I am WiShield</h1>"
-			"<form method=\"get\" action=\"0\">Toggle LED:<input type=\"submit\" name=\"0\" value=\"LED1\">"
-			"</input>"
-			"</form>"
-			"</center>
+	// Header
+	WiServer.print("<html><head><title>--==Equinox Clock==-- by Gavin and Jamie Clarke</title></head>");
+
+	// Title
+	WiServer.print("<body bgcolor="silver"><br /><h1 align="center"><font size="8" align="center"color="Red">--==Equinox Clock==--</font></h1><br />");
+
+
+
+	// Date drop down selection box
+	WiServer.print("<p><font size="3" color="Red" face="Comic Sans MS"> Enter Date: </font></p>");
+	WiServer.print("<select name=dow size=1>");
+	// Day of the Month
+	for (i = 0; i < NUM_DAYS_OF_WEEK; i++){
+		WiServer.print("<option name=dom value=" i "> " i " </option>")
+	}
+	WiServer.print("</select>");
+	// Month
+	for (i = Y; i < Y + 20; i++){
+		WiServer.print("<option name=dom value=" i "> ");
+			for (j = 0; j < 3; j++){
+				WiServer.print(Month_of_the_year[i][j]);
+			}
+		WiServer.print(" </option>");
+	}
+	WiServer.print("</select>");
+	// Month
+	for (i = 0; i < NUM_DAYS_OF_WEEK; i++){
+		WiServer.print("<option name=dom value=" i "> " i " </option>")
+	}
+	WiServer.print("</select><br />");
+	// Save + Reset
+	WiServer.print("<input type="submit" value="Send Date" /><input type="reset" value="Reset" />")
+	WiServer.print("</form>");
 
 
 
 
 
-			"<html>");
-	WiServer.print("Hello World!");
-	WiServer.print("</html>");
 
 };
 
