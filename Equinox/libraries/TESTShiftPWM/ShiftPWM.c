@@ -10,6 +10,22 @@
 #include "lpc17xx_gpio.h"
 #include "lpc17xx_ssp.h"
 #include "lpc17xx_rit.h"
+#include "lpc17xx_gpdma.h"
+
+/* For DMA controller */
+#define DMA_DATA_SIZE	65
+
+// Terminal Counter flag for Channel 0
+__IO uint32_t Channel0_TC;
+
+// Error Counter flag for Channel 0
+__IO uint32_t Channel0_Err;
+
+// DMA source variable
+uint8_t dma_src[DMA_DATA_SIZE];
+
+// DMA source variable
+uint8_t dma_dst[DMA_DATA_SIZE];
 
 #define MAX_BAM_BITS 16
 
@@ -55,6 +71,25 @@ void RIT_IRQHandler(void)
 	RIT_TimerConfig(LPC_RIT,DELAY_TIME);
 
 //	send_bits();
+}
+
+void DMA_IRQHandler (void)
+{
+	// check GPDMA interrupt on channel 0
+	if (GPDMA_IntGetStatus(GPDMA_STAT_INT, 0)){
+		// Check counter terminal status
+		if(GPDMA_IntGetStatus(GPDMA_STAT_INTTC, 0)){
+			// Clear terminate counter Interrupt pending
+			GPDMA_ClearIntPending (GPDMA_STATCLR_INTTC, 0);
+				Channel0_TC++;
+		}
+		// Check error terminal status
+		if (GPDMA_IntGetStatus(GPDMA_STAT_INTERR, 0)){
+			// Clear error counter Interrupt pending
+			GPDMA_ClearIntPending (GPDMA_STATCLR_INTERR, 0);
+			Channel0_Err++;
+		}
+	}
 }
 
 
@@ -167,6 +202,74 @@ void LED_init(){
 //	_DBD32(DELAY_TIME); _DBG_(" millisecond..");
 
 	NVIC_EnableIRQ(RIT_IRQn);
+
+
+	GPDMA_Channel_CFG_Type GPDMACfg;
+
+	/* GPDMA Interrupt configuration section ------------------------------------------------- */
+	/* preemption = 1, sub-priority = 1 */
+	NVIC_SetPriority(DMA_IRQn, ((0x01<<3)|0x01));
+	/* Enable SSP0 interrupt */
+	NVIC_EnableIRQ(DMA_IRQn);
+
+	/* Initializing Buffer section ----------------------------------------------------------- */
+//	Buffer_Init();
+
+	/* Initialize GPDMA controller */
+	GPDMA_Init();
+
+
+	/* Setting GPDMA interrupt */
+	// Disable interrupt for DMA
+	NVIC_DisableIRQ (DMA_IRQn);
+	/* preemption = 1, sub-priority = 1 */
+	NVIC_SetPriority(DMA_IRQn, ((0x01<<3)|0x01));
+
+
+	/* Configure GPDMA channel 0 -------------------------------------------------------------*/
+	/* DMA Channel 0 */
+	GPDMACfg.ChannelNum = 0;
+	// Source memory
+	GPDMACfg.SrcMemAddr = (uint32_t) &dma_src;
+	// Destination memory - Not used
+	GPDMACfg.DstMemAddr = 0;
+	// Transfer size
+	GPDMACfg.TransferSize = sizeof(dma_src);
+	// Transfer width - not used
+	GPDMACfg.TransferWidth = 0;
+	// Transfer type
+	GPDMACfg.TransferType = GPDMA_TRANSFERTYPE_M2P;
+	// Source connection - unused
+	GPDMACfg.SrcConn = 0;
+	// Destination connection
+	GPDMACfg.DstConn = GPDMA_CONN_SSP0_Tx;
+	// Linker List Item - unused
+	GPDMACfg.DMALLI = 0;
+	// Setup channel with given parameter
+	GPDMA_Setup(&GPDMACfg);
+	/* Reset terminal counter */
+	Channel0_TC = 0;
+	/* Reset Error counter */
+	Channel0_Err = 0;
+
+//	_DBG_("Start transfer...");
+
+    // Enable Tx DMA on SSP0
+	SSP_DMACmd (LPC_SSP1, SSP_DMA_TX, ENABLE);
+
+	// Enable GPDMA channel 0
+	GPDMA_ChannelCmd(0, ENABLE);
+
+    // Enable interrupt for DMA
+//    NVIC_EnableIRQ (DMA_IRQn);
+
+	/* Wait for GPDMA processing complete */
+//	while (((Channel0_TC == 0) && (Channel0_Err == 0)) \
+//			|| ((Channel1_TC == 0) && (Channel1_Err ==0)));
+
+	/* Verify buffer */
+//	Buffer_Verify();
+
 
 }
 
