@@ -65,8 +65,6 @@ uint32_t LAST_DST_UPDATE_YEAR=0;
 
 uint32_t SECOND_INC=0;
 
-static uint8_t daysInMonth [12] = { 31,28,31,30,31,30,31,31,30,31,30,31 };
-
 void RTC_IRQHandler(void){
 	uint32_t secval;
 	// This is increment counter interrupt
@@ -240,6 +238,38 @@ uint8_t GetMM() {
 
 uint8_t GetSS() {
 	return time.ss;
+}
+
+void SetY(uint16_t Y) {
+	RTC_SetTime(LPC_RTC, RTC_TIMETYPE_YEAR, Y);
+}
+
+void SetM(uint8_t M) {
+	RTC_SetTime(LPC_RTC, RTC_TIMETYPE_MONTH, M);
+}
+
+void SetDOM(uint8_t DOM) {
+	RTC_SetTime(LPC_RTC, RTC_TIMETYPE_DAYOFMONTH, DOM);
+}
+
+void SetDOW(uint8_t DOW) {
+	RTC_SetTime(LPC_RTC, RTC_TIMETYPE_DAYOFWEEK, DOW);
+}
+
+void SetDOY(uint8_t DOY) {
+	RTC_SetTime(LPC_RTC, RTC_TIMETYPE_DAYOFYEAR, DOY);
+}
+
+void SetHH(uint8_t HH) {
+	time.hh;
+}
+
+void SetMM(uint8_t MM) {
+	time.mm;
+}
+
+void SetSS(uint8_t SS) {
+	time.ss;
 }
 
 void RTC_time_SetTime(uint16_t year, uint8_t month, uint8_t dom, uint8_t hh, uint8_t mm, uint8_t ss) {

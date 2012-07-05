@@ -91,7 +91,12 @@ bool home_page(char* URL){
 
     // Read input
     if (strcmp(URL, "?") == 0) {
-
+    	// ?dom=01&mm=Jan&yy=2010
+//    	for (i = 0; i < sizeof(URL); i++){
+ //   		if( URL[i] == d && URL[i+1] == o && URL[i+2] == m) {
+ //   			SetY(strtoul (URL[i+4]));
+    		}
+    	}
     }
 
 };
