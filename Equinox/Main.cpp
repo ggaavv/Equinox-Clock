@@ -147,23 +147,23 @@ int main(void){
 //		LED_loop();
 
 		/* Power save - Do every 100ms */
-		#define DELAY1 100
+//		#define DELAY1 100
 
 
-		if (timer1 < sys_millis())
-		{
-			timer1 = sys_millis() + DELAY1;
+//		if (timer1 < sys_millis())
+//		{
+//			timer1 = sys_millis() + DELAY1;
 
 			/* If there are no activity during 30 seconds, power off the machine */
-			if (steptimeout > (30 * 1000/DELAY1))
-				{
+//			if (steptimeout > (30 * 1000/DELAY1))
+//				{
 //					power_off();
-				}
-			else
-				{
-					steptimeout++;
-				}
-		}
+//				}
+//			else
+//				{
+//					steptimeout++;
+//				}
+//		}
 	}
 
 	/* should never get here */

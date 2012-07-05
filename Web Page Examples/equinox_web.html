@@ -3,7 +3,7 @@
 <body bgcolor="silver"><br /><h1 align="center"><font size="8" align="center"color="Red">--==Equinox Clock==--</font></h1><br />
 <p align="center"><font size="6" face="Comic Sans MS" color="Red">Tuesday, 3 July 2012, 8:22:55 </font></p><br /><br />
 
-<form method="post" action=/date >
+<form method="post" action="/date" >
 	<p><font size="3" color="Red" face="Comic Sans MS"> Enter Date: </font></p>
 	<select name=dom size=1>
 	<option name=dom value=1> 01 </option>
@@ -26,7 +26,7 @@ Should reply with
 ?dom=01&mm=Jan&yy=2010
 
 
-<form method="post" action=/time >
+<form method="post" action="/time" >
 	<p><font size="3" color="Red" face="Comic Sans MS"> Enter Time 24h: </font></p>
 	<select name=hh size=1>
 	<option name=hh value=1> 00 </option>
@@ -47,7 +47,6 @@ Should reply with
 </form>
 
 
-</input>
 
 </body>
 </html>
@@ -104,7 +103,7 @@ Enter your comments here...
 
 
 
-((ip.dst == 192.168.0.150) && (ip.src == 192.168.0.150)) || ((ip.dst == 192.168.0.6)) && (ip.src == 192.168.0.150))
+((ip.dst == 192.168.0.160) &amp;&amp; (ip.src == 192.168.0.6)) ||((ip.dst == 192.168.0.150) &amp;&amp; (ip.src == 192.168.0.160)) || ((ip.dst == 192.168.0.6) &amp;&amp; (ip.src == 192.168.0.160))
 
 
 

@@ -39,12 +39,12 @@
 // Enables client mode (i.e. for sending Tweets and HTTP POST or GET requests)
 // Comment out this #define if client mode isn't required
 // (it'll save a bunch of code size and a bit of RAM too!)
-#define ENABLE_CLIENT_MODE
+//#define ENABLE_CLIENT_MODE
 
 // If DEBUG is defined, the Serial class is used to output lots of diagnostic data
 // (verbose mode is also enabled automatically)
 // Warning: this increases RAM usage and code size and will slow execution speed
-#define DEBUG
+//#define DEBUG
 
 
 // Declare the server's uip callback function

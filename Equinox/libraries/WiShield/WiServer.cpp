@@ -86,7 +86,7 @@ char txPin = -1;
 char rxPin = -1;
 
 /* Enables basic log messages via Serial */
-boolean verbose = false;
+bool verbose = false;
 
 
 void Server::init(pageServingFunction function) {
@@ -140,10 +140,11 @@ void Server::setIndicatorPins(int tx, int rx) {
  * Sets the TX pin (if enabled) to the specified value (HIGH or LOW)
  */
 void setTXPin(uint8_t value) {
-	if (value)
+	if (value){
 	GPIO_SetValue(LED1_PORT, LED1_BIT);
-	else
+	}else{
 	GPIO_ClearValue(LED1_PORT, LED1_BIT);
+	}
 //	if (txPin != -1) digitalWrite(txPin, value);
 }
 
@@ -151,10 +152,11 @@ void setTXPin(uint8_t value) {
  * Sets the RX pin (if enabled) to the specified value (HIGH or LOW)
  */
 void setRXPin(uint8_t value) {
-	if (value)
+	if (value){
 	GPIO_SetValue(LED2_PORT, LED2_BIT);
-	else
+	}else{
 	GPIO_ClearValue(LED2_PORT, LED2_BIT);
+	}
 //	if (rxPin != -1) digitalWrite(rxPin, value);
 }
 
@@ -235,6 +237,7 @@ void Server::write(uint8_t b) {
  * Sends the real data in the current connection's virtual buffer
  */
 void send() {
+//	_DBG("send()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
 	uip_tcp_appstate_t *app = &(uip_conn->appstate);
 
@@ -245,16 +248,16 @@ void send() {
 
 	if (verbose) {
 		_DBG("TX ");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-		_DBG(len);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+		_DBD(len);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 //		Serial.print("TX ");
 //		Serial.print(len);
 //		Serial.println(" bytes");
 	}
 
 #ifdef DEBUG
-	_DBG(app->ackedCount);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+	_DBD(app->ackedCount);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 	_DBG(" - ");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-	_DBG(app->ackedCount + len - 1);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+	_DBD(app->ackedCount + len - 1);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 	_DBG(" of ");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 //	Serial.print(app->ackedCount);
 //	Serial.print(" - ");
@@ -280,6 +283,7 @@ void send() {
  * URL has been saved and an empty line is found.
  */
 boolean processLine(char* data, int len) {
+//	_DBG(data);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
 	// Check for a valid GET line
 	if ((uip_conn->appstate.request == NULL) && (strncmp(data, "GET /", 4) == 0)) {
@@ -313,6 +317,7 @@ boolean processLine(char* data, int len) {
  * with each line of data found.
  */
 boolean processPacket(char* data, int len) {
+//	_DBG(data);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
 	// Address after the last byte of data
 	char* end = data + len;
@@ -349,6 +354,7 @@ boolean processPacket(char* data, int len) {
  * Attempts to send the requested page for the current connection
  */
 void sendPage() {
+//	_DBG("sendPage()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
 	// Reset the virtual buffer cursor
 	uip_conn->appstate.cursor = 0;
@@ -399,6 +405,7 @@ boolean Server::clientIsLocal() {
  * Handles high-level server communications
  */
 void server_task_impl() {
+	_DBG("server_task_impl()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
 	// Get the connection's app state
 	uip_tcp_appstate_t *app = &(uip_conn->appstate);
@@ -406,7 +413,7 @@ void server_task_impl() {
 	if (uip_connected()) {
 
 		if (verbose) {
-//			Serial.println("Server connected");
+			_DBG("Server connected");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 		}
 
 		// Initialize the server request data
@@ -414,8 +421,11 @@ void server_task_impl() {
 		app->request = NULL;
 	}
 
+//	_DBG("uip_newdata()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//	_DBD(uip_newdata());_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+
 	if (uip_newdata()) {
-// 		setRXPin(HIGH);
+ 		setRXPin(HIGH);
 		// Process the received packet and check if a valid GET request had been received
 		if (processPacket((char*)uip_appdata, uip_datalen()) && app->request) {
 			if (verbose) {
@@ -427,6 +437,8 @@ void server_task_impl() {
 		}
 	}
 
+//	_DBG("uip_acked()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//	_DBD(uip_acked());_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
 	// Did we get an ack for the last packet?
 	if (uip_acked()) {
@@ -445,6 +457,9 @@ void server_task_impl() {
 		}
 	}
 
+//	_DBG("uip_rexmit()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//	_DBD(uip_rexmit());_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+
 	// Check if we need to retransmit
 	if (uip_rexmit()) {
 		// Send the same data again (same ackedCount value)
@@ -456,6 +471,7 @@ void server_task_impl() {
 		// Check if a URL was stored for this connection
 		if (app->request != NULL) {
 			if (verbose) {
+				_DBG("Server connection closed");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 //				Serial.println("Server connection closed");
 			}
 
@@ -697,6 +713,8 @@ char* Server::base64encode(char* data) {
  * This function is called by uip whenever a stack event occurs
  */
 void server_app_task() {
+//	_DBG("server_app_task()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//	_DBD(uip_conn->lport);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
 	// Clear the activity pins
 	setTXPin(LOW);
