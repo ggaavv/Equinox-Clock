@@ -95,8 +95,8 @@ bool home_page(char* URL){
 //    	for (i = 0; i < sizeof(URL); i++){
  //   		if( URL[i] == d && URL[i+1] == o && URL[i+2] == m) {
  //   			SetY(strtoul (URL[i+4]));
-    		}
-    	}
+//    		}
+ //   	}
     }
 
 };
