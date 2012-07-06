@@ -30,11 +30,7 @@
 #include "Wifi.h"
 
 extern "C" {
-	//#include "ShiftPWM.h"
-	#include "eq_clock.h"
 	#include "g2100.h"
-//	#include "debug.h"
-//	#include "core_cm3.h"
 	#include "LPC17xx.h"
 	#include "lpc17xx_gpio.h"
 	#include "lpc17xx_exti.h"
@@ -44,8 +40,8 @@ extern "C" {
 	#include "debug_frmwrk.h"
 	#include "sys_timer.h"
 	#include "serial.h"
-	#include "libraries/RTClib/rtc.h"
 	#include "ShiftPWM.h"
+	#include "rtc.h"
 }
 
 #define USER_FLASH_START 0x3000 // For USB bootloader
@@ -132,33 +128,38 @@ int main(void){
 	// Init RTC module
     RTC_time_Init();_DBG("[OK]-RTC_time_Init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
- //   LED_init();_DBG("[OK]-LED_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
- //   LED_test();_DBG("[OK]-LED_test()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+    LED_init();_DBG("[OK]-LED_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+    LED_test();_DBG("[OK]-LED_test()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
 
 	// Wifi init
-	WiFi_init();_DBG("[OK]-WiFi_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//	WiFi_init();_DBG("[OK]-WiFi_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
 	// main loop
-	long timer1, steptimeout, count1;
+	long timer1, steptimeout, count1, tcount=GetUNIX();
 	for (;;){
 		// Wifi Loop
-		WiFi_loop();
+//		WiFi_loop();
 //		delay_ms(300);
 
 //		LED_loop();
 
-		/* Power save - Do every 100ms */
-		#define DELAY1 100
+		/* Power save - Do every 5000ms */
+		#define DELAY 10
+//		_DBD16(tcount);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+		if(tcount<=GetUNIX()){
+			tcount=DELAY+GetUNIX();
+//			_DBD16(tcount);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+			_DBG("[INFO]-for (;;) ");_DBD32(GetUNIX());_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+		}
 
-
-		if (timer1 < sys_millis())
-		{
+/*
+		if (timer1 < sys_millis()){
 			timer1 = sys_millis() + 100;
 			count1++;
-			_DBD16(count1);_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+			_DBD16(count1);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
-			/* If there are no activity during 30 seconds, power off the machine */
+			// If there are no activity during 30 seconds, power off the machine
 			if (steptimeout > (30*1000/100))
 				{
 //					power_off();
@@ -168,6 +169,7 @@ int main(void){
 					steptimeout=0;
 				}
 		}
+*/
 	}
 
 	/* should never get here */

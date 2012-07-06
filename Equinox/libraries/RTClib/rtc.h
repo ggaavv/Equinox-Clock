@@ -101,6 +101,7 @@ void weeklyCheck(void);
 void monthlyCheck(void);
 void yearlyCheck(void);
 
+uint32_t GetUNIX();
 uint16_t GetY();
 uint8_t GetM();
 uint8_t GetDOM();

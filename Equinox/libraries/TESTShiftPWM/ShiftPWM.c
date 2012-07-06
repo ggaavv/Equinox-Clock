@@ -253,10 +253,10 @@ void LED_init(){
 //	_DBG_("Start transfer...");
 
     // Enable Tx DMA on SSP0
-	SSP_DMACmd (LPC_SSP1, SSP_DMA_TX, ENABLE);
+//	SSP_DMACmd (LPC_SSP1, SSP_DMA_TX, ENABLE);
 
 	// Enable GPDMA channel 0
-	GPDMA_ChannelCmd(0, ENABLE);
+//	GPDMA_ChannelCmd(0, ENABLE);
 
     // Enable interrupt for DMA
 //    NVIC_EnableIRQ (DMA_IRQn);
