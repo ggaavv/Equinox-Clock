@@ -132,38 +132,42 @@ int main(void){
 	// Init RTC module
     RTC_time_Init();_DBG("[OK]-RTC_time_Init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
-    LED_init();_DBG("[OK]-LED_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-    LED_test();_DBG("[OK]-LED_test()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+ //   LED_init();_DBG("[OK]-LED_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+ //   LED_test();_DBG("[OK]-LED_test()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
 
 	// Wifi init
 	WiFi_init();_DBG("[OK]-WiFi_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
 	// main loop
-	long timer1, steptimeout;
+	long timer1, steptimeout, count1;
 	for (;;){
 		// Wifi Loop
 		WiFi_loop();
+//		delay_ms(300);
+
 //		LED_loop();
 
 		/* Power save - Do every 100ms */
-//		#define DELAY1 100
+		#define DELAY1 100
 
 
-//		if (timer1 < sys_millis())
-//		{
-//			timer1 = sys_millis() + DELAY1;
+		if (timer1 < sys_millis())
+		{
+			timer1 = sys_millis() + 100;
+			count1++;
+			_DBD16(count1);_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
 			/* If there are no activity during 30 seconds, power off the machine */
-//			if (steptimeout > (30 * 1000/DELAY1))
-//				{
+			if (steptimeout > (30*1000/100))
+				{
 //					power_off();
-//				}
-//			else
-//				{
-//					steptimeout++;
-//				}
-//		}
+				}
+			else
+				{
+					steptimeout=0;
+				}
+		}
 	}
 
 	/* should never get here */
