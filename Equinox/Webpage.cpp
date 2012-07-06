@@ -12,8 +12,9 @@ extern "C" {
 
 #include "Webpage.h"
 #include "WiServer.h"
-#include <string.h>
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 
 const char body[] = "<body bgcolor=\"silver\"><br /><h1 align=\"center\"><font size=\"8\" align=\"center\"color=\"Red\">--==Equinox Clock==--</font></h1><br />";
 const char time_format[] = "<p align=\"center\"><font size=\"6\" face=\"Comic Sans MS\" color=\"Red\">";
@@ -30,19 +31,20 @@ bool home_page(char* URL){
 
     // Check if the requested URL matches "/"
     if (strcmp(URL, "/") == 0) {
+    	// Get all Date/Times
  //   	_DBG("[INFO]-strcmp(URL, /)");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 		uint16_t i,j;
 		char DOW[DOW_LEN_MAX];
 		strcpy(DOW,DayOfWeekName[GetDOW()]);
 		uint8_t DOM = GetDOM();
 		char DOM_s[2];
-		sprintf(DOM_s,"%d",DOM);
+		sprintf(DOM_s,"%.2d",DOM);
 //		_DBG(DOM);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 		char M[DOW_LEN_MAX];
 		strcpy(M,Month_of_the_year[GetM()-1]);
 		uint16_t Y = GetY();
 		char Y_s[5];
-		sprintf(Y_s,"%d",Y);
+		sprintf(Y_s,"%.4d",Y);
 		uint8_t HH = GetHH();
 		char HH_s[3];
 		sprintf(HH_s,"%.2d",HH);
@@ -137,11 +139,12 @@ bool home_page(char* URL){
     if (URL[2] = "/\?") {
     	_DBG("[INFO]-strcmp(URL, /?) END");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
     	// ?dom=01&mm=Jan&yy=2010
-//    	for (i = 0; i < sizeof(URL); i++){
- //   		if( URL[i] == d && URL[i+1] == o && URL[i+2] == m) {
- //   			SetY(strtoul (URL[i+4]));
-//    		}
- //   	}
+    	for (uint8_t i = 0; i < sizeof(URL); i++){
+    		if( URL[i] == "dom") {
+    			SetY(strtoul (URL[i+4],NULL,2));
+    			_DBD32(strtoul (URL[i+4],NULL,2));_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+    		}
+    	}
         return true;
     }
 

@@ -122,7 +122,7 @@ void WiFi_init(){
 }*/
 
 void WiFi_loop(){
-	_DBG("WiFi_loop()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//	_DBG("WiFi_loop()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 //	stack_process();
 //	zg_drv_process();
 	WiServer.server_task();

@@ -207,8 +207,7 @@ void LED_init(){
 	GPDMA_Channel_CFG_Type GPDMACfg;
 
 	/* GPDMA Interrupt configuration section ------------------------------------------------- */
-	/* preemption = 1, sub-priority = 1 */
-	NVIC_SetPriority(DMA_IRQn, ((0x01<<3)|0x01));
+	NVIC_SetPriority(DMA_IRQn, 0); // set according to main.c
 	/* Enable SSP0 interrupt */
 	NVIC_EnableIRQ(DMA_IRQn);
 
@@ -222,8 +221,7 @@ void LED_init(){
 	/* Setting GPDMA interrupt */
 	// Disable interrupt for DMA
 	NVIC_DisableIRQ (DMA_IRQn);
-	/* preemption = 1, sub-priority = 1 */
-	NVIC_SetPriority(DMA_IRQn, ((0x01<<3)|0x01));
+	NVIC_SetPriority(DMA_IRQn, 0); // set according to main.c
 
 
 	/* Configure GPDMA channel 0 -------------------------------------------------------------*/

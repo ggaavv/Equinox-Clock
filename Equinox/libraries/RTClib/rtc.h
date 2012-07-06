@@ -109,6 +109,14 @@ uint8_t GetDOY();
 uint8_t GetHH();
 uint8_t GetMM();
 uint8_t GetSS();
+void SetY(uint16_t Y);
+void SetM(uint8_t M);
+void SetDOM(uint8_t DOM);
+void SetDOW(uint8_t DOW);
+void SetDOY(uint8_t DOY);
+void SetHH(uint8_t HH);
+void SetMM(uint8_t MM);
+void SetSS(uint8_t SS);
 void RTC_time_SetTime(uint16_t year, uint8_t month, uint8_t dayOfM, uint8_t hour, uint8_t min, uint8_t sec);
 // number of days since 20xx/01/01, valid for 2001..2099
 uint16_t days_from_20xx(uint16_t year, uint8_t month, uint8_t dayOfM);
