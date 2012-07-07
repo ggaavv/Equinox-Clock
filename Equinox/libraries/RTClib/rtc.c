@@ -208,6 +208,10 @@ void yearlyCheck(void){
 	DSTyearly();
 }
 
+uint32_t GetUNIX() {
+	return time.unix;
+}
+
 uint16_t GetY() {
 	return RTC_GetTime(LPC_RTC, RTC_TIMETYPE_YEAR);
 }
