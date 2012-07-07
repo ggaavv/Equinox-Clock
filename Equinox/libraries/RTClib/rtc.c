@@ -129,8 +129,8 @@ void RTC_time_Init(){
     	_DBG("[INFO]-__DATE__=");_DBG(__DATE__);_DBG(", __TIME__=");_DBG(__TIME__);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 		// Enable rtc (starts increase the tick counter and second counter register)
 		RTC_ResetClockTickCounter(LPC_RTC);
-		//				 yyyy  mm  dd  Dom Dow  ss  mm  hh
-//		RTC_time_SetTime(2012,  6, 11, 1,  163, 10, 50, 20);
+		//				 yyyy  mm  dd  Dom Dow  ss  mm  hh  st
+//		RTC_time_SetTime(2012,  6, 11, 1,  163, 10, 50, 20, 00);
 		RTC_set_default_time_to_compiled();
 		RTC_WriteGPREG(LPC_RTC, 4, 0xaa);
     }
@@ -170,7 +170,7 @@ void minutelyCheck(void) {
 void dailyCheck(void) {
 	//calculate sunrise/sunset for the day
 	if ((0 < Sunrise_Compute(time.month, time.dom, READ_SUNRISE)) && (0 < Sunrise_Compute(time.month, time.dom, READ_SUNSET))){
-		_DBG("[INFO]-dailyCheck()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//		_DBG("[INFO]-dailyCheck()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 		uint32_t unix_day_utc = RTC_time_FindUnixtime(time.year, time.month, time.dom, 0, 0, 0);
 		time.sunrise_unix_utc = unix_day_utc + (60 * Sunrise_Compute(time.month, time.dom, READ_SUNRISE));
 		time.sunrise_unix = unix_day_utc + DST_CORRECTION_VALUE_SEC + (60 * Sunrise_Compute(time.month, time.dom, READ_SUNRISE));
@@ -240,39 +240,11 @@ uint8_t GetSS() {
 	return time.ss;
 }
 
-void SetY(uint16_t Y) {
-	RTC_SetTime(LPC_RTC, RTC_TIMETYPE_YEAR, Y);
+int8_t GetDST_correction() {
+	return time.dst_correction;
 }
 
-void SetM(uint8_t M) {
-	RTC_SetTime(LPC_RTC, RTC_TIMETYPE_MONTH, M);
-}
-
-void SetDOM(uint8_t DOM) {
-	RTC_SetTime(LPC_RTC, RTC_TIMETYPE_DAYOFMONTH, DOM);
-}
-
-void SetDOW(uint8_t DOW) {
-	RTC_SetTime(LPC_RTC, RTC_TIMETYPE_DAYOFWEEK, DOW);
-}
-
-void SetDOY(uint8_t DOY) {
-	RTC_SetTime(LPC_RTC, RTC_TIMETYPE_DAYOFYEAR, DOY);
-}
-
-void SetHH(uint8_t HH) {
-	time.hh;
-}
-
-void SetMM(uint8_t MM) {
-	time.mm;
-}
-
-void SetSS(uint8_t SS) {
-	time.ss;
-}
-
-void RTC_time_SetTime(uint16_t year, uint8_t month, uint8_t dom, uint8_t hh, uint8_t mm, uint8_t ss) {
+void RTC_time_SetTime(uint16_t year, uint8_t month, uint8_t dom, uint8_t hh, uint8_t mm, uint8_t ss, int8_t st) {
 	uint32_t unixt = RTC_time_FindUnixtime(year, month, dom, hh, mm, ss);
 	time.year = year;
 	time.month = month;
@@ -282,7 +254,7 @@ void RTC_time_SetTime(uint16_t year, uint8_t month, uint8_t dom, uint8_t hh, uin
 
 	if(begin_DST_unix(year)<=unixt && unixt<=end_DST_unix(year)) {
 		//correct for dst active
-		_DBG("[INFO]-(set)dst_correction_needed()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//		_DBG("[INFO]-(set)dst_correction_needed()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 		time.hh = hh;
 		time.mm = mm;
 		time.ss = ss;
@@ -424,7 +396,8 @@ void RTC_set_default_time_to_compiled(void) {
 			conv2d(__DATE__ + 4),
 			conv2d(__TIME__),
 			conv2d(__TIME__ + 3),
-			conv2d(__TIME__ + 6));
+			conv2d(__TIME__ + 6),
+			0);
 }
 
 void RTC_print_time(void){
@@ -444,7 +417,7 @@ void RTC_print_time(void){
 	_DBD(GetSS());
 	_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
-	_DBG("[INFO]- Unix: ");
+	_DBG("[INFO]-Unix: ");
 	uart_uint32(time.unix);
 	_DBG("  Sunrise: ");
 	uart_uint32(time.sunrise_unix);

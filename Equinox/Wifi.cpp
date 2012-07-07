@@ -78,6 +78,7 @@ void WiFi_init(){
 	EXTICfg.EXTI_polarity 	= EXTI_POLARITY_LOW_ACTIVE_OR_FALLING_EDGE;
 	EXTI_Config(&EXTICfg);
 
+    NVIC_SetPriority(EINT3_IRQn, 9); // set according to main.c
 	NVIC_EnableIRQ(EINT3_IRQn); //TODO: change to eint0 after debug
 
 	/* initialize SSP configuration structure */

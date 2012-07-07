@@ -21,7 +21,7 @@ typedef enum {
 } Day_Night_Num;
 
 #define DOW_LEN 3
-#define DOW_LEN_MAX 9
+#define DOW_LEN_MAX 10 // +1 to include NULL
 #define NUM_DAYS_OF_WEEK 7
 const char DayOfWeekName[NUM_DAYS_OF_WEEK][DOW_LEN_MAX] = {
 "Monday",
@@ -34,7 +34,7 @@ const char DayOfWeekName[NUM_DAYS_OF_WEEK][DOW_LEN_MAX] = {
 };
 
 #define MONTH_LEN 3
-#define MONTH_LEN_MAX 9
+#define MONTH_LEN_MAX 10 // +1 to include NULL
 #define NUM_MONTHS 12
 const char Month_of_the_year[NUM_MONTHS][MONTH_LEN_MAX] = {
 "January",
@@ -76,7 +76,7 @@ struct {
 	uint32_t DST_begin_calculated;	// updated once a year
 	uint32_t DST_end_calculated;	// updated once a year
 //	uint16_t dst_last_update_year;	// updated once a year
-	uint32_t dst_correction;		// updated once
+	int8_t dst_correction;		// updated once
 	uint32_t sunrise_unix;	// updated once a day
 	uint32_t sunrise_unix_utc;	// updated once a day
 	uint32_t sunset_unix;	// updated once a day
@@ -109,15 +109,8 @@ uint8_t GetDOY();
 uint8_t GetHH();
 uint8_t GetMM();
 uint8_t GetSS();
-void SetY(uint16_t Y);
-void SetM(uint8_t M);
-void SetDOM(uint8_t DOM);
-void SetDOW(uint8_t DOW);
-void SetDOY(uint8_t DOY);
-void SetHH(uint8_t HH);
-void SetMM(uint8_t MM);
-void SetSS(uint8_t SS);
-void RTC_time_SetTime(uint16_t year, uint8_t month, uint8_t dayOfM, uint8_t hour, uint8_t min, uint8_t sec);
+int8_t GetDST_correction();
+void RTC_time_SetTime(uint16_t year, uint8_t month, uint8_t dayOfM, uint8_t hour, uint8_t min, uint8_t sec, int8_t st);
 // number of days since 20xx/01/01, valid for 2001..2099
 uint16_t days_from_20xx(uint16_t year, uint8_t month, uint8_t dayOfM);
 // number of days since 2000/01/01, valid for 2001..2099

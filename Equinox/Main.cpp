@@ -98,8 +98,8 @@ int main(void){
 	// b100 bxxx.yy000    Group priority bits:[7:5]    Subpriority bits:[4:3]    Group priorities:8   Subpriorities:4 = 4
 	// assign LED to group 0 sub-priority 0 = 0
 	// assign USB to group 1 sub-priority 0 = 4
-	// assign Wifi to group 2 sub-priority 0 = 8
 	// assign RTC to group 2 sub-priority 0 = 8
+	// assign Wifi to group 2 sub-priority 1 = 9
 	NVIC_SetPriorityGrouping(4);
 
 	/* Change the Vector Table to the USER_FLASH_START
@@ -149,14 +149,14 @@ int main(void){
 //		LED_loop();
 
 		/* Power save - Do every 100ms */
-		#define DELAY1 100
+		#define DELAY1 500
 
 
 		if (timer1 < sys_millis())
 		{
-			timer1 = sys_millis() + 100;
+			timer1 = sys_millis() + DELAY1;
 			count1++;
-			_DBD16(count1);_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//			_DBD16(count1);_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
 			/* If there are no activity during 30 seconds, power off the machine */
 			if (steptimeout > (30*1000/100))

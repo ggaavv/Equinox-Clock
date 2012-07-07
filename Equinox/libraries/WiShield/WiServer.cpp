@@ -405,7 +405,7 @@ boolean Server::clientIsLocal() {
  * Handles high-level server communications
  */
 void server_task_impl() {
-	_DBG("server_task_impl()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//	_DBG("server_task_impl()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
 	// Get the connection's app state
 	uip_tcp_appstate_t *app = &(uip_conn->appstate);

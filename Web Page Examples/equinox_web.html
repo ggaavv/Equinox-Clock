@@ -48,7 +48,25 @@ Should reply with
 
 
 
-</body>
+<form method="post" action="/DTS">
+	<p><font size="3" color="Red" face="Comic Sans MS"> Timezone + Daylight Saving: </font></p>
+	<select name="hh" size="1">
+	<option name="hh" value="1"> 00 </option>
+	<option name="hh" value="2" selected> 01 </option>
+	</select>
+	<select name="min" size="1">
+	<option name="min" value="1"> 00 </option>
+	<option name="min" value="2" selected> 01 </option>
+	</select>
+	<select name="sec" size="1">
+	<option name="sec" value="1"> 00 </option>
+	<option name="sec" value="2" selected> 01 </option>
+	</select>
+	<input type="checkbox" value="DST"> Daylight Saving active
+	<br>
+	<input type="submit" value="Send Date">
+	<input type="reset" value="Reset">
+</form></body>
 </html>
 
 
