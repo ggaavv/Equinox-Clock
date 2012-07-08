@@ -191,37 +191,37 @@ void LED_init(){
 	/* Enable SSP peripheral */
 	SSP_Cmd(LPC_SSP1, ENABLE);//TODO: change to LPC_SSP0 after debug
 
-	RIT_Init(LPC_RIT);
+//	RIT_Init(LPC_RIT);
 	/* Configure time_interval for RIT
 	 * In this case: time_interval = 1000 ms = 1s
 	 * So, RIT will generate interrupt each 1s
 	 */
-	RIT_TimerConfig(LPC_RIT,DELAY_TIME);
+//	RIT_TimerConfig(LPC_RIT,DELAY_TIME);
 
 //	_DBG("The time interval is: ");
 //	_DBD32(DELAY_TIME); _DBG_(" millisecond..");
 
-	NVIC_EnableIRQ(RIT_IRQn);
+//	NVIC_EnableIRQ(RIT_IRQn);
 
 
 	GPDMA_Channel_CFG_Type GPDMACfg;
 
 	/* GPDMA Interrupt configuration section ------------------------------------------------- */
-	NVIC_SetPriority(DMA_IRQn, 0); // set according to main.c
+//	NVIC_SetPriority(DMA_IRQn, 0); // set according to main.c
 	/* Enable SSP0 interrupt */
-	NVIC_EnableIRQ(DMA_IRQn);
+//	NVIC_EnableIRQ(DMA_IRQn);
 
 	/* Initializing Buffer section ----------------------------------------------------------- */
 //	Buffer_Init();
 
 	/* Initialize GPDMA controller */
-	GPDMA_Init();
+//	GPDMA_Init();
 
 
 	/* Setting GPDMA interrupt */
 	// Disable interrupt for DMA
-	NVIC_DisableIRQ (DMA_IRQn);
-	NVIC_SetPriority(DMA_IRQn, 0); // set according to main.c
+//	NVIC_DisableIRQ (DMA_IRQn);
+//	NVIC_SetPriority(DMA_IRQn, 0); // set according to main.c
 
 
 	/* Configure GPDMA channel 0 -------------------------------------------------------------*/
@@ -244,7 +244,7 @@ void LED_init(){
 	// Linker List Item - unused
 	GPDMACfg.DMALLI = 0;
 	// Setup channel with given parameter
-	GPDMA_Setup(&GPDMACfg);
+//	GPDMA_Setup(&GPDMACfg);
 	/* Reset terminal counter */
 	Channel0_TC = 0;
 	/* Reset Error counter */
