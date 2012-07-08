@@ -9,7 +9,7 @@
 #include "lpc17xx_rtc.h"
 #include "rtc.h"
 #include "sunrise.h"
-
+#include <stdio.h>
 
 #define DSTEurope
 //#define DSTUSA
@@ -120,7 +120,7 @@ void RTC_time_Init(){
     NVIC_DisableIRQ(RTC_IRQn);
     NVIC_SetPriority(RTC_IRQn, 8); // set according to main.c
 	RTC_Cmd(LPC_RTC, ENABLE);
-	RTC_CalibCounterCmd(LPC_RTC, DISABLE);
+//	RTC_CalibCounterCmd(LPC_RTC, DISABLE);
 //	RTC_WriteGPREG(LPC_RTC, 4, 0x55);
     //Set time if no data in GPREG
     if (!(RTC_ReadGPREG(LPC_RTC, 4)==(0xaa)))
@@ -148,7 +148,7 @@ void RTC_time_Init(){
 }
 
 void secondlyCheck(void) {
-//	RTC_print_time();
+	RTC_print_time();
 	//Checks and adjusts time for DST
 	DST_check_and_correct();
 }
@@ -214,23 +214,23 @@ uint32_t GetUNIX() {
 }
 
 uint16_t GetY() {
-	return RTC_GetTime(LPC_RTC, RTC_TIMETYPE_YEAR);
+	return time.year;
 }
 
 uint8_t GetM() {
-	return RTC_GetTime(LPC_RTC, RTC_TIMETYPE_MONTH);
+	return time.month;
 }
 
 uint8_t GetDOM() {
-	return RTC_GetTime(LPC_RTC, RTC_TIMETYPE_DAYOFMONTH);
+	return time.dom;
 }
 
 uint8_t GetDOW() {
-	return RTC_GetTime(LPC_RTC, RTC_TIMETYPE_DAYOFWEEK);
+	return time.dow;
 }
 
 uint8_t GetDOY() {
-	return RTC_GetTime(LPC_RTC, RTC_TIMETYPE_DAYOFYEAR);
+	return time.doy;
 }
 
 uint8_t GetHH() {
@@ -256,31 +256,20 @@ void RTC_time_SetTime(uint16_t year, uint8_t month, uint8_t dom, uint8_t hh, uin
 	time.dom = dom;
 	time.dow = dayOfWeekManual(year, month, dom);
 	time.doy = days_from_20xx(year, month, dom);
+	time.hh = hh;
+	time.mm = mm;
+	time.ss = ss;
+	time.unix = unixt;
 
 	if(begin_DST_unix(year)<=unixt && unixt<=end_DST_unix(year)) {
 		//correct for dst active
-//		_DBG("[INFO]-(set)dst_correction_needed()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-		time.hh = hh;
-		time.mm = mm;
-		time.ss = ss;
-		time.unix = unixt;
+		_DBG("[INFO]-(set)dst_correction_needed()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 		time.unix_utc = unixt-DST_CORRECTION_VALUE_SEC;
-		unix_to_hh_mm_ss_set(time.unix_utc);
-		time.hh_utc = time.set_hh;
-		time.mm_utc = time.set_mm;
-		time.ss_utc = time.set_ss;
+		unix_to_hh_mm_ss(time.unix_utc, &hh, &mm, &ss);
 	}
-	else {
-		time.hh_utc = hh;
-		time.mm_utc = mm;
-		time.ss_utc = ss;
-		time.hh = hh;
-		time.mm = mm;
-		time.ss = ss;
-	}
-//	_DBG("[INFO]-time.set_hh=");_DBD(time.set_hh);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-//	_DBG("[INFO]-time.hh_utc=");_DBD(time.hh_utc);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-//	_DBG("[INFO]-time_temp.hh=");_DBD(time_temp.hh);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+	time.hh_utc = hh;
+	time.mm_utc = mm;
+	time.ss_utc = ss;
 	if (year!=NULL) 	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_YEAR, year);
 	if (month!=NULL)	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_MONTH, month);
 	if (dom!=NULL)	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_DAYOFMONTH, dom);
@@ -368,19 +357,16 @@ void DST_check_and_correct() {
 	time.unix_utc = RTC_time_FindUnixtime(time.year, time.month, time.dom, time.hh_utc, time.mm_utc, time.ss_utc);
 //	_DBG("[INFO]-time.hh=");_DBD(time.hh);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 	if(dst_correction_needed()) {
-//		_DBG("[INFO]-dst_correction_needed()=");_DBD16(dst_correction_needed());_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 		time.unix = time.unix_utc + DST_CORRECTION_VALUE_SEC;
-		unix_to_hh_mm_ss_get(time.unix);
-		time.hh = time.get_hh;
-		time.mm = time.get_mm;
-		time.ss = time.get_ss;
-	}
-	else {
+//		_DBD(time.hh_utc);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+		unix_to_hh_mm_ss(time.unix, &time.hh, &time.mm, &time.ss);
+	}else{
 		time.unix = time.unix_utc;
 		time.hh = time.hh_utc;
 		time.mm = time.mm_utc;
 		time.ss = time.ss_utc;
 	}
+
 }
 
 void RTC_set_default_time_to_compiled(void) {
@@ -406,6 +392,7 @@ void RTC_set_default_time_to_compiled(void) {
 }
 
 void RTC_print_time(void){
+
 	_DBG("[INFO]-Date=");
 	_DBD(GetDOM());
 	_DBG("/");
@@ -422,6 +409,14 @@ void RTC_print_time(void){
 	_DBD(GetSS());
 	_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
+	_DBG("[INFO]-UTC-Time=");
+	_DBD(time.hh_utc);
+	_DBG(":");
+	_DBD(time.mm_utc);
+	_DBG(":");
+	_DBD(time.ss_utc);
+	_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+
 	_DBG("[INFO]-Unix: ");
 	_DBD32(time.unix);
 	_DBG("  Sunrise: ");
@@ -431,29 +426,21 @@ void RTC_print_time(void){
 	_DBG("  Noon: ");
 	_DBD32(time.noon_unix);
 	_DBG("  Day/Night: ");
-	_DBD32(time.day_night);
+	_DBD(time.day_night);
 	_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
 	_DBG("[INFO]-DOW: ");
-	_DBD(time.dow);_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+	_DBD(time.dow);
+	_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 }
 
-void unix_to_hh_mm_ss_get (uint32_t t) {
-  t -= SECONDS_FROM_1970_TO_2000;    // bring to 2000 timestamp from 1970
-    time.get_ss = t % 60;
-    t /= 60;
-    time.get_mm = t % 60;
-    t /= 60;
-    time.get_hh = t % 24;
-}
-
-void unix_to_hh_mm_ss_set (uint32_t t) {
-  t -= SECONDS_FROM_1970_TO_2000;    // bring to 2000 timestamp from 1970
-    time.set_ss = t % 60;
-    t /= 60;
-    time.set_mm = t % 60;
-    t /= 60;
-    time.set_hh = t % 24;
+void unix_to_hh_mm_ss (uint32_t t, uint8_t * hh, uint8_t * mm, uint8_t * ss) {
+	t -= SECONDS_FROM_1970_TO_2000;    // bring to 2000 timestamp from 1970
+	*ss = (uint32_t)(t % 60);
+	t /= 60;
+	*mm = (uint32_t)t % 60;
+	t /= 60;
+	*hh = (uint32_t)t % 24;
 }
 
 uint32_t dst_correction_needed() {
@@ -473,4 +460,22 @@ void DSTyearly() {
 		time.DST_end_calculated = end_DST_unix(time.year);
 //		time.dst_last_update_year = time.year;
 //	}
+}
+
+void GetSunRiseHH_MM_SS(char *str){
+	uint8_t hh, mm, ss;
+	unix_to_hh_mm_ss (time.sunrise_unix, &hh, &mm, &ss);
+	sprintf(str,"%.2d:%.2d:%.2d",hh,mm,ss);
+}
+
+void GetSunSetHH_MM_SS(char *str){
+	uint8_t hh, mm, ss;
+	unix_to_hh_mm_ss (time.sunset_unix, &hh, &mm, &ss);
+	sprintf(str,"%.2d:%.2d:%.2d",hh,mm,ss);
+}
+
+void GetNoonHH_MM_SS(char *str){
+	uint8_t hh, mm, ss;
+	unix_to_hh_mm_ss (time.noon_unix, &hh, &mm, &ss);
+	sprintf(str,"%.2d:%.2d:%.2d",hh,mm,ss);
 }
