@@ -247,7 +247,7 @@ void send() {
 	len = len > (int)uip_conn->mss ? (int)uip_conn->mss : len;
 
 	if (verbose) {
-		_DBG("TX ");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+		_DBG("send_TX ");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 		_DBD(len);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 //		Serial.print("TX ");
 //		Serial.print(len);

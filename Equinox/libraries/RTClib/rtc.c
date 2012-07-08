@@ -148,6 +148,7 @@ void RTC_time_Init(){
 }
 
 void secondlyCheck(void) {
+//	RTC_print_time();
 	//Checks and adjusts time for DST
 	DST_check_and_correct();
 }
@@ -329,7 +330,7 @@ long time2long(uint16_t days, uint8_t hour, uint8_t min, uint8_t sec) {
 // find day of the week
 uint8_t dayOfWeekManual(uint16_t year, uint8_t month, uint8_t dayOfM) {
     uint16_t day = days_from_2000(year, month, dayOfM);
-    return (day + 6) % 7; // Jan 1, 2000 is a Saturday, i.e. returns 6
+    return (day + 5) % 7; // Jan 1, 2000 is a Saturday, i.e. returns 5   Week Begins on a Monday = 0
 }
 
 // convert char to uint8_t for time
@@ -422,16 +423,19 @@ void RTC_print_time(void){
 	_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
 	_DBG("[INFO]-Unix: ");
-	uart_uint32(time.unix);
+	_DBD32(time.unix);
 	_DBG("  Sunrise: ");
-	uart_uint32(time.sunrise_unix);
+	_DBD32(time.sunrise_unix);
 	_DBG("  Sunset: ");
-	uart_uint32(time.sunset_unix);
+	_DBD32(time.sunset_unix);
 	_DBG("  Noon: ");
-	uart_uint32(time.noon_unix);
+	_DBD32(time.noon_unix);
 	_DBG("  Day/Night: ");
-	uart_uint32(time.day_night);
+	_DBD32(time.day_night);
 	_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+
+	_DBG("[INFO]-DOW: ");
+	_DBD(time.dow);_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 }
 
 void unix_to_hh_mm_ss_get (uint32_t t) {
