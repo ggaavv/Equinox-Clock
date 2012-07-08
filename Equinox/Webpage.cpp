@@ -6,8 +6,8 @@
  */
 
 extern "C" {
-	#include "libraries/RTClib/rtc.h"
 	#include "debug_frmwrk.h"
+	#include "rtc.h"
 }
 
 #include "Webpage.h"
@@ -92,7 +92,6 @@ bool home_page(char* URL){
     	// Get all Date/Times
 		// Days of the Week
 		uint8_t DOW = GetDOW();
-		_DBD(DOW);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 		// Days of the Month
 		uint8_t DOM = GetDOM();
 		char DOM_s[2];
@@ -115,6 +114,15 @@ bool home_page(char* URL){
 		uint8_t ss = GetSS();
 		char ss_s[2];
 		sprintf(ss_s,"%.2d",ss);
+		// Sunrise
+		char Sunrise_s[9];
+		GetSunRiseHH_MM_SS(&Sunrise_s[0]);
+		// Noon
+		char Noon_s[9];
+		GetNoonHH_MM_SS(&Noon_s[0]);
+		// Sunset
+		char Sunset_s[9];
+		GetSunSetHH_MM_SS(&Sunset_s[0]);
 		// Summertime
 		int8_t dst = GetDST_correction();
 		char dst_s[4];
@@ -158,6 +166,16 @@ bool home_page(char* URL){
 		WiServer.print(":");
 		WiServer.print(ss_s);		// xx:xx:55
 		WiServer.print(h2_close);
+
+		// Print Sunrise+Noon+Sunset
+		WiServer.print(p_open);
+		WiServer.print("Sunrise ");
+		WiServer.print(Sunrise_s);
+		WiServer.print("   Noon ");
+		WiServer.print(Noon_s);
+		WiServer.print("   Sunset ");
+		WiServer.print(Sunset_s);
+		WiServer.print(p_close);
 
 		// Date drop down selection box
 		WiServer.print(form_open);
