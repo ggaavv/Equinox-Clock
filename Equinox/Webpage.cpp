@@ -85,11 +85,11 @@ bool home_page(char* URL){
 			if (dom_set&&m_set&&y_set&&hh_set&&mm_set&&ss_set&&st_set)break;
 		}
      	RTC_time_SetTime(year, month, dom, hh, mm, ss, st);
-   }
+	}
 
-    // Check if the requested URL matches "/"
+	// Check if the requested URL matches "/"
 	if (strncmp(URL, "/",1) == 0) {
-    	// Get all Date/Times
+		// Get all Date/Times
 		// Days of the Week
 		uint8_t DOW = GetDOW();
 		// Days of the Month

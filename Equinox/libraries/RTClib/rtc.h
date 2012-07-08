@@ -12,8 +12,8 @@
 #include "lpc_types.h"
 
 typedef enum {
-	DAY,
 	NIGHT,
+	DAY,
 	RISE_ONLY,
 	SET_ONLY,
 	ALL_DAY,
@@ -69,7 +69,7 @@ struct {
 	uint8_t ss_utc;			// updated once a second
 	uint32_t DST_begin_calculated;	// updated once a year
 	uint32_t DST_end_calculated;	// updated once a year
-//	uint16_t dst_last_update_year;	// updated once a year
+	uint32_t unix_dst_last_update;	// updated once a year
 	int8_t dst_correction;		// updated once
 	uint32_t sunrise_unix;	// updated once a day
 	uint32_t sunrise_unix_utc;	// updated once a day
@@ -128,6 +128,7 @@ void unix_to_hh_mm_ss(uint32_t t, uint8_t * hh, uint8_t * mm, uint8_t * ss);
 uint32_t dst_correction_needed();
 uint32_t dst_correction_needed_t_y(uint32_t t, uint16_t year);
 void DSTyearly();
+void update_time();
 
 
 #endif /* RTC_H_ */
