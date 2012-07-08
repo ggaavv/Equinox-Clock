@@ -175,17 +175,17 @@ void dailyCheck(void) {
 	if ((0 < Sunrise_Compute(time.month, time.dom, READ_SUNRISE)) && (0 < Sunrise_Compute(time.month, time.dom, READ_SUNSET))){
 //		_DBG("[INFO]-dailyCheck()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 		uint32_t unix_day = RTC_time_FindUnixtime(time.year, time.month, time.dom, 0, 0, 0);
-		time.sunrise_unix = unix_day + (60 * Sunrise_Compute(time.month, time.dom, READ_SUNRISE));
-		time.sunset_unix = unix_day + (60 * Sunrise_Compute(time.month, time.dom, READ_SUNSET));
-		time.noon_unix = unix_day + (60 * Sunrise_Compute(time.month, time.dom, READ_NOON));
+		time.sunrise_unix_utc = unix_day + (60 * Sunrise_Compute(time.month, time.dom, READ_SUNRISE));
+		time.sunset_unix_utc = unix_day + (60 * Sunrise_Compute(time.month, time.dom, READ_SUNSET));
+		time.noon_unix_utc = unix_day + (60 * Sunrise_Compute(time.month, time.dom, READ_NOON));
 		if(dst_correction_needed()){
-			time.sunrise_unix_utc = time.sunrise_unix - DST_CORRECTION_VALUE_SEC;
-			time.sunset_unix_utc = time.sunset_unix - DST_CORRECTION_VALUE_SEC;
-			time.noon_unix_utc = time.noon_unix - DST_CORRECTION_VALUE_SEC;
+			time.sunrise_unix = time.sunrise_unix_utc + DST_CORRECTION_VALUE_SEC;
+			time.sunset_unix = time.sunset_unix_utc + DST_CORRECTION_VALUE_SEC;
+			time.noon_unix = time.noon_unix_utc + DST_CORRECTION_VALUE_SEC;
 		}else{
-			time.sunrise_unix_utc = time.sunrise_unix;
-			time.sunset_unix_utc = time.sunset_unix;
-			time.noon_unix_utc = time.noon_unix;
+			time.sunrise_unix = time.sunrise_unix_utc;
+			time.sunset_unix = time.sunset_unix_utc;
+			time.noon_unix = time.noon_unix_utc;
 		}
 	} else {
 		//TODO but not important - Calculation for if the is no sunrise/set/both
@@ -272,7 +272,7 @@ void RTC_time_SetTime(uint16_t year, uint8_t month, uint8_t dom, uint8_t hh, uin
 	yearlyCheck();
 	if(dst_correction_needed()) {
 		//correct for dst active
-		_DBG("[INFO]-(set)dst_correction_needed()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//		_DBG("[INFO]-(set)dst_correction_needed()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 		time.unix_utc = unixt - DST_CORRECTION_VALUE_SEC;
 		unix_to_hh_mm_ss(time.unix_utc, &time.hh_utc, &time.mm_utc, &time.ss_utc);
 		time.unix_dst_last_update = time.unix;
@@ -369,11 +369,11 @@ void update_time(){
 }
 
 void DST_check_and_correct() {
-	time.unix = RTC_time_FindUnixtime(time.year, time.month, time.dom, time.hh, time.mm, time.ss);
+//	time.unix = RTC_time_FindUnixtime(time.year, time.month, time.dom, time.hh, time.mm, time.ss);
 //	_DBG("[INFO]-time.hh=");_DBD(time.hh);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 	// Only update time once for DST when it ticks over
 	if(dst_correction_needed()) {
-		_DBG("dst_correction_needed");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//		_DBG("dst_correction_needed");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 		if(time.DST_begin_calculated == time.unix){
 			time.unix_dst_last_update = time.unix;
 			time.unix += DST_CORRECTION_VALUE_SEC;
