@@ -296,7 +296,7 @@ EXTRA_LIBDIRS =
 # s = -Os enables all -O2 optimizations that do not typically increase code
 #     size.
 # (See gcc manual for further information)
-OPT = s
+OPT = 2
 #OPT = 1
 #OPT = 2
 #OPT = 3
@@ -425,7 +425,7 @@ CFLAGS += $(patsubst %,-I%,$(EXTRAINCDIRS)) -I.
 # (at least from my eabi tests), not needed if assembler-wrappers are used 
 #CFLAGS += -mapcs-frame 
 #CFLAGS += -fomit-frame-pointer
-CFLAGS += -ffunction-sections -fdata-sections
+CFLAGS += -ffunction-sections -fdata-sections -pipe
 CFLAGS += -Wall -Wextra
 #CFLAGS += -pedantic
 CFLAGS += -Wimplicit -Wcast-align -Wpointer-arith
