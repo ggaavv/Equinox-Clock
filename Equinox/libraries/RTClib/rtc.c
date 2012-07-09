@@ -102,10 +102,8 @@ void RTC_IRQHandler(void){
 
 	// Continue to check the Alarm match
 	if (RTC_GetIntPending(LPC_RTC, RTC_INT_ALARM)){
-		//custom alarms
-	//	for(uint8_t alarmNo=0; alarms[alarmNo]; alarmNo++) {
-	//
-	//	}
+		set_next_alarm();
+		sort_alarms();
 		/* Send debug information */
 		_DBG_ ("ALARM 10s matched!");
 		// Clear pending interrupt
@@ -217,7 +215,7 @@ void yearlyCheck(void){
 	DSTyearly();
 }
 
-uint32_t GetUNIX() {
+uint32_t Getunix() {
 	return time.unix;
 }
 
@@ -342,14 +340,6 @@ uint8_t conv2d(const char* p) {
     return 10 * v + *++p - '0';
 }
 
-uint32_t RTC_time_GetUnixtime() {
-  uint32_t t;
-  uint16_t days = days_from_2000(RTC_GetTime (LPC_RTC, RTC_TIMETYPE_YEAR), RTC_GetTime (LPC_RTC, RTC_TIMETYPE_MONTH), RTC_GetTime (LPC_RTC, RTC_TIMETYPE_DAYOFMONTH));
-  t = time2long(days, RTC_GetTime (LPC_RTC, RTC_TIMETYPE_HOUR), RTC_GetTime (LPC_RTC, RTC_TIMETYPE_MINUTE), RTC_GetTime (LPC_RTC, RTC_TIMETYPE_SECOND));
-  t += SECONDS_FROM_1970_TO_2000; // seconds from 1970 to 2000
-  return t;
-}
-
 uint32_t RTC_time_FindUnixtime(uint16_t year, uint8_t month, uint8_t dayOfM, uint8_t hour, uint8_t min, uint8_t sec) {
   uint16_t days = days_from_2000(year, month, dayOfM);
   uint32_t t = time2long(days, hour, min, sec);
@@ -471,13 +461,13 @@ void RTC_print_time(void){
 	_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 }
 
-void unix_to_hh_mm_ss (uint32_t t, uint8_t * hh, uint8_t * mm, uint8_t * ss) {
-	t -= SECONDS_FROM_1970_TO_2000;    // bring to 2000 timestamp from 1970
-	*ss = (uint32_t)(t % 60);
-	t /= 60;
-	*mm = (uint32_t)t % 60;
-	t /= 60;
-	*hh = (uint32_t)t % 24;
+void unix_to_hh_mm_ss (uint32_t unix_time, uint8_t * hh, uint8_t * mm, uint8_t * ss) {
+	unix_time -= SECONDS_FROM_1970_TO_2000;    // bring to 2000 timestamp from 1970
+	*ss = (uint32_t)(unix_time % 60);
+	unix_time /= 60;
+	*mm = (uint32_t)unix_time % 60;
+	unix_time /= 60;
+	*hh = (uint32_t)unix_time % 24;
 }
 
 uint32_t dst_correction_needed() {
@@ -515,4 +505,136 @@ void GetNoonHH_MM_SS(char *str){
 	uint8_t hh, mm, ss;
 	unix_to_hh_mm_ss (time.noon_unix, &hh, &mm, &ss);
 	sprintf(str,"%.2d:%.2d:%.2d",hh,mm,ss);
+}
+
+struct {
+	Bool enable_disabled;	// Enable/Disable,
+	uint32_t unix_alarm_set_for;	// Unix start time - to sort by
+	uint32_t unix_start;	// Unix start time
+	uint32_t unix_finish;	// Unix finish time
+	uint32_t dow_dom;			// day of the week - bit0 = Monday -  bit1 = Tueday/1stMonth -  bit2 = Wednesday/2ndMonth
+	Alarm_type type;		// type from structure
+} alarmm[MAX_NO_ALARMS];
+
+void add_alarm(uint8_t month, uint8_t dom, uint8_t hh, uint8_t mm, uint16_t duration, uint32_t dow_dom, Alarm_type type){
+	// find unused alarm slot
+	uint32_t unix_alarm;
+	uint8_t i;
+	for (i=MAX_NO_ALARMS*2;(i>MAX_NO_ALARMS*2)&&(i<MAX_NO_ALARMS*3);i++){
+		if (alarm[i-(MAX_NO_ALARMS*2)].enable_disabled==ENABLE){
+			i=i-(MAX_NO_ALARMS*2);
+		}
+	}
+	unix_alarm = RTC_time_FindUnixtime(time.year, time.month, time.dom, hh, mm, 0);
+	// Set alarm in empty slot
+	if(type == DAYLY){
+		// alarm set in the past so set alarm for tomorrow
+		if (time.unix >= (unix_alarm+duration*60)){
+			alarm[i].unix_alarm_set_for = time.unix + SECONDS_PER_DAY;
+			alarm[i].unix_start = time.unix + SECONDS_PER_DAY;
+			alarm[i].unix_finish = time.unix + duration + SECONDS_PER_DAY;
+		// in the middle of an alarm now
+		}else if (time.unix <= unix_alarm && time.unix >= unix_alarm){
+#ifdef start_alarm_half_way
+			alarm[i].unix_alarm_set_for = time.unix + duration;
+			alarm[i].unix_start = time.unix;
+			alarm[i].unix_finish = time.unix + duration;
+#else
+			alarm[i].unix_alarm_set_for = time.unix;
+			alarm[i].unix_start = time.unix;
+			alarm[i].unix_finish = time.unix + duration;
+#endif
+		// alarm in future
+		}else{
+			alarm[i].unix_alarm_set_for = time.unix;
+			alarm[i].unix_start = time.unix;
+			alarm[i].unix_finish = time.unix + duration;
+		}
+	}else if(type == EVERYOTHERDAY){
+		if (time.unix >= (unix_alarm+duration*60)){
+			alarm[i].unix_alarm_set_for = time.unix + SECONDS_PER_DAY*2;
+			alarm[i].unix_start = time.unix + SECONDS_PER_DAY*2;
+			alarm[i].unix_finish = time.unix + duration + SECONDS_PER_DAY*2;
+		// in the middle of an alarm now
+		}else if (time.unix <= unix_alarm && time.unix >= unix_alarm){
+#ifdef start_alarm_half_way
+			alarm[i].unix_alarm_set_for = time.unix + duration;
+			alarm[i].unix_start = time.unix;
+			alarm[i].unix_finish = time.unix + duration;
+#else
+			alarm[i].unix_alarm_set_for = time.unix;
+			alarm[i].unix_start = time.unix;
+			alarm[i].unix_finish = time.unix + duration;
+#endif
+		// alarm in future
+		}else{
+			alarm[i].unix_alarm_set_for = time.unix;
+			alarm[i].unix_start = time.unix;
+			alarm[i].unix_finish = time.unix + duration;
+		}
+	}else if(type == EVERYOTHERDAY_S_TOMORROW){
+		alarm[i].unix_alarm_set_for = time.unix + SECONDS_PER_DAY;
+		alarm[i].unix_start = time.unix + SECONDS_PER_DAY;
+		alarm[i].unix_finish = time.unix + duration + SECONDS_PER_DAY;
+	}else if(type == WEEKLY){
+		// find first day to set alarm
+		uint8_t j;
+		for (j=NUM_DAYS_OF_WEEK*2;(j>=NUM_DAYS_OF_WEEK*2)&&(j<NUM_DAYS_OF_WEEK*3);j++){
+			if (dow_dom & (1 << (i-(NUM_DAYS_OF_WEEK*2)))){
+				j=j-(NUM_DAYS_OF_WEEK*2);
+			}
+		}
+		// find next day to set alarm
+		uint8_t k;
+		for (k=NUM_DAYS_OF_WEEK*2+j;(k>=NUM_DAYS_OF_WEEK*2)&&(k<NUM_DAYS_OF_WEEK*3);k++){
+			if (dow_dom & (1 << (k-(NUM_DAYS_OF_WEEK*2)))){
+				k=k-(NUM_DAYS_OF_WEEK*2);
+			}
+		}
+#ifdef start_alarm_half_way
+		// Maybe do??
+#else
+		/////////////  TODO need to find next alarm to set --  may only set for once a week
+		if (time.dow == j && k){
+			// alarm set in the past so set alarm for tomorrow
+			if (time.unix >= (unix_alarm+duration*60)){
+				alarm[i].unix_alarm_set_for = time.unix + SECONDS_PER_DAY;
+				alarm[i].unix_start = time.unix + SECONDS_PER_DAY;
+				alarm[i].unix_finish = time.unix + duration + SECONDS_PER_DAY;
+			// in the middle of an alarm now
+			}else if (time.unix <= unix_alarm && time.unix >= unix_alarm){
+				alarm[i].unix_alarm_set_for = time.unix;
+				alarm[i].unix_start = time.unix;
+				alarm[i].unix_finish = time.unix + duration;
+			}
+#endif
+		// alarm in future
+		}else{
+			if(time.dow < j){
+				alarm[i].unix_alarm_set_for = time.unix + SECONDS_PER_DAY*(j-time.dow);
+				alarm[i].unix_start = time.unix + SECONDS_PER_DAY*(j-time.dow);
+				alarm[i].unix_finish = time.unix + duration + SECONDS_PER_DAY*(j-time.dow);
+			}else{
+				alarm[i].unix_alarm_set_for = time.unix + SECONDS_PER_DAY*(NUM_DAYS_OF_WEEK-time.dow+j);
+				alarm[i].unix_start = time.unix + SECONDS_PER_DAY*(NUM_DAYS_OF_WEEK-time.dow+j);
+				alarm[i].unix_finish = time.unix + duration + SECONDS_PER_DAY*(NUM_DAYS_OF_WEEK-time.dow+j);
+			}
+		}
+	}else if(type == FORTNIGHTLY){
+		alarm[i].unix_alarm_set_for = RTC_time_FindUnixtime(time.year, time.month, time.dom+1, hh, mm, 0);
+		alarm[i].unix_start = alarm[i].unix_alarm_set_for;
+		alarm[i].unix_finish = alarm[i].unix_alarm_set_for + duration;
+	}
+	alarm[i].enable_disabled = ENABLE;
+	alarm[i].type = type;
+	sort_alarms();
+	set_next_alarm();
+}
+
+void set_next_alarm(){
+
+}
+
+void sort_alarms(){
+
 }

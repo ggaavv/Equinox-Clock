@@ -128,15 +128,15 @@ int main(void){
 	// Init RTC module
     RTC_time_Init();_DBG("[OK]-RTC_time_Init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
-    LED_init();_DBG("[OK]-LED_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-    LED_test();_DBG("[OK]-LED_test()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//    LED_init();_DBG("[OK]-LED_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//    LED_test();_DBG("[OK]-LED_test()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
 
 	// Wifi init
 	WiFi_init();_DBG("[OK]-WiFi_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
 	// main loop
-	long timer1, steptimeout, count1, tcount=GetUNIX();
+	long timer1, steptimeout, count1, tcount=Getunix();
 	for (;;){
 		// Wifi Loop
 		WiFi_loop();
@@ -147,10 +147,10 @@ int main(void){
 		/* Power save - Do every 5000ms */
 		#define DELAY 10
 //		_DBD16(tcount);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-		if(tcount<=GetUNIX()){
-			tcount=DELAY+GetUNIX();
+		if(tcount<=Getunix()){
+			tcount=DELAY+Getunix();
 //			_DBD16(tcount);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-			_DBG("[INFO]-for (;;) ");_DBD32(GetUNIX());_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+			_DBG("[INFO]-for (;;) ");_DBD32(Getunix());_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 		}
 /*
 		if (timer1 < sys_millis()){

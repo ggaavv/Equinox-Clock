@@ -20,6 +20,25 @@ typedef enum {
 	ALL_NIGHT
 } Day_Night_Num;
 
+typedef enum {
+	DAYLY,
+	EVERYOTHERDAY,
+	EVERYOTHERDAY_S_TOMORROW,
+	WEEKLY,
+	FORTNIGHTLY,
+	MONTHLY
+} Alarm_type;
+
+#define MAX_NO_ALARMS  10
+struct {
+	Bool enable_disabled;	// Enable/Disable,
+	uint32_t unix_alarm_set_for;	// Unix start time - to sort by
+	uint32_t unix_start;	// Unix start time
+	uint32_t unix_finish;	// Unix finish time
+	uint32_t dow_dom;			// day of the week - bit0 = Monday -  bit1 = Tueday/1stMonth -  bit2 = Wednesday/2ndMonth
+	Alarm_type type;		// type from structure
+} alarm[MAX_NO_ALARMS];
+
 #define DOW_LEN 3
 #define DOW_LEN_MAX 10 // +1 to include NULL
 #define NUM_DAYS_OF_WEEK 7
@@ -80,6 +99,7 @@ struct {
 	uint8_t day_night;  	// updated once a day
 	uint8_t no_set_rise;  	// updated once a day
 	uint8_t second_inc;		// updated once a second
+	uint8_t alarm_no_active;// updated when alarm set and after it has been activated
 //	uint32_t use_utc;
 } time;
 
@@ -95,7 +115,7 @@ void weeklyCheck(void);
 void monthlyCheck(void);
 void yearlyCheck(void);
 
-uint32_t GetUNIX();
+uint32_t Getunix();
 uint16_t GetY();
 uint8_t GetM();
 uint8_t GetDOM();
@@ -119,7 +139,6 @@ long time2long(uint16_t days, uint8_t hour, uint8_t min, uint8_t sec);
 uint8_t dayOfWeekManual(uint16_t year, uint8_t month, uint8_t dayOfM);
 // convert char to uint8_t for time
 uint8_t conv2d(const char* p);
-uint32_t RTC_time_GetUnixtime();
 uint32_t RTC_time_FindUnixtime(uint16_t year, uint8_t month, uint8_t dayOfM, uint8_t hour, uint8_t min, uint8_t sec);
 void DST_check_and_correct();
 void RTC_set_default_time_to_compiled(void);
