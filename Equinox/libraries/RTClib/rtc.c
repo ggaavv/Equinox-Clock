@@ -17,20 +17,6 @@
 #define SECONDS_PER_DAY 86400L
 #define SECONDS_FROM_1970_TO_2000 946684800
 
-//For the United States:
-//Begin DST: Sunday April (2+6*y-y/4) mod 7+1
-//End DST: Sunday October (31-(y*5/4+1) mod 7)
-//Valid for years 1900 to 2006, though DST wasn't adopted until the 1950s-1960s. 2007 and after:
-//Begin DST: Sunday March 14 - (1 + y*5/4) mod 7
-//End DST: Sunday November 7 - (1 + y*5/4) mod 7;
-//
-//European Economic Community:
-//Begin DST: Sunday March (31 - (5*y/4 + 4) mod 7) at 1h U.T.
-//End DST: Sunday October (31 - (5*y/4 + 1) mod 7) at 1h U.T.
-//Since 1996, valid through 2099
-//
-//(Equations by Wei-Hwa Huang (US), and Robert H. van Gent (EC))
-
 #ifdef DSTEurope
 #define begin_DST_Month 3
 #define begin_DST_Hour 1
@@ -58,12 +44,6 @@
 #endif
 #define begin_DST_unix(x) RTC_time_FindUnixtime(x, begin_DST_Month, begin_DST_dayOfMonth(x), begin_DST_Hour, begin_DST_Min, 0)
 #define end_DST_unix(x) RTC_time_FindUnixtime(x, end_DST_Month, end_DST_dayOfMonth(x), end_DST_Hour, end_DST_Min, 0)
-
-//volitile
-uint32_t DST_CORRECTION=0;
-uint32_t LAST_DST_UPDATE_YEAR=0;
-
-uint32_t SECOND_INC=0;
 
 void RTC_IRQHandler(void){
 	uint32_t secval;
@@ -111,7 +91,7 @@ void RTC_IRQHandler(void){
 	}
 }
 
-void RTC_time_Init(){
+void RTC_time_Init(void){
 	// Init RTC module
 	RTC_Init(LPC_RTC);
 	// Disable RTC interrupt
@@ -173,17 +153,14 @@ void dailyCheck(void) {
 	if ((0 < Sunrise_Compute(time.month, time.dom, READ_SUNRISE)) && (0 < Sunrise_Compute(time.month, time.dom, READ_SUNSET))){
 //		_DBG("[INFO]-dailyCheck()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 		uint32_t unix_day = RTC_time_FindUnixtime(time.year, time.month, time.dom, 0, 0, 0);
-		time.sunrise_unix_utc = unix_day + (60 * Sunrise_Compute(time.month, time.dom, READ_SUNRISE));
-		time.sunset_unix_utc = unix_day + (60 * Sunrise_Compute(time.month, time.dom, READ_SUNSET));
-		time.noon_unix_utc = unix_day + (60 * Sunrise_Compute(time.month, time.dom, READ_NOON));
 		if(dst_correction_needed()){
-			time.sunrise_unix = time.sunrise_unix_utc + DST_CORRECTION_VALUE_SEC;
-			time.sunset_unix = time.sunset_unix_utc + DST_CORRECTION_VALUE_SEC;
-			time.noon_unix = time.noon_unix_utc + DST_CORRECTION_VALUE_SEC;
+			time.sunrise_unix = unix_day + (60 * Sunrise_Compute(time.month, time.dom, READ_SUNRISE)) + DST_CORRECTION_VALUE_SEC;
+			time.sunset_unix = unix_day + (60 * Sunrise_Compute(time.month, time.dom, READ_SUNSET)) + DST_CORRECTION_VALUE_SEC;
+			time.noon_unix = unix_day + (60 * Sunrise_Compute(time.month, time.dom, READ_NOON)) + DST_CORRECTION_VALUE_SEC;
 		}else{
-			time.sunrise_unix = time.sunrise_unix_utc;
-			time.sunset_unix = time.sunset_unix_utc;
-			time.noon_unix = time.noon_unix_utc;
+			time.sunrise_unix = unix_day + (60 * Sunrise_Compute(time.month, time.dom, READ_SUNRISE));
+			time.sunset_unix = unix_day + (60 * Sunrise_Compute(time.month, time.dom, READ_SUNSET));
+			time.noon_unix = unix_day + (60 * Sunrise_Compute(time.month, time.dom, READ_NOON));
 		}
 	} else {
 		//TODO but not important - Calculation for if the is no sunrise/set/both
@@ -215,43 +192,43 @@ void yearlyCheck(void){
 	DSTyearly();
 }
 
-uint32_t Getunix() {
+uint32_t Getunix(void) {
 	return time.unix;
 }
 
-uint16_t GetY() {
+uint16_t GetY(void) {
 	return time.year;
 }
 
-uint8_t GetM() {
+uint8_t GetM(void) {
 	return time.month;
 }
 
-uint8_t GetDOM() {
+uint8_t GetDOM(void) {
 	return time.dom;
 }
 
-uint8_t GetDOW() {
+uint8_t GetDOW(void) {
 	return time.dow;
 }
 
-uint8_t GetDOY() {
+uint8_t GetDOY(void) {
 	return time.doy;
 }
 
-uint8_t GetHH() {
+uint8_t GetHH(void) {
 	return time.hh;
 }
 
-uint8_t GetMM() {
+uint8_t GetMM(void) {
 	return time.mm;
 }
 
-uint8_t GetSS() {
+uint8_t GetSS(void) {
 	return time.ss;
 }
 
-int8_t GetDST_correction() {
+int8_t GetDST_correction(void) {
 	return time.dst_correction;
 }
 
@@ -272,13 +249,9 @@ void RTC_time_SetTime(uint16_t year, uint8_t month, uint8_t dom, uint8_t hh, uin
 		//correct for dst active
 //		_DBG("[INFO]-(set)dst_correction_needed()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 		time.unix_utc = unixt - DST_CORRECTION_VALUE_SEC;
-		unix_to_hh_mm_ss(time.unix_utc, &time.hh_utc, &time.mm_utc, &time.ss_utc);
 		time.unix_dst_last_update = time.unix;
 	}else{
 		time.unix_utc = time.unix;
-		time.hh_utc = time.hh;
-		time.mm_utc = time.mm;
-		time.ss_utc = time.ss;
 	}
 	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_YEAR, year);
 	RTC_SetTime (LPC_RTC, RTC_TIMETYPE_MONTH, month);
@@ -340,6 +313,14 @@ uint8_t conv2d(const char* p) {
     return 10 * v + *++p - '0';
 }
 
+uint32_t RTC_time_GetUnixtime(void) {
+  uint32_t t;
+  uint16_t days = days_from_2000(RTC_GetTime (LPC_RTC, RTC_TIMETYPE_YEAR), RTC_GetTime (LPC_RTC, RTC_TIMETYPE_MONTH), RTC_GetTime (LPC_RTC, RTC_TIMETYPE_DAYOFMONTH));
+  t = time2long(days, RTC_GetTime (LPC_RTC, RTC_TIMETYPE_HOUR), RTC_GetTime (LPC_RTC, RTC_TIMETYPE_MINUTE), RTC_GetTime (LPC_RTC, RTC_TIMETYPE_SECOND));
+  t += SECONDS_FROM_1970_TO_2000; // seconds from 1970 to 2000
+  return t;
+}
+
 uint32_t RTC_time_FindUnixtime(uint16_t year, uint8_t month, uint8_t dayOfM, uint8_t hour, uint8_t min, uint8_t sec) {
   uint16_t days = days_from_2000(year, month, dayOfM);
   uint32_t t = time2long(days, hour, min, sec);
@@ -347,7 +328,7 @@ uint32_t RTC_time_FindUnixtime(uint16_t year, uint8_t month, uint8_t dayOfM, uin
   return t;
 }
 
-void update_time(){
+void update_time(void){
 	time.year = RTC_GetTime(LPC_RTC, RTC_TIMETYPE_YEAR);
 	time.month = RTC_GetTime(LPC_RTC, RTC_TIMETYPE_MONTH);
 	time.dom = RTC_GetTime(LPC_RTC, RTC_TIMETYPE_DAYOFMONTH);
@@ -358,7 +339,7 @@ void update_time(){
 	time.ss = RTC_GetTime(LPC_RTC, RTC_TIMETYPE_SECOND);
 }
 
-void DST_check_and_correct() {
+void DST_check_and_correct(void) {
 //	time.unix = RTC_time_FindUnixtime(time.year, time.month, time.dom, time.hh, time.mm, time.ss);
 //	_DBG("[INFO]-time.hh=");_DBD(time.hh);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 	// Only update time once for DST when it ticks over
@@ -383,13 +364,9 @@ void DST_check_and_correct() {
 			}
 		}
 		time.unix_utc = time.unix - DST_CORRECTION_VALUE_SEC;
-		unix_to_hh_mm_ss(time.unix_utc, &time.hh_utc, &time.mm_utc, &time.ss_utc);
 //		_DBD(time.hh_utc);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 	}else{
 		time.unix_utc = time.unix;
-		time.hh_utc = time.hh;
-		time.mm_utc = time.mm;
-		time.ss_utc = time.ss;
 	}
 
 }
@@ -434,14 +411,6 @@ void RTC_print_time(void){
 	_DBD(GetSS());
 	_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
-	_DBG("[INFO]-UTC-Time=");
-	_DBD(time.hh_utc);
-	_DBG(":");
-	_DBD(time.mm_utc);
-	_DBG(":");
-	_DBD(time.ss_utc);
-	_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-
 	_DBG("[INFO]-Unix: ");
 	_DBD32(time.unix);
 	_DBG("  Sunrise: ");
@@ -477,7 +446,7 @@ uint32_t dst_correction_needed() {
 		return 0;
 }
 
-void DSTyearly() {
+void DSTyearly(void) {
 	//Calculate DST's every year
 //	_DBG("[INFO]-time.dst_last_update_year=");_DBD16(time.dst_last_update_year);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 //	_DBG("[INFO]-time.year=");_DBD16(time.year);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
@@ -507,18 +476,10 @@ void GetNoonHH_MM_SS(char *str){
 	sprintf(str,"%.2d:%.2d:%.2d",hh,mm,ss);
 }
 
-struct {
-	Bool enable_disabled;	// Enable/Disable,
-	uint32_t unix_alarm_set_for;	// Unix start time - to sort by
-	uint32_t unix_start;	// Unix start time
-	uint32_t unix_finish;	// Unix finish time
-	uint32_t dow_dom;			// day of the week - bit0 = Monday -  bit1 = Tueday/1stMonth -  bit2 = Wednesday/2ndMonth
-	Alarm_type type;		// type from structure
-} alarmm[MAX_NO_ALARMS];
-
+// duration in minutes
 void add_alarm(uint8_t month, uint8_t dom, uint8_t hh, uint8_t mm, uint16_t duration, uint32_t dow_dom, Alarm_type type){
 	// find unused alarm slot
-	uint32_t unix_alarm;
+	uint32_t unix_alarm, unix_alarm_no[NUM_MONTHS], alarm_found[NUM_MONTHS];
 	uint8_t i;
 	for (i=MAX_NO_ALARMS*2;(i>MAX_NO_ALARMS*2)&&(i<MAX_NO_ALARMS*3);i++){
 		if (alarm[i-(MAX_NO_ALARMS*2)].enable_disabled==ENABLE){
@@ -530,94 +491,114 @@ void add_alarm(uint8_t month, uint8_t dom, uint8_t hh, uint8_t mm, uint16_t dura
 	if(type == DAYLY){
 		// alarm set in the past so set alarm for tomorrow
 		if (time.unix >= (unix_alarm+duration*60)){
-			alarm[i].unix_alarm_set_for = time.unix + SECONDS_PER_DAY;
-			alarm[i].unix_start = time.unix + SECONDS_PER_DAY;
-			alarm[i].unix_finish = time.unix + duration + SECONDS_PER_DAY;
+			alarm[i].unix_alarm_set_for = unix_alarm + SECONDS_PER_DAY;
+			alarm[i].unix_start = unix_alarm + SECONDS_PER_DAY;
+			alarm[i].unix_finish = unix_alarm + duration + SECONDS_PER_DAY;
 		// in the middle of an alarm now
 		}else if (time.unix <= unix_alarm && time.unix >= unix_alarm){
 #ifdef start_alarm_half_way
-			alarm[i].unix_alarm_set_for = time.unix + duration;
-			alarm[i].unix_start = time.unix;
-			alarm[i].unix_finish = time.unix + duration;
+			alarm[i].unix_alarm_set_for = unix_alarm + duration;
+			alarm[i].unix_start = unix_alarm;
+			alarm[i].unix_finish = unix_alarm + duration;
 #else
-			alarm[i].unix_alarm_set_for = time.unix;
-			alarm[i].unix_start = time.unix;
-			alarm[i].unix_finish = time.unix + duration;
+			alarm[i].unix_alarm_set_for = unix_alarm;
+			alarm[i].unix_start = unix_alarm;
+			alarm[i].unix_finish = unix_alarm + duration;
 #endif
 		// alarm in future
 		}else{
-			alarm[i].unix_alarm_set_for = time.unix;
-			alarm[i].unix_start = time.unix;
-			alarm[i].unix_finish = time.unix + duration;
+			alarm[i].unix_alarm_set_for = unix_alarm;
+			alarm[i].unix_start = unix_alarm;
+			alarm[i].unix_finish = unix_alarm + duration;
 		}
 	}else if(type == EVERYOTHERDAY){
 		if (time.unix >= (unix_alarm+duration*60)){
-			alarm[i].unix_alarm_set_for = time.unix + SECONDS_PER_DAY*2;
-			alarm[i].unix_start = time.unix + SECONDS_PER_DAY*2;
-			alarm[i].unix_finish = time.unix + duration + SECONDS_PER_DAY*2;
+			alarm[i].unix_alarm_set_for = unix_alarm + SECONDS_PER_DAY*2;
+			alarm[i].unix_start = unix_alarm + SECONDS_PER_DAY*2;
+			alarm[i].unix_finish = unix_alarm + duration + SECONDS_PER_DAY*2;
 		// in the middle of an alarm now
 		}else if (time.unix <= unix_alarm && time.unix >= unix_alarm){
 #ifdef start_alarm_half_way
-			alarm[i].unix_alarm_set_for = time.unix + duration;
-			alarm[i].unix_start = time.unix;
-			alarm[i].unix_finish = time.unix + duration;
+			alarm[i].unix_alarm_set_for = unix_alarm + duration;
+			alarm[i].unix_start = unix_alarm;
+			alarm[i].unix_finish = unix_alarm + duration;
 #else
-			alarm[i].unix_alarm_set_for = time.unix;
-			alarm[i].unix_start = time.unix;
-			alarm[i].unix_finish = time.unix + duration;
+			alarm[i].unix_alarm_set_for = unix_alarm;
+			alarm[i].unix_start = unix_alarm;
+			alarm[i].unix_finish = unix_alarm + duration;
 #endif
 		// alarm in future
 		}else{
-			alarm[i].unix_alarm_set_for = time.unix;
-			alarm[i].unix_start = time.unix;
-			alarm[i].unix_finish = time.unix + duration;
+			alarm[i].unix_alarm_set_for = unix_alarm;
+			alarm[i].unix_start = unix_alarm;
+			alarm[i].unix_finish = unix_alarm + duration;
 		}
 	}else if(type == EVERYOTHERDAY_S_TOMORROW){
-		alarm[i].unix_alarm_set_for = time.unix + SECONDS_PER_DAY;
-		alarm[i].unix_start = time.unix + SECONDS_PER_DAY;
-		alarm[i].unix_finish = time.unix + duration + SECONDS_PER_DAY;
+		alarm[i].unix_alarm_set_for = unix_alarm + SECONDS_PER_DAY;
+		alarm[i].unix_start = unix_alarm + SECONDS_PER_DAY;
+		alarm[i].unix_finish = unix_alarm + duration + SECONDS_PER_DAY;
 	}else if(type == WEEKLY){
-		// find first day to set alarm
-		uint8_t j;
-		for (j=NUM_DAYS_OF_WEEK*2;(j>=NUM_DAYS_OF_WEEK*2)&&(j<NUM_DAYS_OF_WEEK*3);j++){
-			if (dow_dom & (1 << (i-(NUM_DAYS_OF_WEEK*2)))){
-				j=j-(NUM_DAYS_OF_WEEK*2);
+		// calculate number of days alarm is set for
+		uint8_t number_of_alarm_is_set_for = 0;
+		for (uint8_t j = 0; j < NUM_DAYS_OF_WEEK; j++){
+			if (dow_dom & (1 << NUM_DAYS_OF_WEEK)){
+				number_of_alarm_is_set_for++;
 			}
 		}
-		// find next day to set alarm
-		uint8_t k;
-		for (k=NUM_DAYS_OF_WEEK*2+j;(k>=NUM_DAYS_OF_WEEK*2)&&(k<NUM_DAYS_OF_WEEK*3);k++){
-			if (dow_dom & (1 << (k-(NUM_DAYS_OF_WEEK*2)))){
-				k=k-(NUM_DAYS_OF_WEEK*2);
+
+		// find unix time for all alarms
+		for (uint8_t k = 0; k < number_of_alarm_is_set_for; k++){
+			for (uint8_t l = time.dow; ( l >= NUM_DAYS_OF_WEEK) || alarm_found[k]; l++){
+				if (dow_dom & (1 << l)){
+					unix_alarm_no[k] = unix_alarm + (SECONDS_PER_DAY*(k-time.dow));
+					alarm_found[k] = 1;
+				}
+			}
+			if (!alarm_found[k]){
+				for (uint8_t l = 0; ( l >= time.dow) || alarm_found[k]; l++){
+					if (dow_dom & (1 << l)){
+						unix_alarm_no[k] = unix_alarm + (SECONDS_PER_DAY*k);
+						alarm_found[k] = 1;
+					}
+				}
 			}
 		}
-#ifdef start_alarm_half_way
-		// Maybe do??
-#else
-		/////////////  TODO need to find next alarm to set --  may only set for once a week
-		if (time.dow == j && k){
-			// alarm set in the past so set alarm for tomorrow
-			if (time.unix >= (unix_alarm+duration*60)){
-				alarm[i].unix_alarm_set_for = time.unix + SECONDS_PER_DAY;
-				alarm[i].unix_start = time.unix + SECONDS_PER_DAY;
-				alarm[i].unix_finish = time.unix + duration + SECONDS_PER_DAY;
-			// in the middle of an alarm now
-			}else if (time.unix <= unix_alarm && time.unix >= unix_alarm){
-				alarm[i].unix_alarm_set_for = time.unix;
-				alarm[i].unix_start = time.unix;
-				alarm[i].unix_finish = time.unix + duration;
+
+
+		// alarm set in the past so set alarm for next alarm week
+		// if unix_alarm_no[0] has already been and gone unix_alarm_no[1] will definitely be tomorrow at the earliest
+		if (time.unix >= (unix_alarm_no[0]+duration*60)){
+			// if only one alarm set this week
+			if (number_of_alarm_is_set_for == 1){
+				alarm[i].unix_alarm_set_for = unix_alarm_no[0] + (SECONDS_PER_DAY*7);
+				alarm[i].unix_start = unix_alarm_no[0] + (SECONDS_PER_DAY*7);
+				alarm[i].unix_finish = unix_alarm_no[0] + duration + (SECONDS_PER_DAY*7);
+			// more than one alarm set for this weekly
+			}else{
+				alarm[i].unix_alarm_set_for = unix_alarm_no[1];
+				alarm[i].unix_start = unix_alarm_no[1];
+				alarm[i].unix_finish = unix_alarm_no[1];
 			}
-#endif
+
+
+
+
+
+
+
+
+
+
 		// alarm in future
 		}else{
-			if(time.dow < j){
-				alarm[i].unix_alarm_set_for = time.unix + SECONDS_PER_DAY*(j-time.dow);
-				alarm[i].unix_start = time.unix + SECONDS_PER_DAY*(j-time.dow);
-				alarm[i].unix_finish = time.unix + duration + SECONDS_PER_DAY*(j-time.dow);
+			if(time.dow < k){
+				alarm[i].unix_alarm_set_for = unix_alarm + SECONDS_PER_DAY*(j-time.dow);
+				alarm[i].unix_start = unix_alarm + SECONDS_PER_DAY*(j-time.dow);
+				alarm[i].unix_finish = unix_alarm + duration + SECONDS_PER_DAY*(j-time.dow);
 			}else{
-				alarm[i].unix_alarm_set_for = time.unix + SECONDS_PER_DAY*(NUM_DAYS_OF_WEEK-time.dow+j);
-				alarm[i].unix_start = time.unix + SECONDS_PER_DAY*(NUM_DAYS_OF_WEEK-time.dow+j);
-				alarm[i].unix_finish = time.unix + duration + SECONDS_PER_DAY*(NUM_DAYS_OF_WEEK-time.dow+j);
+				alarm[i].unix_alarm_set_for = unix_alarm + SECONDS_PER_DAY*(NUM_DAYS_OF_WEEK-time.dow+j);
+				alarm[i].unix_start = unix_alarm + SECONDS_PER_DAY*(NUM_DAYS_OF_WEEK-time.dow+j);
+				alarm[i].unix_finish = unix_alarm + duration + SECONDS_PER_DAY*(NUM_DAYS_OF_WEEK-time.dow+j);
 			}
 		}
 	}else if(type == FORTNIGHTLY){
@@ -631,10 +612,10 @@ void add_alarm(uint8_t month, uint8_t dom, uint8_t hh, uint8_t mm, uint16_t dura
 	set_next_alarm();
 }
 
-void set_next_alarm(){
+void set_next_alarm(void){
 
 }
 
-void sort_alarms(){
+void sort_alarms(void){
 
 }
