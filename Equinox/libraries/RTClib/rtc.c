@@ -545,9 +545,9 @@ void add_alarm(uint8_t month, uint8_t dom, uint8_t hh, uint8_t mm, uint16_t dura
 				number_of_alarm_is_set_for++;
 			}
 		}
-
-		// find unix time for all alarms
-		for (uint8_t k = 0; k < number_of_alarm_is_set_for; k++){
+		// find unix time for all alarms - only first 2 needed
+		uint8_t k;
+		for (k = 0; k < number_of_alarm_is_set_for; k++){
 			for (uint8_t l = time.dow; ( l >= NUM_DAYS_OF_WEEK) || alarm_found[k]; l++){
 				if (dow_dom & (1 << l)){
 					unix_alarm_no[k] = unix_alarm + (SECONDS_PER_DAY*(k-time.dow));
@@ -563,11 +563,9 @@ void add_alarm(uint8_t month, uint8_t dom, uint8_t hh, uint8_t mm, uint16_t dura
 				}
 			}
 		}
-
-
 		// alarm set in the past so set alarm for next alarm week
 		// if unix_alarm_no[0] has already been and gone unix_alarm_no[1] will definitely be tomorrow at the earliest
-		if (time.unix >= (unix_alarm_no[0]+duration*60)){
+		if (time.unix > (unix_alarm_no[0]+duration*60)){
 			// if only one alarm set this week
 			if (number_of_alarm_is_set_for == 1){
 				alarm[i].unix_alarm_set_for = unix_alarm_no[0] + (SECONDS_PER_DAY*7);
@@ -579,32 +577,83 @@ void add_alarm(uint8_t month, uint8_t dom, uint8_t hh, uint8_t mm, uint16_t dura
 				alarm[i].unix_start = unix_alarm_no[1];
 				alarm[i].unix_finish = unix_alarm_no[1];
 			}
-
-
-
-
-
-
-
-
-
-
+		// in the middle of an alarm now
+		}else if (time.unix <= unix_alarm_no[0] && time.unix >= unix_alarm_no[0]){
+#ifdef start_alarm_half_way
+			???
+#else
+			alarm[i].unix_alarm_set_for = unix_alarm_no[0];
+			alarm[i].unix_start = unix_alarm_no[0];
+			alarm[i].unix_finish = unix_alarm_no[0] + duration;
+#endif
 		// alarm in future
 		}else{
-			if(time.dow < k){
-				alarm[i].unix_alarm_set_for = unix_alarm + SECONDS_PER_DAY*(j-time.dow);
-				alarm[i].unix_start = unix_alarm + SECONDS_PER_DAY*(j-time.dow);
-				alarm[i].unix_finish = unix_alarm + duration + SECONDS_PER_DAY*(j-time.dow);
-			}else{
-				alarm[i].unix_alarm_set_for = unix_alarm + SECONDS_PER_DAY*(NUM_DAYS_OF_WEEK-time.dow+j);
-				alarm[i].unix_start = unix_alarm + SECONDS_PER_DAY*(NUM_DAYS_OF_WEEK-time.dow+j);
-				alarm[i].unix_finish = unix_alarm + duration + SECONDS_PER_DAY*(NUM_DAYS_OF_WEEK-time.dow+j);
-			}
+			alarm[i].unix_alarm_set_for = unix_alarm_no[0];
+			alarm[i].unix_start = unix_alarm_no[0];
+			alarm[i].unix_finish = unix_alarm_no[0] + duration;
 		}
 	}else if(type == FORTNIGHTLY){
+		// TODO - ignore below
 		alarm[i].unix_alarm_set_for = RTC_time_FindUnixtime(time.year, time.month, time.dom+1, hh, mm, 0);
 		alarm[i].unix_start = alarm[i].unix_alarm_set_for;
 		alarm[i].unix_finish = alarm[i].unix_alarm_set_for + duration;
+	// type == MONTHLY
+	}else{
+		// TODO finish this - copy/pasted weekkly - needs sorting
+		// calculate number of days alarm is set for
+		uint8_t number_of_alarm_is_set_for = 0;
+		for (uint8_t j = 0; j < NUM_MONTHS; j++){
+			if (dow_dom & (1 << NUM_MONTHS)){
+				number_of_alarm_is_set_for++;
+			}
+		}
+		// find unix time for all alarms - only first 2 needed
+		uint8_t k;
+		for (k = 0; k < number_of_alarm_is_set_for; k++){
+			for (uint8_t l = time.month; ( l >= NUM_MONTHS) || alarm_found[k]; l++){
+				if (dow_dom & (1 << l)){
+					unix_alarm_no[k] = unix_alarm + (SECONDS_PER_DAY*(k-time.month));
+					alarm_found[k] = 1;
+				}
+			}
+			if (!alarm_found[k]){
+				for (uint8_t l = 0; ( l >= time.month) || alarm_found[k]; l++){
+					if (dow_dom & (1 << l)){
+						unix_alarm_no[k] = unix_alarm + (SECONDS_PER_DAY*k);
+						alarm_found[k] = 1;
+					}
+				}
+			}
+		}
+		// alarm set in the past so set alarm for next alarm week
+		// if unix_alarm_no[0] has already been and gone unix_alarm_no[1] will definitely be tomorrow at the earliest
+		if (time.unix > (unix_alarm_no[0]+duration*60)){
+			// if only one alarm set this week
+			if (number_of_alarm_is_set_for == 1){
+				alarm[i].unix_alarm_set_for = unix_alarm_no[0] + (SECONDS_PER_DAY*7);
+				alarm[i].unix_start = unix_alarm_no[0] + (SECONDS_PER_DAY*7);
+				alarm[i].unix_finish = unix_alarm_no[0] + duration + (SECONDS_PER_DAY*7);
+			// more than one alarm set for this weekly
+			}else{
+				alarm[i].unix_alarm_set_for = unix_alarm_no[1];
+				alarm[i].unix_start = unix_alarm_no[1];
+				alarm[i].unix_finish = unix_alarm_no[1];
+			}
+		// in the middle of an alarm now
+		}else if (time.unix <= unix_alarm_no[0] && time.unix >= unix_alarm_no[0]){
+#ifdef start_alarm_half_way
+			???
+#else
+			alarm[i].unix_alarm_set_for = unix_alarm_no[0];
+			alarm[i].unix_start = unix_alarm_no[0];
+			alarm[i].unix_finish = unix_alarm_no[0] + duration;
+#endif
+		// alarm in future
+		}else{
+			alarm[i].unix_alarm_set_for = unix_alarm_no[0];
+			alarm[i].unix_start = unix_alarm_no[0];
+			alarm[i].unix_finish = unix_alarm_no[0] + duration;
+		}
 	}
 	alarm[i].enable_disabled = ENABLE;
 	alarm[i].type = type;
