@@ -11,6 +11,7 @@
 #include "lpc17xx_ssp.h"
 #include "lpc17xx_rit.h"
 #include "lpc17xx_gpdma.h"
+#include "lpc17xx_systick.h"
 
 /* For DMA controller */
 #define DMA_DATA_SIZE	65
@@ -35,6 +36,46 @@ volatile uint32_t NEXT_DELAY_TIME=1; //so RIT ms is not set to 0
 volatile uint32_t SEND_BIT=0;
 volatile uint32_t NEXT_SEND_BIT=0;
 
+/*
+uint32_t SEQ_BIT[] = {
+		BITORDER[0],
+		BITORDER[1],
+		BITORDER[2],
+		BITORDER[3],
+		BITORDER[4],
+		BITORDER[5],
+		BITORDER[6],
+		BITORDER[7],
+		BITORDER[8],
+		BITORDER[9],
+		BITORDER[10],
+		BITORDER[11],
+		BITORDER[12],
+		BITORDER[13],
+		BITORDER[14],
+		BITORDER[15]
+};
+uint32_t SEQ_TIME[] = {
+		BITTIME[BITORDER[0]],
+		BITTIME[BITORDER[1]],
+		BITTIME[BITORDER[2]],
+		BITTIME[BITORDER[3]],
+		BITTIME[BITORDER[4]],
+		BITTIME[BITORDER[5]],
+		BITTIME[BITORDER[6]],
+		BITTIME[BITORDER[7]],
+		BITTIME[BITORDER[8]],
+		BITTIME[BITORDER[9]],
+		BITTIME[BITORDER[10]],
+		BITTIME[BITORDER[11]],
+		BITTIME[BITORDER[12]],
+		BITTIME[BITORDER[13]],
+		BITTIME[BITORDER[14]],
+		BITTIME[BITORDER[15]]
+};
+*/
+
+
 const uint32_t BITORDER[] = { 0,1,2,3,4,5,6,7,7,6,5,4,3,2,1,0 };
 const uint32_t BITTIME[] = {
 		1, //Bit 0 time (LSB)
@@ -46,9 +87,26 @@ const uint32_t BITTIME[] = {
 		64, //Bit 6 time
 		128 //Bit 7 time (MSB)
 };
+
+#ifndef ni
+#define REGS 1 //12
+#define RGBS 5 //60
+#define LEDS RGBS*3
+#define BITS 8
+#else
+#define REGS 12
+#define RGBS 60
+#define LEDS RGBS*3
+#define BITS 8
+#endif
 uint32_t SEQ_BIT[16];
 uint32_t SEQ_TIME[16];
 
+uint16_t LED_RAW[LEDS];
+uint16_t LED_PRECALC[REGS][BITS];
+
+uint16_t BITINREG[LEDS];
+uint16_t WHICHREG[LEDS];
 
 
 void RIT_IRQHandler(void)
@@ -94,43 +152,37 @@ void DMA_IRQHandler (void)
 
 
 void LED_init(){
+	uint32_t tmp,tmp2;
 
-	uint32_t SEQ_BIT[] = {
-			BITORDER[0],
-			BITORDER[1],
-			BITORDER[2],
-			BITORDER[3],
-			BITORDER[4],
-			BITORDER[5],
-			BITORDER[6],
-			BITORDER[7],
-			BITORDER[8],
-			BITORDER[9],
-			BITORDER[10],
-			BITORDER[11],
-			BITORDER[12],
-			BITORDER[13],
-			BITORDER[14],
-			BITORDER[15]
-	};
-	uint32_t SEQ_TIME[] = {
-			BITTIME[BITORDER[0]],
-			BITTIME[BITORDER[1]],
-			BITTIME[BITORDER[2]],
-			BITTIME[BITORDER[3]],
-			BITTIME[BITORDER[4]],
-			BITTIME[BITORDER[5]],
-			BITTIME[BITORDER[6]],
-			BITTIME[BITORDER[7]],
-			BITTIME[BITORDER[8]],
-			BITTIME[BITORDER[9]],
-			BITTIME[BITORDER[10]],
-			BITTIME[BITORDER[11]],
-			BITTIME[BITORDER[12]],
-			BITTIME[BITORDER[13]],
-			BITTIME[BITORDER[14]],
-			BITTIME[BITORDER[15]]
-	};
+	for (tmp=0;tmp<16;tmp++)
+		SEQ_BIT[tmp] = BITORDER[tmp];
+
+	for (tmp=0;tmp<16;tmp++)
+		SEQ_TIME[tmp] = BITTIME[BITORDER[tmp]];
+
+	//clear led bits
+	for(uint32_t a=0; a<LEDS; a++){
+		LED_RAW[a]=0;
+//		_DBG("[INFO]-LED_RAW[a] = ");_DBH16(LED_RAW[a]);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+		for (uint32_t b=0;b<REGS;b++){
+			LED_PRECALC[b][a]=0;
+//			_DBG("[INFO]-LED_PRECALC[b][a] = ");_DBH16(LED_PRECALC[b][a]);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+		}
+	}
+	//which bit in register
+	tmp = 0;
+	for(uint32_t a=0; a<LEDS; a++){
+		BITINREG[a]=tmp++;
+		if (tmp == 15)
+			tmp = 0;
+	}
+	//which register
+	tmp = 0;
+	for(uint32_t a=0; a<LEDS; a++,tmp++){
+		WHICHREG[a]=tmp2;
+		if (tmp == 15)
+			tmp2++;
+	}
 
 	//TODO lsb first spi mode 0 0?
 
@@ -274,15 +326,40 @@ void LED_init(){
 
 void LED_test(){
 	uint16_t t, temp, send_data;
-	_DBG("[INFO]-LED_test()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//	_DBG("[INFO]-LED_test()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+
+//	_DBG("[INFO]-(1<<0)&1= ");_DBH((1<<0)&1);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//	_DBG("[INFO]-(1<<1)&2= ");_DBH((1<<1)&2);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//	_DBG("[INFO]-(1<<0)&1|(1<<1)&2= ");_DBH16((1<<0)&1|(1<<1)&2);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//	_DBG("[INFO]-0x1|0x10|0x100= ");_DBH16(0x1|0x10|0x100);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//	_DBG("[INFO]-0x1<<15= ");_DBH16(0x1<<15);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+
+	for(uint32_t t=0,e;t<16;t++){
+//		_DBH16(0x1<<e++);_DBG("\r\n");
+	}
 
 	FIO_ClearValue(LED_OE_PORT, LED_OE_BIT);//LED's on.
 
-	_DBG("[INFO]-Sending: ");
+	SetRGB(0,0xff,0,0);
+	SetRGB(1,0,0xf0,0);
+	SetRGB(2,0,0,0x0f);
+	calulateLEDMIBAMBits();
+
+	//print
+	for(uint32_t a=0; a<LEDS; a++){
+//		_DBG("[INFO]-LED_RAW[a] = ");_DBH(LED_RAW[a]);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+	}
+	for (uint32_t b=0;b<REGS;b++){
+		for (uint32_t a=0;a<BITS;a++){
+			_DBG("[INFO]-LED_PRECALC[b][a] = ");_DBH16(LED_PRECALC[b][a]);_DBG("\r\n");//;_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+		}
+	}
+
+//	_DBG("[INFO]-Sending: ");
 //	while(1){
 	for(temp=0; temp<3; temp++){
 		send_data = 1<<temp;
-		_DBH16(send_data);_DBG(", ");
+//		_DBH16(send_data);_DBG(", ");
 
 		SSP_SendData(LPC_SSP1, send_data);
 		while(!SSP_GetStatus(LPC_SSP1,SSP_STAT_BUSY));//Wait if TX buffer full
@@ -298,6 +375,142 @@ void LED_test(){
 		}
 	}
 //	}
-	_DBG("\r\n");
-
+//	_DBG("\r\n");
 }
+
+void SetRGB(uint8_t group, uint8_t v0, uint8_t v1, uint8_t v2){
+//	if(group<0)
+//		group = m_amountOfOutputs + group;
+	if(group==-1)
+		group = 59;
+	if(group==-2)
+		group = 58;
+	if(group==-3)
+		group = 57;
+	if(group==-4)
+		group = 56;
+	if(group==-5)
+		group = 55;
+	if(group==-6)
+		group = 54;
+//	if(IsValidPin(group*3+2) ){
+	LED_RAW[group*3]=v0;
+	LED_RAW[group*3+1]=v1;
+	LED_RAW[group*3+2]=v2;
+//	LED_RAW[group*3]=0xff;
+//	LED_RAW[group*3+1]=0xff;
+//	LED_RAW[group*3+2]=0xff;
+//	}
+}
+
+//LED_PRECALC[reg][bit] = (0x01<<bit) & LED_RAW[led];
+
+void calulateLEDMIBAMBits(){
+	uint32_t led,bitinreg,start,end;
+//	start=sys_millis();
+//	for(uint32_t bit=0; bit<1; bit++){
+	for(uint32_t bit=0; bit<BITS; bit++){
+//	uint32_t bit=7;
+		led=0;
+		for(uint32_t reg=0; reg<REGS; reg++){
+			bitinreg=0;
+/*
+			_DBG("[INFO]-LED_RAW[0]= ");_DBH(LED_RAW[0]);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+			_DBG("[INFO]-bitinreg= ");_DBH(bitinreg);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+			_DBG("[INFO]-(LED_RAW[led++]<<bitinreg)&bitinreg++= ");_DBH16((LED_RAW[led++]<<bitinreg)&(1<<bitinreg++));_DBG("\r\n");//;_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+			_DBG("[INFO]-(LED_RAW[led++]<<bitinreg)&bitinreg++= ");_DBH16((LED_RAW[led++]<<bitinreg)&(1<<bitinreg++));_DBG("\r\n");//;_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+			_DBG("[INFO]-(LED_RAW[led++]<<bitinreg)&bitinreg++= ");_DBH16((LED_RAW[led++]<<bitinreg)&(1<<bitinreg++));_DBG("\r\n");//;_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+			_DBG("[INFO]-(LED_RAW[led++]<<bitinreg)&bitinreg++= ");_DBH16((LED_RAW[led++]<<bitinreg)&(1<<bitinreg++));_DBG("\r\n");//;_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+			_DBG("[INFO]-(LED_RAW[led++]<<bitinreg)&bitinreg++= ");_DBH16((LED_RAW[led++]<<bitinreg)&(1<<bitinreg++));_DBG("\r\n");//;_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+			_DBG("[INFO]-(LED_RAW[led++]<<bitinreg)&bitinreg++= ");_DBH16((LED_RAW[led++]<<bitinreg)&(1<<bitinreg++));_DBG("\r\n");//;_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+			_DBG("[INFO]-(LED_RAW[led++]<<bitinreg)&bitinreg++= ");_DBH16((LED_RAW[led++]<<bitinreg)&(1<<bitinreg++));_DBG("\r\n");//;_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+			_DBG("[INFO]-(LED_RAW[led++]<<bitinreg)&bitinreg++= ");_DBH16((LED_RAW[led++]<<bitinreg)&(1<<bitinreg++));_DBG("\r\n");//;_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+			_DBG("[INFO]-(LED_RAW[led++]<<bitinreg)&bitinreg++= ");_DBH16((LED_RAW[led++]<<bitinreg)&(1<<bitinreg++));_DBG("\r\n");//;_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+			_DBG("[INFO]-(LED_RAW[led++]<<bitinreg)&bitinreg++= ");_DBH16((LED_RAW[led++]<<bitinreg)&(1<<bitinreg++));_DBG("\r\n");//;_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+			_DBG("[INFO]-(LED_RAW[led++]<<bitinreg)&bitinreg++= ");_DBH16((LED_RAW[led++]<<bitinreg)&(1<<bitinreg++));_DBG("\r\n");//;_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+			_DBG("[INFO]-(LED_RAW[led++]<<bitinreg)&bitinreg++= ");_DBH16((LED_RAW[led++]<<bitinreg)&(1<<bitinreg++));_DBG("\r\n");//;_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+			_DBG("[INFO]-(LED_RAW[led++]<<bitinreg)&bitinreg++= ");_DBH16((LED_RAW[led++]<<bitinreg)&(1<<bitinreg++));_DBG("\r\n");//;_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+			_DBG("[INFO]-(LED_RAW[led++]<<bitinreg)&bitinreg++= ");_DBH16((LED_RAW[led++]<<bitinreg)&(1<<bitinreg++));_DBG("\r\n");//;_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+			_DBG("[INFO]-(LED_RAW[led++]<<bitinreg)&bitinreg++= ");_DBH16((LED_RAW[led++]<<bitinreg)&(1<<bitinreg++));_DBG("\r\n");//;_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+*/
+///*
+//			bitinreg=0;
+//			for (uint_8 rbit=15; rbit<16; rbit++)
+//			LED_PRECALC[reg][bit] &= (0x01<<rbit) & LED_RAW[led++]<<rbit;
+
+/*
+			for(uint8_t tmp=0; tmp<BITS; tmp++){
+				led=0;
+				_DBG("[INFO]-led=");_DBH(led);_DBG("\r\n");
+				_DBG("[INFO]-LED_RAW[led]=");_DBH(LED_RAW[led]);_DBG("\r\n");
+				_DBG("[INFO]-tmp=");_DBD(tmp);_DBG("-");_DBH16((LED_RAW[led++]<<tmp)&(1<<tmp));_DBG("\r\n");
+			}
+*/
+			uint32_t tt[16],l;
+			for(uint32_t t=0;t<16;t++){
+				l=LED_RAW[led]>>(bit);
+//				_DBH16(l);_DBG("=led=");_DBG("\r\n");
+//				_DBH16(1<<bitinreg);_DBG("=mask=");_DBG("\r\n");
+				tt[t] = (l<<bitinreg)&(1<<bitinreg);
+				bitinreg++;
+				led++;
+			}
+			LED_PRECALC[reg][bit] =
+					tt[0] |
+					tt[1] |
+					tt[2] |
+					tt[3] |
+					tt[4] |
+					tt[5] |
+					tt[6] |
+					tt[7] |
+					tt[8] |
+					tt[9] |
+					tt[10] |
+					tt[11] |
+					tt[12] |
+					tt[13] |
+					tt[14];
+//			_DBH16(LED_PRECALC[reg][bit]);_DBG("=LED_PRECALC=");_DBG("\r\n");
+/*
+			LED_PRECALC[reg][bit] =
+					(LED_RAW[led++]<<bitinreg)&(1<<bitinreg++) |
+					(LED_RAW[led++]<<bitinreg)&(1<<bitinreg++) |
+					(LED_RAW[led++]<<bitinreg)&(1<<bitinreg++) |
+					(LED_RAW[led++]<<bitinreg)&(1<<bitinreg++) |
+					(LED_RAW[led++]<<bitinreg)&(1<<bitinreg++) |
+					(LED_RAW[led++]<<bitinreg)&(1<<bitinreg++) |
+					(LED_RAW[led++]<<bitinreg)&(1<<bitinreg++) |
+					(LED_RAW[led++]<<bitinreg)&(1<<bitinreg++) |
+					(LED_RAW[led++]<<bitinreg)&(1<<bitinreg++) |
+					(LED_RAW[led++]<<bitinreg)&(1<<bitinreg++) |
+					(LED_RAW[led++]<<bitinreg)&(1<<bitinreg++) |
+					(LED_RAW[led++]<<bitinreg)&(1<<bitinreg++) |
+					(LED_RAW[led++]<<bitinreg)&(1<<bitinreg++) |
+					(LED_RAW[led++]<<bitinreg)&(1<<bitinreg++);
+			_DBG("[INFO]-led=");_DBH(led);_DBG("\r\n");
+			_DBG("[INFO]-bitinreg=");_DBH(bitinreg);_DBG("\r\n");
+*/
+
+//*/
+		}
+	}
+	//	UPDATE_REQUIRED=true;
+//	end=sys_millis();
+//	_DBG("[INFO]-MIBAM Precal time = ");_DBD32(end-start);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+}
+/*
+static inline void calulateLEDMIBAMBit(uint8 LED){
+	uint8_t bitinreg = BITINREG[LED];
+	uint8_t whichreg = WHICHREG[LED];
+//	for(uint32_t bits=0; bit<BITS; bit++){
+	LED_PRECALC[whichreg][bit] = LED_RAW[led++]<<bitinreg &
+									LED_RAW[led++]<<bitinreg &;
+//	}
+}
+*/
+/*
+for(uint32_t led=0; led<LEDS; led++)
+for(uint32_t bit=0; bit<BITS; bit++)
+for(uint32_t reg=0; reg<REGS; reg++)
+*/
