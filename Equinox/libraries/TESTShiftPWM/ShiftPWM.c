@@ -13,6 +13,8 @@
 #include "lpc17xx_gpdma.h"
 #include "lpc17xx_systick.h"
 
+#define end_ _DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n")
+
 /* For DMA controller */
 #define DMA_DATA_SIZE	65
 
@@ -30,11 +32,11 @@ uint8_t dma_dst[DMA_DATA_SIZE];
 
 #define MAX_BAM_BITS 16
 
-volatile uint32_t SENDSEQ=0;
-volatile uint32_t DELAY_TIME=1; //so RIT ms is not set to 0
-volatile uint32_t NEXT_DELAY_TIME=1; //so RIT ms is not set to 0
-volatile uint32_t SEND_BIT=0;
-volatile uint32_t NEXT_SEND_BIT=0;
+volatile uint32_t SENDSEQ;
+volatile uint32_t DELAY_TIME; //so RIT ms is not set to 0
+volatile uint32_t NEXT_DELAY_TIME; //so RIT ms is not set to 0
+volatile uint32_t SEND_BIT;
+volatile uint32_t NEXT_SEND_BIT;
 
 /*
 uint32_t SEQ_BIT[] = {
@@ -77,15 +79,17 @@ uint32_t SEQ_TIME[] = {
 
 
 const uint32_t BITORDER[] = { 0,1,2,3,4,5,6,7,7,6,5,4,3,2,1,0 };
+
+#define START_TIME 10 //lowest with coms 5
 const uint32_t BITTIME[] = {
-		1, //Bit 0 time (LSB)
-		2, //Bit 1 time
-		4, //Bit 2 time
-		8, //Bit 3 time
-		16, //Bit 4 time
-		32, //Bit 5 time
-		64, //Bit 6 time
-		128 //Bit 7 time (MSB)
+		START_TIME*1, //Bit 0 time (LSB)
+		START_TIME*2, //Bit 1 time
+		START_TIME*4, //Bit 2 time
+		START_TIME*8, //Bit 3 time
+		START_TIME*16, //Bit 4 time
+		START_TIME*32, //Bit 5 time
+		START_TIME*64, //Bit 6 time
+		START_TIME*128 //Bit 7 time (MSB)
 };
 
 #ifndef ni
@@ -103,32 +107,70 @@ uint32_t SEQ_BIT[16];
 uint32_t SEQ_TIME[16];
 
 uint16_t LED_RAW[LEDS];
-uint16_t LED_PRECALC[REGS][BITS];
+uint16_t LED_PRECALC[REGS+1][BITS];
 
-uint16_t BITINREG[LEDS];
-uint16_t WHICHREG[LEDS];
+//uint16_t BITINREG[LEDS];
+//uint16_t WHICHREG[LEDS];
+uint32_t LAST_MS;
+uint32_t TOTAL_MS;
 
 
-void RIT_IRQHandler(void)
-{
+void RIT_IRQHandler(void){
+	char tempstr[50];
 	RIT_GetIntStatus(LPC_RIT); //call this to clear interrupt flag
+#if 1
+	TOTAL_MS=sys_millis()-LAST_MS;
+	LAST_MS=sys_millis();
 
+	_DBG("[INFO]-RIT No=");_DBD(SENDSEQ);
+	_DBG(" BIT=");_DBD(SEND_BIT);
+	_DBG(" NXT=");_DBD16(DELAY_TIME);
+//	_DBG(" CALC=");_DBD16(TOTAL_MS);;
+	_DBG(" TX=");_DBH16(LED_PRECALC[0][SEND_BIT]);_DBG("\r\n");
+#endif
 	//Set bit/time
 	DELAY_TIME=NEXT_DELAY_TIME;
 	SEND_BIT=NEXT_SEND_BIT;
 
 	//Retart sequence if required
 	SENDSEQ+=1;
-	if (SENDSEQ>MAX_BAM_BITS)
+	if (SENDSEQ>=MAX_BAM_BITS)
 		SENDSEQ=0;
 
 	//Setup new timing for next RIT
 	NEXT_DELAY_TIME=SEQ_TIME[SENDSEQ];
 	NEXT_SEND_BIT=SEQ_BIT[SENDSEQ];
 
+#if 0
+	_DBG("[INFO]-RIT_IRQHandler SENDSEQ= ");_DBD(SENDSEQ);end_;
+	_DBG("[INFO]-RIT_IRQHandler DELAY_TIME= ");_DBD32(DELAY_TIME);end_;
+	_DBG("[INFO]-RIT_IRQHandler SEQ_TIME[SENDSEQ]= ");_DBD32(SEQ_TIME[SENDSEQ]);end_;
+	_DBG("[INFO]-RIT_IRQHandler SEQ_BIT[SENDSEQ]= ");_DBD32(SEQ_BIT[SENDSEQ]);end_;
+#endif
+
 	RIT_TimerConfig(LPC_RIT,DELAY_TIME);
 
-//	send_bits();
+
+	for(uint32_t reg=0; reg<REGS;reg++){
+//		_DBG("SEND_BIT=");_DBD(SEND_BIT);_DBG("\r\n");
+//		sprintf(tempstr,"%b %u %e\r\n",LED_PRECALC[reg][SEND_BIT],LED_PRECALC[reg][SEND_BIT],LED_PRECALC[reg][SEND_BIT],LED_PRECALC[reg][SEND_BIT],LED_PRECALC[reg][SEND_BIT]);
+//		_DBG(tempstr);
+//		_DBH16(LED_PRECALC[reg][SEND_BIT]);_DBG("\r\n");
+		SSP_SendData(LPC_SSP1, LED_PRECALC[reg][SEND_BIT]);
+
+		while(!SSP_GetStatus(LPC_SSP1,SSP_STAT_BUSY));//Wait if TX buffer full
+
+		FIO_SetValue(LED_LE_PORT, LED_LE_BIT);
+		FIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
+#if 0
+		if(1)
+			delay_ms(100);
+		else {
+			_DBG("[INPUT]*press any key*");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+			t = _DG;//wait for key press
+		}
+#endif
+	}
 }
 
 void DMA_IRQHandler (void)
@@ -154,11 +196,21 @@ void DMA_IRQHandler (void)
 void LED_init(){
 	uint32_t tmp,tmp2;
 
-	for (tmp=0;tmp<16;tmp++)
-		SEQ_BIT[tmp] = BITORDER[tmp];
+	SENDSEQ=0;
+	DELAY_TIME=1; //so RIT ms is not set to 0
+	NEXT_DELAY_TIME=1; //so RIT ms is not set to 0
+	SEND_BIT=0;
+	NEXT_SEND_BIT=0;
 
-	for (tmp=0;tmp<16;tmp++)
+	for (tmp=0;tmp<MAX_BAM_BITS;tmp++){
+		SEQ_BIT[tmp] = BITORDER[tmp];
+//		_DBG("[INFO]-SEQ_BIT[tmp] = ");_DBD32(SEQ_BIT[tmp]);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+	}
+
+	for (tmp=0;tmp<MAX_BAM_BITS;tmp++){
 		SEQ_TIME[tmp] = BITTIME[BITORDER[tmp]];
+//		_DBG("[INFO]-SEQ_TIME[tmp] = ");_DBD32(SEQ_TIME[tmp]);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+	}
 
 	//clear led bits
 	for(uint32_t a=0; a<LEDS; a++){
@@ -169,6 +221,7 @@ void LED_init(){
 //			_DBG("[INFO]-LED_PRECALC[b][a] = ");_DBH16(LED_PRECALC[b][a]);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 		}
 	}
+#if 0
 	//which bit in register
 	tmp = 0;
 	for(uint32_t a=0; a<LEDS; a++){
@@ -183,7 +236,7 @@ void LED_init(){
 		if (tmp == 15)
 			tmp2++;
 	}
-
+#endif
 	//TODO lsb first spi mode 0 0?
 
 	GPIO_SetDir(LED_OE_PORT, LED_OE_BIT, 1);
@@ -243,17 +296,20 @@ void LED_init(){
 	/* Enable SSP peripheral */
 	SSP_Cmd(LPC_SSP1, ENABLE);//TODO: change to LPC_SSP0 after debug
 
-//	RIT_Init(LPC_RIT);
+	RIT_Init(LPC_RIT);
 	/* Configure time_interval for RIT
 	 * In this case: time_interval = 1000 ms = 1s
 	 * So, RIT will generate interrupt each 1s
 	 */
-//	RIT_TimerConfig(LPC_RIT,DELAY_TIME);
+    NVIC_DisableIRQ(RIT_IRQn);
+    NVIC_SetPriority(RIT_IRQn, 8); // set according to main.c
+	RIT_TimerConfig(LPC_RIT,DELAY_TIME);
 
 //	_DBG("The time interval is: ");
 //	_DBD32(DELAY_TIME); _DBG_(" millisecond..");
 
-//	NVIC_EnableIRQ(RIT_IRQn);
+
+	NVIC_EnableIRQ(RIT_IRQn);
 
 
 	GPDMA_Channel_CFG_Type GPDMACfg;
@@ -326,6 +382,7 @@ void LED_init(){
 
 void LED_test(){
 	uint16_t t, temp, send_data;
+/*
 //	_DBG("[INFO]-LED_test()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
 //	_DBG("[INFO]-(1<<0)&1= ");_DBH((1<<0)&1);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
@@ -335,9 +392,9 @@ void LED_test(){
 //	_DBG("[INFO]-0x1<<15= ");_DBH16(0x1<<15);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
 	for(uint32_t t=0,e;t<16;t++){
-//		_DBH16(0x1<<e++);_DBG("\r\n");
+		_DBH16(0x1<<e++);_DBG("\r\n");
 	}
-
+*/
 	FIO_ClearValue(LED_OE_PORT, LED_OE_BIT);//LED's on.
 
 	SetRGB(0,0xff,0,0);
@@ -345,16 +402,17 @@ void LED_test(){
 	SetRGB(2,0,0,0x0f);
 	calulateLEDMIBAMBits();
 
+#if 0
+
 	//print
 	for(uint32_t a=0; a<LEDS; a++){
 //		_DBG("[INFO]-LED_RAW[a] = ");_DBH(LED_RAW[a]);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 	}
 	for (uint32_t b=0;b<REGS;b++){
 		for (uint32_t a=0;a<BITS;a++){
-			_DBG("[INFO]-LED_PRECALC[b][a] = ");_DBH16(LED_PRECALC[b][a]);_DBG("\r\n");//;_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//			_DBG("[INFO]-LED_PRECALC[b][a] = ");_DBH16(LED_PRECALC[b][a]);_DBG("\r\n");//;_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 		}
 	}
-
 //	_DBG("[INFO]-Sending: ");
 //	while(1){
 	for(temp=0; temp<3; temp++){
@@ -374,8 +432,8 @@ void LED_test(){
 			t = _DG;//wait for key press
 		}
 	}
-//	}
-//	_DBG("\r\n");
+	_DBG("\r\n");
+#endif
 }
 
 void SetRGB(uint8_t group, uint8_t v0, uint8_t v1, uint8_t v2){
@@ -407,6 +465,7 @@ void SetRGB(uint8_t group, uint8_t v0, uint8_t v1, uint8_t v2){
 
 void calulateLEDMIBAMBits(){
 	uint32_t led,bitinreg,start,end;
+
 //	start=sys_millis();
 //	for(uint32_t bit=0; bit<1; bit++){
 	for(uint32_t bit=0; bit<BITS; bit++){
