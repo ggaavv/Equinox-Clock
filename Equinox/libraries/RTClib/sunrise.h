@@ -23,6 +23,6 @@ typedef enum {
 #define rd 57.295779513082322
 
 // Sunrise returns minutes past 00:00:00 for the day
-int Sunrise(unsigned char month, unsigned char  day, int rs);
+int Sunrise_Compute(unsigned char month, unsigned char  day, int rs);
 
 #endif

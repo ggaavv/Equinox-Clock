@@ -186,7 +186,6 @@ SRC = \
 	$(APPLIBDIR)/R2C2/serial.c \
 	$(APPLIBDIR)/R2C2/usb.c \
 	$(APPLIBDIR)/R2C2/serial_fifo.c \
-	$(APPLIBDIR)/RTClib/rtc.c \
 	$(APPLIBDIR)/R2C2/uart.c \
 	$(APPLIBDIR)/R2C2/sersendf.c \
 	$(APPLIBDIR)/R2C2/sermsg.c \
@@ -225,6 +224,7 @@ SRCARM =
 CPPSRC = \
 	$(APPLIBDIR)/WiShield/WiServer.cpp \
 	$(APPLIBDIR)/WiShield/Print.cpp \
+	$(APPLIBDIR)/RTClib/rtc.cpp \
 	Webpage.cpp \
 	Wifi.cpp \
 	Main.cpp

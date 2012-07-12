@@ -5,10 +5,13 @@
  *      Author: gavin
  */
 
-#include "debug_frmwrk.h"
-#include "lpc17xx_rtc.h"
+
+extern "C" {
+	#include "debug_frmwrk.h"
+	#include "lpc17xx_rtc.h"
+	#include "sunrise.h"
+}
 #include "rtc.h"
-#include "sunrise.h"
 #include <stdio.h>
 
 #define DSTEurope

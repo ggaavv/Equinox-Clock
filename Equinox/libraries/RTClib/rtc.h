@@ -8,8 +8,9 @@
 #ifndef RTC_H_
 #define RTC_H_
 
-
-#include "lpc_types.h"
+extern "C" {
+	#include "lpc_types.h"
+}
 
 typedef enum {
 	NIGHT,
@@ -31,7 +32,7 @@ typedef enum {
 
 #define MAX_NO_ALARMS  10
 struct {
-	Bool enable_disabled;	// Enable/Disable,
+	FunctionalState enable_disabled;	// Enable/Disable,
 	uint32_t unix_alarm_set_for;	// Unix start time - to sort by
 	uint32_t unix_start;	// Unix start time
 	uint32_t unix_finish;	// Unix finish time

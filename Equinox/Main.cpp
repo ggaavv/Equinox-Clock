@@ -28,6 +28,7 @@
 */
 
 #include "Wifi.h"
+#include "rtc.h"
 
 extern "C" {
 	#include "g2100.h"
@@ -41,7 +42,6 @@ extern "C" {
 	#include "sys_timer.h"
 	#include "serial.h"
 	#include "ShiftPWM.h"
-	#include "rtc.h"
 }
 
 #define USER_FLASH_START 0x3000 // For USB bootloader

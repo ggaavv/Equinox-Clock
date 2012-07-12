@@ -7,9 +7,9 @@
 
 extern "C" {
 	#include "debug_frmwrk.h"
-	#include "rtc.h"
 }
 
+#include "rtc.h"
 #include "Webpage.h"
 #include "WiServer.h"
 #include <stdio.h>
