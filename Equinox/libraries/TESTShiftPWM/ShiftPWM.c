@@ -9,7 +9,7 @@
 #include "lpc17xx_pinsel.h"
 #include "lpc17xx_gpio.h"
 #include "lpc17xx_ssp.h"
-#include "lpc17xx_rit.h"
+#include "lpc17xx_rit_us.h"
 #include "lpc17xx_gpdma.h"
 #include "lpc17xx_systick.h"
 
@@ -80,7 +80,7 @@ uint32_t SEQ_TIME[] = {
 
 const uint32_t BITORDER[] = { 0,1,2,3,4,5,6,7,7,6,5,4,3,2,1,0 };
 
-#define START_TIME 10 //lowest with coms 5
+#define START_TIME 8*100 //lowest with coms 5
 const uint32_t BITTIME[] = {
 		START_TIME*1, //Bit 0 time (LSB)
 		START_TIME*2, //Bit 1 time
@@ -92,7 +92,7 @@ const uint32_t BITTIME[] = {
 		START_TIME*128 //Bit 7 time (MSB)
 };
 
-#ifndef ni
+#if 1
 #define REGS 1 //12
 #define RGBS 5 //60
 #define LEDS RGBS*3
@@ -106,8 +106,8 @@ const uint32_t BITTIME[] = {
 uint32_t SEQ_BIT[16];
 uint32_t SEQ_TIME[16];
 
-uint16_t LED_RAW[LEDS];
-uint16_t LED_PRECALC[REGS+1][BITS];
+uint16_t LED_RAW[LEDS*20];
+uint16_t LED_PRECALC[REGS*20][BITS];
 
 //uint16_t BITINREG[LEDS];
 //uint16_t WHICHREG[LEDS];
@@ -116,15 +116,17 @@ uint32_t TOTAL_MS;
 
 
 void RIT_IRQHandler(void){
-	char tempstr[50];
+//	char tempstr[50];
 	RIT_GetIntStatus(LPC_RIT); //call this to clear interrupt flag
-#if 1
-	TOTAL_MS=sys_millis()-LAST_MS;
-	LAST_MS=sys_millis();
+	FIO_SetValue(LED_LE_PORT, LED_LE_BIT);
+	FIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
+#if 0
+//	TOTAL_MS=sys_millis()-LAST_MS;
+//	LAST_MS=sys_millis();
 
 	_DBG("[INFO]-RIT No=");_DBD(SENDSEQ);
 	_DBG(" BIT=");_DBD(SEND_BIT);
-	_DBG(" NXT=");_DBD16(DELAY_TIME);
+	_DBG(" NXT=");_DBD32(DELAY_TIME);
 //	_DBG(" CALC=");_DBD16(TOTAL_MS);;
 	_DBG(" TX=");_DBH16(LED_PRECALC[0][SEND_BIT]);_DBG("\r\n");
 #endif
@@ -159,9 +161,10 @@ void RIT_IRQHandler(void){
 		SSP_SendData(LPC_SSP1, LED_PRECALC[reg][SEND_BIT]);
 
 		while(!SSP_GetStatus(LPC_SSP1,SSP_STAT_BUSY));//Wait if TX buffer full
+		_DBG(" TX=");_DBH16(LED_PRECALC[reg][SEND_BIT]);
 
-		FIO_SetValue(LED_LE_PORT, LED_LE_BIT);
-		FIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
+//		FIO_SetValue(LED_LE_PORT, LED_LE_BIT);
+//		FIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
 #if 0
 		if(1)
 			delay_ms(100);
@@ -171,6 +174,7 @@ void RIT_IRQHandler(void){
 		}
 #endif
 	}
+	_DBG("\r\n");
 }
 
 void DMA_IRQHandler (void)
@@ -201,6 +205,10 @@ void LED_init(){
 	NEXT_DELAY_TIME=1; //so RIT ms is not set to 0
 	SEND_BIT=0;
 	NEXT_SEND_BIT=0;
+
+//	for (tmp=0;tmp<BITS;tmp++){
+//		BITTIME[tmp]=tmp2*(tmp*2);
+//	}
 
 	for (tmp=0;tmp<MAX_BAM_BITS;tmp++){
 		SEQ_BIT[tmp] = BITORDER[tmp];
