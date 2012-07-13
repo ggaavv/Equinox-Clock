@@ -12,6 +12,7 @@
 #include "lpc17xx_rit_us.h"
 #include "lpc17xx_gpdma.h"
 #include "lpc17xx_systick.h"
+#include "lpc17xx_timer.h"
 
 #define end_ _DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n")
 
@@ -80,7 +81,7 @@ uint32_t SEQ_TIME[] = {
 
 const uint32_t BITORDER[] = { 0,1,2,3,4,5,6,7,7,6,5,4,3,2,1,0 };
 
-#define START_TIME 32*2 //lowest with coms 5
+#define START_TIME 32*10 //lowest with coms 5
 //#define START_TIME 32*100 //lowest with coms 5
 const uint32_t BITTIME[] = {
 		START_TIME*1, //Bit 0 time (LSB)
@@ -93,7 +94,7 @@ const uint32_t BITTIME[] = {
 		START_TIME*128 //Bit 7 time (MSB)
 };
 
-#if 0
+#if 1
 #define REGS 1 //12
 #define RGBS 5 //60
 #define LEDS RGBS*3
@@ -104,93 +105,86 @@ const uint32_t BITTIME[] = {
 #define LEDS RGBS*3
 #define BITS 8
 #endif
-uint32_t SEQ_BIT[16];
+uint16_t SEQ_BIT[16];
 uint32_t SEQ_TIME[16];
 
-uint16_t LED_RAW[LEDS*20];
-uint16_t LED_PRECALC[REGS*20][BITS];
+uint16_t LED_RAW[LEDS];
+uint16_t LED_PRECALC[REGS*3][BITS];//TODO check why lockup occurs with values less than *3??
 
 //uint16_t BITINREG[LEDS];
 //uint16_t WHICHREG[LEDS];
-uint32_t LAST_MS;
-uint32_t TOTAL_MS;
+//uint32_t LAST_MS;
+//uint32_t TOTAL_MS;
 uint32_t TOG;
 
+void TIMER0_IRQHandler(void){
 
-void RIT_IRQHandler(void){
-//	char tempstr[50];
-	RIT_GetIntStatus(LPC_RIT); //call this to clear interrupt flag
-	if(TOG==1){
-		FIO_SetValue(LED_LE_PORT, LED_LE_BIT);
-		TOG=0;
-	}
-	else{
-		FIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
-		TOG=1;
-	}
-
-	return;
+//	_DBG_("Match interrupt occur...1");
+	if (TIM_GetIntStatus(LPC_TIM0, TIM_MR0_INT)== SET){
+//		_DBG("[");
 #if 0
-//	TOTAL_MS=sys_millis()-LAST_MS;
-//	LAST_MS=sys_millis();
+//		char tempstr[50];
 
-	_DBG("[INFO]-RIT No=");_DBD(SENDSEQ);
-	_DBG(" BIT=");_DBD(SEND_BIT);
-	_DBG(" NXT=");_DBD32(DELAY_TIME);
-//	_DBG(" CALC=");_DBD16(TOTAL_MS);;
-	_DBG(" TX=");_DBH16(LED_PRECALC[0][SEND_BIT]);_DBG("\r\n");
-#endif
-	//Set bit/time
-	DELAY_TIME=NEXT_DELAY_TIME;
-	SEND_BIT=NEXT_SEND_BIT;
-
-	//Retart sequence if required
-	SENDSEQ+=1;
-//	if (SENDSEQ>=MAX_BAM_BITS)
-//		SENDSEQ=0;
-	SENDSEQ=0;
-
-	//Setup new timing for next RIT
-	NEXT_DELAY_TIME=SEQ_TIME[SENDSEQ];
-	NEXT_SEND_BIT=SEQ_BIT[SENDSEQ];
-
-#if 0
-	_DBG("[INFO]-RIT_IRQHandler SENDSEQ= ");_DBD(SENDSEQ);end_;
-	_DBG("[INFO]-RIT_IRQHandler DELAY_TIME= ");_DBD32(DELAY_TIME);end_;
-	_DBG("[INFO]-RIT_IRQHandler SEQ_TIME[SENDSEQ]= ");_DBD32(SEQ_TIME[SENDSEQ]);end_;
-	_DBG("[INFO]-RIT_IRQHandler SEQ_BIT[SENDSEQ]= ");_DBD32(SEQ_BIT[SENDSEQ]);end_;
-#endif
-
-//	RIT_TimerConfig(LPC_RIT,DELAY_TIME);
-	RIT_TimerConfig(LPC_RIT,64);
-
-
-	for(uint32_t reg=0; reg<REGS;reg++){
-//		_DBG("SEND_BIT=");_DBD(SEND_BIT);_DBG("\r\n");
-//		sprintf(tempstr,"%b %u %e\r\n",LED_PRECALC[reg][SEND_BIT],LED_PRECALC[reg][SEND_BIT],LED_PRECALC[reg][SEND_BIT],LED_PRECALC[reg][SEND_BIT],LED_PRECALC[reg][SEND_BIT]);
-//		_DBG(tempstr);
-//		_DBH16(LED_PRECALC[reg][SEND_BIT]);_DBG("\r\n");
-		SSP_SendData(LPC_SSP1, LED_PRECALC[reg][SEND_BIT]);
-
-		while(!SSP_GetStatus(LPC_SSP1,SSP_STAT_BUSY));//Wait if TX buffer full
-//		_DBG(" TX=");_DBH16(LED_PRECALC[reg][SEND_BIT]);
-
-//		FIO_SetValue(LED_LE_PORT, LED_LE_BIT);
-//		FIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
-#if 0
-		if(1)
-			delay_ms(100);
-		else {
-			_DBG("[INPUT]*press any key*");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-			t = _DG;//wait for key press
+		if(TOG==1){
+			FIO_SetValue(LED_LE_PORT, LED_LE_BIT);
+			TOG=0;
 		}
+		else{
+			FIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
+			TOG=1;
+		}
+		return;
 #endif
-	}
-//	_DBG("\r\n");
-//	_DBG(".");
-	FIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
 
+#if 0
+		_DBG("[INFO]-RIT No=");_DBD(SENDSEQ);
+		_DBG(" BIT=");_DBD(SEND_BIT);
+		_DBG(" NXT=");_DBD32(DELAY_TIME);
+//		_DBG(" CALC=");_DBD16(TOTAL_MS);;
+		_DBG(" TX=");_DBH16(LED_PRECALC[0][SEND_BIT]);_DBG("\r\n");
+#endif
+		//Set bit/time
+		DELAY_TIME=NEXT_DELAY_TIME;
+		SEND_BIT=NEXT_SEND_BIT;
+
+		//Retart sequence if required
+		SENDSEQ+=1;
+		if (SENDSEQ>=MAX_BAM_BITS)
+			SENDSEQ=0;
+//		SENDSEQ=0;
+
+		//Setup new timing for next Timer
+		NEXT_DELAY_TIME=SEQ_TIME[SENDSEQ];
+		NEXT_SEND_BIT=SEQ_BIT[SENDSEQ];
+
+#if 0
+		_DBG("[INFO]-SENDSEQ= ");_DBD(SENDSEQ);end_;
+		_DBG("[INFO]-DELAY_TIME= ");_DBH32(DELAY_TIME);end_;
+		_DBG("[INFO]-SEQ_TIME[SENDSEQ]= ");_DBD32(SEQ_TIME[SENDSEQ]);end_;
+		_DBG("[INFO]-SEQ_BIT[SENDSEQ]= ");_DBD(SEQ_BIT[SENDSEQ]);end_;
+#endif
+
+		TIM_UpdateMatchValue(LPC_TIM0,0,SEQ_TIME[SENDSEQ]);
+
+
+		for(uint32_t reg=0; reg<REGS;reg++){
+//			_DBG("SEND_BIT=");_DBD(SEND_BIT);_DBG("\r\n");
+//			sprintf(tempstr,"%b %u %e\r\n",LED_PRECALC[reg][SEND_BIT],LED_PRECALC[reg][SEND_BIT],LED_PRECALC[reg][SEND_BIT],LED_PRECALC[reg][SEND_BIT],LED_PRECALC[reg][SEND_BIT]);
+//			_DBG(tempstr);
+
+			SSP_SendData(LPC_SSP1, LED_PRECALC[reg][SEND_BIT]);
+
+			while(!SSP_GetStatus(LPC_SSP1,SSP_STAT_BUSY));//Wait if TX buffer full
+#if 0
+			FIO_SetValue(LED_LE_PORT, LED_LE_BIT);
+			FIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
+#endif
+		}
+		_DBG(".");
+	}
+	TIM_ClearIntPending(LPC_TIM0, TIM_MR0_INT);
 }
+
 
 void DMA_IRQHandler (void)
 {
@@ -310,7 +304,7 @@ void LED_init(){
 	SSP_CFG_Type SSP_ConfigStruct;
 	SSP_ConfigStruct.CPHA = SSP_CPHA_FIRST;
 	SSP_ConfigStruct.CPOL = SSP_CPOL_LO;
-	SSP_ConfigStruct.ClockRate = 3000000;
+	SSP_ConfigStruct.ClockRate = 1000000;
 //	SSP_ConfigStruct.ClockRate = 30000000; /* TLC5927 max freq = 30Mhz */
 	SSP_ConfigStruct.Databit = SSP_DATABIT_16;
 	SSP_ConfigStruct.Mode = SSP_MASTER_MODE;
@@ -320,6 +314,7 @@ void LED_init(){
 	/* Enable SSP peripheral */
 	SSP_Cmd(LPC_SSP1, ENABLE);//TODO: change to LPC_SSP0 after debug
 
+#if 0
 	RIT_Init(LPC_RIT);
 	/* Configure time_interval for RIT
 	 * In this case: time_interval = 1000 ms = 1s
@@ -334,7 +329,45 @@ void LED_init(){
 
 
 	NVIC_EnableIRQ(RIT_IRQn);
+#endif
 
+#if 1
+
+	TIM_TIMERCFG_Type TIM_ConfigStruct;
+	TIM_MATCHCFG_Type TIM_MatchConfigStruct;
+
+	// Initialize timer 0, prescale count time of 1us //1000000uS = 1S
+	TIM_ConfigStruct.PrescaleOption = TIM_PRESCALE_USVAL;
+	TIM_ConfigStruct.PrescaleValue	= 1;
+
+	// use channel 0, MR0
+	TIM_MatchConfigStruct.MatchChannel = 0;
+	// Enable interrupt when MR0 matches the value in TC register
+	TIM_MatchConfigStruct.IntOnMatch   = TRUE;
+	//Enable reset on MR0: TIMER will reset if MR0 matches it
+//	TIM_MatchConfigStruct.ResetOnMatch = FALSE;
+	TIM_MatchConfigStruct.ResetOnMatch = TRUE;
+	//Stop on MR0 if MR0 matches it
+	TIM_MatchConfigStruct.StopOnMatch  = FALSE;
+	//Toggle MR0.0 pin if MR0 matches it
+	TIM_MatchConfigStruct.ExtMatchOutputType = TIM_EXTMATCH_NOTHING;
+	// Set Match value, count value of 1000000 (1000000 * 1uS = 1000000us = 1s --> 1 Hz)
+//	TIM_MatchConfigStruct.MatchValue   = DELAY_TIME*1000000;;
+	TIM_MatchConfigStruct.MatchValue   = SEQ_TIME[SENDSEQ];
+
+	// Set configuration for Tim_config and Tim_MatchConfig
+	TIM_Init(LPC_TIM0, TIM_TIMER_MODE,&TIM_ConfigStruct);
+	TIM_ConfigMatch(LPC_TIM0,&TIM_MatchConfigStruct);
+
+
+	/* preemption = 1, sub-priority = 1 */
+//	NVIC_SetPriority(TIMER0_IRQn, ((0x01<<3)|0x01));
+	NVIC_SetPriority(TIMER0_IRQn, 8);
+	/* Enable interrupt for timer 0 */
+	NVIC_EnableIRQ(TIMER0_IRQn);
+	// To start timer 0
+	TIM_Cmd(LPC_TIM0,ENABLE);
+#endif
 
 	GPDMA_Channel_CFG_Type GPDMACfg;
 
