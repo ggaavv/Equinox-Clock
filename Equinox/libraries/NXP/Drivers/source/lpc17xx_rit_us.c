@@ -101,7 +101,7 @@ void RIT_TimerConfig(LPC_RIT_TypeDef *RITx, uint32_t time_interval)
 	 * COMPVAL = (RIT_PCLK * time_interval)/1000
 	 * (with time_interval unit is millisecond)
 	 */
-	cmp_value = (clock_rate /100000) * time_interval;
+	cmp_value = (clock_rate /1000000) * time_interval;
 	RITx->RICOMPVAL = cmp_value;
 
 	/* Set timer enable clear bit to clear timer to 0 whenever

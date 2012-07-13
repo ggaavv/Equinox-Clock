@@ -80,7 +80,8 @@ uint32_t SEQ_TIME[] = {
 
 const uint32_t BITORDER[] = { 0,1,2,3,4,5,6,7,7,6,5,4,3,2,1,0 };
 
-#define START_TIME 8*100 //lowest with coms 5
+#define START_TIME 32*2 //lowest with coms 5
+//#define START_TIME 32*100 //lowest with coms 5
 const uint32_t BITTIME[] = {
 		START_TIME*1, //Bit 0 time (LSB)
 		START_TIME*2, //Bit 1 time
@@ -92,7 +93,7 @@ const uint32_t BITTIME[] = {
 		START_TIME*128 //Bit 7 time (MSB)
 };
 
-#if 1
+#if 0
 #define REGS 1 //12
 #define RGBS 5 //60
 #define LEDS RGBS*3
@@ -113,13 +114,22 @@ uint16_t LED_PRECALC[REGS*20][BITS];
 //uint16_t WHICHREG[LEDS];
 uint32_t LAST_MS;
 uint32_t TOTAL_MS;
+uint32_t TOG;
 
 
 void RIT_IRQHandler(void){
 //	char tempstr[50];
 	RIT_GetIntStatus(LPC_RIT); //call this to clear interrupt flag
-	FIO_SetValue(LED_LE_PORT, LED_LE_BIT);
-	FIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
+	if(TOG==1){
+		FIO_SetValue(LED_LE_PORT, LED_LE_BIT);
+		TOG=0;
+	}
+	else{
+		FIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
+		TOG=1;
+	}
+
+	return;
 #if 0
 //	TOTAL_MS=sys_millis()-LAST_MS;
 //	LAST_MS=sys_millis();
@@ -136,8 +146,9 @@ void RIT_IRQHandler(void){
 
 	//Retart sequence if required
 	SENDSEQ+=1;
-	if (SENDSEQ>=MAX_BAM_BITS)
-		SENDSEQ=0;
+//	if (SENDSEQ>=MAX_BAM_BITS)
+//		SENDSEQ=0;
+	SENDSEQ=0;
 
 	//Setup new timing for next RIT
 	NEXT_DELAY_TIME=SEQ_TIME[SENDSEQ];
@@ -150,7 +161,8 @@ void RIT_IRQHandler(void){
 	_DBG("[INFO]-RIT_IRQHandler SEQ_BIT[SENDSEQ]= ");_DBD32(SEQ_BIT[SENDSEQ]);end_;
 #endif
 
-	RIT_TimerConfig(LPC_RIT,DELAY_TIME);
+//	RIT_TimerConfig(LPC_RIT,DELAY_TIME);
+	RIT_TimerConfig(LPC_RIT,64);
 
 
 	for(uint32_t reg=0; reg<REGS;reg++){
@@ -161,7 +173,7 @@ void RIT_IRQHandler(void){
 		SSP_SendData(LPC_SSP1, LED_PRECALC[reg][SEND_BIT]);
 
 		while(!SSP_GetStatus(LPC_SSP1,SSP_STAT_BUSY));//Wait if TX buffer full
-		_DBG(" TX=");_DBH16(LED_PRECALC[reg][SEND_BIT]);
+//		_DBG(" TX=");_DBH16(LED_PRECALC[reg][SEND_BIT]);
 
 //		FIO_SetValue(LED_LE_PORT, LED_LE_BIT);
 //		FIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
@@ -174,7 +186,10 @@ void RIT_IRQHandler(void){
 		}
 #endif
 	}
-	_DBG("\r\n");
+//	_DBG("\r\n");
+//	_DBG(".");
+	FIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
+
 }
 
 void DMA_IRQHandler (void)
@@ -295,7 +310,8 @@ void LED_init(){
 	SSP_CFG_Type SSP_ConfigStruct;
 	SSP_ConfigStruct.CPHA = SSP_CPHA_FIRST;
 	SSP_ConfigStruct.CPOL = SSP_CPOL_LO;
-	SSP_ConfigStruct.ClockRate = 30000000; /* TLC5927 max freq = 30Mhz */
+	SSP_ConfigStruct.ClockRate = 3000000;
+//	SSP_ConfigStruct.ClockRate = 30000000; /* TLC5927 max freq = 30Mhz */
 	SSP_ConfigStruct.Databit = SSP_DATABIT_16;
 	SSP_ConfigStruct.Mode = SSP_MASTER_MODE;
 	SSP_ConfigStruct.FrameFormat = SSP_FRAME_SPI;
@@ -580,4 +596,29 @@ static inline void calulateLEDMIBAMBit(uint8 LED){
 for(uint32_t led=0; led<LEDS; led++)
 for(uint32_t bit=0; bit<BITS; bit++)
 for(uint32_t reg=0; reg<REGS; reg++)
+*/
+/*
+16bitcol
+16bit*60=120bytes
+120hz
+8ms/refresh
+8mhz
+
+sensors
+
+battery
+
+128	160
+64	30
+32	10
+16	4
+8	2
+4	1.5
+2	1.2
+1	1
+
+0.0000326797	1/120/255
+16000000	16mhz
+0.00000006	1/16mhz
+522.875817	clocks
 */
