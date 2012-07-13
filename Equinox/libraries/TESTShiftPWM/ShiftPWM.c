@@ -9,7 +9,8 @@
 #include "lpc17xx_pinsel.h"
 #include "lpc17xx_gpio.h"
 #include "lpc17xx_ssp.h"
-#include "lpc17xx_rit_us.h"
+#include "lpc17xx_rit.h"
+#include "lpc17xx_nvic.h"
 #include "lpc17xx_gpdma.h"
 #include "lpc17xx_systick.h"
 #include "lpc17xx_timer.h"
@@ -180,7 +181,7 @@ void TIMER0_IRQHandler(void){
 			FIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
 #endif
 		}
-		_DBG(".");
+//		_DBG(".");
 	}
 	TIM_ClearIntPending(LPC_TIM0, TIM_MR0_INT);
 }
@@ -321,7 +322,7 @@ void LED_init(){
 	 * So, RIT will generate interrupt each 1s
 	 */
     NVIC_DisableIRQ(RIT_IRQn);
-    NVIC_SetPriority(RIT_IRQn, 8); // set according to main.c
+    NVIC_SetPriority(RIT_IRQn, 0); // set according to main.c
 	RIT_TimerConfig(LPC_RIT,DELAY_TIME);
 
 //	_DBG("The time interval is: ");
@@ -362,7 +363,7 @@ void LED_init(){
 
 	/* preemption = 1, sub-priority = 1 */
 //	NVIC_SetPriority(TIMER0_IRQn, ((0x01<<3)|0x01));
-	NVIC_SetPriority(TIMER0_IRQn, 8);
+	NVIC_SetPriority(TIMER0_IRQn, 0);
 	/* Enable interrupt for timer 0 */
 	NVIC_EnableIRQ(TIMER0_IRQn);
 	// To start timer 0

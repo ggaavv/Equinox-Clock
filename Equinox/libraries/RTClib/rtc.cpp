@@ -10,9 +10,10 @@ extern "C" {
 	#include "debug_frmwrk.h"
 	#include "lpc17xx_rtc.h"
 	#include "sunrise.h"
+	#include "lpc17xx_nvic.h"
+	#include <stdio.h>
 }
 #include "rtc.h"
-#include <stdio.h>
 
 #define DSTEurope
 //#define DSTUSA
@@ -95,6 +96,7 @@ void RTC_IRQHandler(void){
 }
 
 void RTC_time_Init(void){
+	_DBG("{");
 	// Init RTC module
 	RTC_Init(LPC_RTC);
 	// Disable RTC interrupt
@@ -125,8 +127,10 @@ void RTC_time_Init(void){
 	RTC_print_time();
     // Enable 1 sec interrupt
 	RTC_CntIncrIntConfig (LPC_RTC, RTC_TIMETYPE_SECOND, ENABLE);
+    _DBG(".");
     // Enable RTC interrupt
     NVIC_EnableIRQ(RTC_IRQn);
+    _DBG("}");
 }
 
 void secondlyCheck(void) {

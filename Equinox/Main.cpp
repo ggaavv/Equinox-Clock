@@ -121,25 +121,24 @@ int main(void){
 	// Initialize USB<->Serial
 	serial_init();_DBG("[OK]-serial_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
-//	uart_writestr("[OK]-uart_Start");
-//	serial_writestr("[OK]-serial_Start");
-	_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//	uart_writestr("[OK]-uart_Start");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//	serial_writestr("[OK]-serial_Start");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
 	// Init RTC module
-//    RTC_time_Init();_DBG("[OK]-RTC_time_Init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+    RTC_time_Init();_DBG("[OK]-RTC_time_Init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
     LED_init();_DBG("[OK]-LED_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-    LED_test();_DBG("[OK]-LED_test()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//    LED_test();_DBG("[OK]-LED_test()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
 
 	// Wifi init
-//	WiFi_init();_DBG("[OK]-WiFi_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+	WiFi_init();_DBG("[OK]-WiFi_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
 	// main loop
 	long timer1, steptimeout, count1, tcount=Getunix();
 	for (;;){
 		// Wifi Loop
-		WiFi_loop();
+//		WiFi_loop();
 //		delay_ms(300);
 
 //		LED_loop();
