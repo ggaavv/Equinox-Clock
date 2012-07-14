@@ -123,7 +123,7 @@ void TIMER0_IRQHandler(void){
 //	_DBG_("Match interrupt occur...1");
 	if (TIM_GetIntStatus(LPC_TIM0, TIM_MR0_INT)== SET){
 //		_DBG("[");
-#if 0
+#if 1
 //		char tempstr[50];
 
 		if(TOG==1){
@@ -134,6 +134,7 @@ void TIMER0_IRQHandler(void){
 			FIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
 			TOG=1;
 		}
+		TIM_ClearIntPending(LPC_TIM0, TIM_MR0_INT);
 		return;
 #endif
 
@@ -181,7 +182,7 @@ void TIMER0_IRQHandler(void){
 			FIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
 #endif
 		}
-//		_DBG(".");
+		_DBG(".");
 	}
 	TIM_ClearIntPending(LPC_TIM0, TIM_MR0_INT);
 }
