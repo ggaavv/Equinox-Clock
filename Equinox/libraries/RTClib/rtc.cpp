@@ -49,14 +49,14 @@ extern "C" {
 #define begin_DST_unix(x) RTC_time_FindUnixtime(x, begin_DST_Month, begin_DST_dayOfMonth(x), begin_DST_Hour, begin_DST_Min, 0)
 #define end_DST_unix(x) RTC_time_FindUnixtime(x, end_DST_Month, end_DST_dayOfMonth(x), end_DST_Hour, end_DST_Min, 0)
 
-void RTC_IRQHandler(void){
+extern "C" void RTC_IRQHandler(void){
 	uint32_t secval;
 	// This is increment counter interrupt
 	if (RTC_GetIntPending(LPC_RTC, RTC_INT_COUNTER_INCREASE)){
-		secval = RTC_GetTime (LPC_RTC, RTC_TIMETYPE_SECOND);
 		// Clear pending interrupt
 		RTC_ClearIntPending(LPC_RTC, RTC_INT_COUNTER_INCREASE);
 		time.second_inc=1;
+		secval = RTC_GetTime (LPC_RTC, RTC_TIMETYPE_SECOND);
 		//run  checks at xx:xx:00
 		if(!RTC_GetTime(LPC_RTC, RTC_TIMETYPE_SECOND)){
 			//run  checks at xx:00:00
@@ -86,12 +86,12 @@ void RTC_IRQHandler(void){
 
 	// Continue to check the Alarm match
 	if (RTC_GetIntPending(LPC_RTC, RTC_INT_ALARM)){
+		// Clear pending interrupt
+		RTC_ClearIntPending(LPC_RTC, RTC_INT_ALARM);
 		set_next_alarm();
 		sort_alarms();
 		/* Send debug information */
 		_DBG_ ("ALARM 10s matched!");
-		// Clear pending interrupt
-		RTC_ClearIntPending(LPC_RTC, RTC_INT_ALARM);
 	}
 }
 

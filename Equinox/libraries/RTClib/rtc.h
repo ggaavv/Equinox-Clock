@@ -98,7 +98,6 @@ struct {
 //	uint32_t use_utc;
 } time;
 
-void RTC_IRQHandler(void);
 void RTC_time_Init(void);
 
 // Interrupt checks
