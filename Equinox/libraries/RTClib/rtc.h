@@ -146,5 +146,7 @@ void update_time(void);
 void add_alarm(uint8_t month, uint8_t dom, uint8_t hh, uint8_t mm, uint16_t duration, uint32_t dow_dom, Alarm_type type);
 void set_next_alarm(void);
 void sort_alarms(void);
+void setDSTstatus(uint32_t set_or_clear);
+uint32_t getDSTstatus(void);
 
 #endif /* RTC_H_ */

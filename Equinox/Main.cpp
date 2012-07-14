@@ -132,25 +132,26 @@ int main(void){
 
 
 	// Wifi init
-	WiFi_init();_DBG("[OK]-WiFi_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//	WiFi_init();_DBG("[OK]-WiFi_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
 	// main loop
 	long timer1, steptimeout, count1, tcount=Getunix();
 	for (;;){
 		// Wifi Loop
 //		WiFi_loop();
-//		delay_ms(300);
-
+//		delay_ms(1000);
+//		RTC_print_time();
 //		LED_loop();
 
 		/* Power save - Do every 5000ms */
 		#define DELAY 10
 //		_DBD16(tcount);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-//		if(tcount<=Getunix()){
-		if(RTC_GetTime(LPC_RTC, RTC_TIMETYPE_SECOND)==0){
+		if(tcount<=Getunix()){
+//		if(RTC_GetTime(LPC_RTC, RTC_TIMETYPE_SECOND)==0){
 			tcount=DELAY+Getunix();
 //			_DBD16(tcount);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 			_DBG("[INFO]-for (;;) ");_DBD32(Getunix());_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//			RTC_print_time();
 		}
 /*
 		if (timer1 < sys_millis()){
