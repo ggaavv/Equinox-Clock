@@ -193,7 +193,10 @@ SRC = \
 	$(APPLIBDIR)/I2C/i2c.c\
 	$(APPLIBDIR)/I2C/MCP4018.c \
 	$(APPLIBDIR)/R2C2/syscalls.c \
-	statup_delay.c
+	statup_delay.c \
+	syscalls.c \
+	comm.c \
+	term_io.c
 	
 #	main.c \
 #	$(APPLIBDIR)/WiShield/wiserver.c

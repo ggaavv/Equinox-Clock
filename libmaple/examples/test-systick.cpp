@@ -20,7 +20,7 @@ void setup()
 }
 
 int toggle = 0;
-long time = 0;
+//long time = 0;
 
 void loop() {
     toggle ^= 1;

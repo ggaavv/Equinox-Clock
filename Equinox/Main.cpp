@@ -29,6 +29,9 @@
 
 #include "Wifi.h"
 #include "rtc.h"
+#include <stdio.h>
+#include <stdint.h>
+#include <stdarg.h>
 
 extern "C" {
 	#include "g2100.h"
@@ -42,11 +45,18 @@ extern "C" {
 	#include "sys_timer.h"
 	#include "serial.h"
 	#include "ShiftPWM.h"
+	#include "comm.h"
+	#include "term_io.h"
 }
 
 #define USER_FLASH_START 0x3000 // For USB bootloader
 //#define USER_FLASH_START 0x0 // No USB bootloader
 #define BOOTLOADER_START 0x0 // To enter bootloader
+
+/* External function prototypes ----------------------------------------------*/
+extern "C" char* get_heap_end(void);
+extern "C" char* get_stack_top(void);
+
 /*
 void execute_bootloader(void){
  //  void (*user_code_entry)(void);
@@ -102,6 +112,7 @@ int main(void){
 	in case the user application uses interrupts */
 	SCB->VTOR = (USER_FLASH_START & 0x1FFFFF80);
 
+
 	//Debug functions output to com1/8n1/115200
 	//does this need to be first??
 	//TODO
@@ -117,6 +128,15 @@ int main(void){
 	SYSTICK_InternalInit(1); // from NXP - 1ms interval
 	SYSTICK_IntCmd(ENABLE);
 	SYSTICK_Cmd(ENABLE);_DBG("[OK]-SYSTICK_Cmd()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+
+
+    comm_init();
+    xprintf("xprintf now works\nFile=" __FILE__ "\n");
+    xprintf("xprintf now works\nLine= %b \n",__LINE__);
+    delay_ms(1000);
+ //   xprintf("Hello from a C++ demo by Martin Thomas\nVersion \n");
+    printf("printf now works, line=");// %d", __LINE__);
+    delay_ms(1000);
 
 	// Initialize USB<->Serial
 	serial_init();_DBG("[OK]-serial_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
