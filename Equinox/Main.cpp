@@ -46,7 +46,9 @@ extern "C" {
 	#include "serial.h"
 	#include "ShiftPWM.h"
 	#include "comm.h"
-	#include "term_io.h"
+#include "term_io.h"
+#include "syscalls.h"
+#include <time.h>
 }
 
 #define USER_FLASH_START 0x3000 // For USB bootloader
@@ -135,7 +137,7 @@ int main(void){
     xprintf("xprintf now works\nLine= %b \n",__LINE__);
     delay_ms(1000);
  //   xprintf("Hello from a C++ demo by Martin Thomas\nVersion \n");
-    printf("printf now works, line=");// %d", __LINE__);
+    printf("\r\nprintf now works, line= %d\r\n", __LINE__);
     delay_ms(1000);
 
 	// Initialize USB<->Serial
@@ -150,6 +152,12 @@ int main(void){
     LED_init();_DBG("[OK]-LED_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 //    LED_test();_DBG("[OK]-LED_test()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
+//    time_t rawtime;
+ //   	  struct tm * timeinfo;
+
+//    	  time ( &rawtime );
+ //   	  timeinfo = localtime ( &rawtime );
+  //  	  xprintf ( "The current date/time is: %s", asctime (timeinfo) );
 
 	// Wifi init
 //	WiFi_init();_DBG("[OK]-WiFi_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");

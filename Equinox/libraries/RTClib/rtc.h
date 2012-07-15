@@ -96,7 +96,7 @@ struct {
 	uint8_t second_inc;		// updated once a second
 	uint8_t alarm_no_active;// updated when alarm set and after it has been activated
 //	uint32_t use_utc;
-} time;
+} time2;
 
 void RTC_time_Init(void);
 

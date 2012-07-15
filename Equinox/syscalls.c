@@ -17,6 +17,37 @@
 #undef errno
 extern int errno;
 
+char *__env[1] = { 0 };
+char **environ = __env;
+
+int _execve(char *name, char **argv, char **env) {
+	errno = ENOMEM;
+	return -1;
+}
+int _fork(void) {
+	errno = EAGAIN;
+	return -1;
+}
+int _link(char *old, char *new) {
+	errno = EMLINK;
+	return -1;
+}
+int _times(struct tms *buf) {
+	return -1;
+}
+int _unlink(char *name) {
+	errno = ENOENT;
+	return -1;
+}
+int _wait(int *status) {
+	errno = ECHILD;
+	return -1;
+}
+
+
+
+
+
 int _kill(int pid, int sig)
 {
 	(void)pid;
@@ -35,6 +66,9 @@ int _getpid(void)
 {
 	return 1;
 }
+//_gettimeofday(){
+
+//}
 
 
 extern char _end; /* Defined by the linker */
