@@ -12,13 +12,14 @@ extern "C" {
 	#include "sunrise.h"
 	#include "lpc17xx_nvic.h"
 //#include <sys/stdio.h>
-#include "comm.h"
+//#include <time.h>
+//#include <sys/time.h>
 }
+#include "comm.h"
 #include "term_io.h"
 #include "rtc.h"
 #include <stdio.h>
 //#include <ctime.h>
-#include <time.h>
 
 #define DSTEurope
 //#define DSTUSA
@@ -99,7 +100,7 @@ extern "C" void RTC_IRQHandler(void){
 		set_next_alarm();
 		sort_alarms();
 		/* Send debug information */
-		_DBG_ ("ALARM 10s matched!");
+//		_DBG_ ("ALARM 10s matched!");
 	}
 }
 
@@ -117,8 +118,10 @@ void RTC_time_Init(void){
     //Set time if no data in GPREG
     if (!(RTC_ReadGPREG(LPC_RTC, 4)==(0xaa)))
     {
-    	_DBG("[INFO]-Set time");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-    	_DBG("[INFO]-__DATE__=");_DBG(__DATE__);_DBG(", __TIME__=");_DBG(__TIME__);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//    	xprintf(INFO "Setting time to" " (%s:%d)\n",_F_,_L_);//_DBG("[INFO]-Set time");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+    	xprintf(INFO "Setting time to %s %s" " (%s:%d)\n",__DATE__,__TIME__,_F_,_L_);//_DBG("[INFO]-Set time");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//    	delay_ms(1000);
+//    	_DBG("[INFO]-__DATE__=");_DBG(__DATE__);_DBG(", __TIME__=");_DBG(__TIME__);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 		// Enable rtc (starts increase the tick counter and second counter register)
 		RTC_ResetClockTickCounter(LPC_RTC);
 		//				 yyyy  mm  dd  Dom Dow  ss  mm  hh  st
@@ -139,9 +142,9 @@ void RTC_time_Init(void){
 //	time_t seconds;
 
 //	  seconds = time (NULL);
-	uint8_t test[56];
-	  xprintf ("{testing} %ld hours since January 1, 1970\r\n", Getunix());
-	  scanf (test);
+//	uint8_t test[56];
+//	  xprintf ("{testing} %ld hours since January 1, 1970\r\n", Getunix());
+//	  scanf (test);
 
     // Enable 1 sec interrupt
 	RTC_CntIncrIntConfig (LPC_RTC, RTC_TIMETYPE_SECOND, ENABLE);
@@ -362,7 +365,7 @@ uint16_t days_from_2000(uint16_t y, uint8_t m, uint8_t d) {
     for (uint8_t i = 1; i < m; i++)
     	days += daysInMonth[i-1];
     if (m > 2 && y % 4 == 0)
-        days++;
+        ++days;
     return days + 365 * y + (y + 3) / 4 - 1;
 }
 
@@ -485,7 +488,16 @@ void RTC_set_default_time_to_compiled(void) {
 }
 
 void RTC_print_time(void){
+	xprintf(INFO "%d/%d/%d %d:%d:%d" " (%s:%d)\n",GetDOM(),GetM(),GetY(),GetHH(),GetMM(),GetSS(),_F_,_L_);
+	xprintf(INFO "Unix: %d" " (%s:%d)\n",time2.unix,_F_,_L_);
+	xprintf(INFO "Sunrise: %d" " (%s:%d)\n",time2.sunrise_unix,_F_,_L_);
+	xprintf(INFO "Sunset: %d" " (%s:%d)\n",time2.sunset_unix,_F_,_L_);
+	xprintf(INFO "Noon: %d" " (%s:%d)\n",time2.noon_unix,_F_,_L_);
+	xprintf(INFO "Day/Night: %d" " (%s:%d)\n",time2.day_night,_F_,_L_);
+	xprintf(INFO "DST begin: %d end: %d" " (%s:%d)\n",time2.DST_begin_calculated,time2.DST_end_calculated,_F_,_L_);
 
+
+#if 0
 	_DBG("[INFO]-Date=");
 	_DBD(GetDOM());
 	_DBG("/");
@@ -519,6 +531,7 @@ void RTC_print_time(void){
 	_DBG("  end: ");
 	_DBD32(time2.DST_end_calculated);
 	_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+#endif
 }
 
 void unix_to_hh_mm_ss (uint32_t unix_time, uint8_t * hh, uint8_t * mm, uint8_t * ss) {
@@ -784,6 +797,36 @@ uint32_t getDSTstatus(void){
 		return 0;
 }
 
+
+#if 0
 //uint32_t
 
+/**
+ * @brief  Delay-loop for milliseconds
+ * @param  delay in milliseconds
+ * @retval none
+ */
+void timebase_delay_ms(uint32_t ms)
+{
+	uint32_t s = ms_tick;
+	while ( ((uint32_t)(ms_tick-s)) < ms ) { ; }
+}
+
+/**
+ * @brief  Get value of the running ms-counter
+ * @param  none
+ * @retval time value incremented every ms
+ */
+uint32_t timebase_get_count_ms(void)
+{
+	return ms_tick;
+}
+
+uint32_t timebase_abs_diff_ms(uint32_t t1, uint32_t t2)
+{
+	// return (uint32_t)(t1 - t2);
+	if ( t1 > t2 ) { return t1 - t2; }
+	else { return t2 - t1; }
+}
+#endif
 

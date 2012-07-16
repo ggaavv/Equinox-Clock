@@ -1,4 +1,4 @@
-/* Copyright (c) 2011 Jorge Pinto - casainho@gmail.com       */
+/* Copyright (c) 2011 Jamie Clarke - jamie.clarke.jc@gmail.com       */
 /* All rights reserved.
 
    Redistribution and use in source and binary forms, with or without
@@ -46,10 +46,12 @@ extern "C" {
 	#include "serial.h"
 	#include "ShiftPWM.h"
 	#include "comm.h"
-#include "term_io.h"
+//#include "term_io.h"
 #include "syscalls.h"
+#include <stdio.h>
 #include <time.h>
 }
+#include <sys/time.h>
 
 #define USER_FLASH_START 0x3000 // For USB bootloader
 //#define USER_FLASH_START 0x0 // No USB bootloader
@@ -114,11 +116,13 @@ int main(void){
 	in case the user application uses interrupts */
 	SCB->VTOR = (USER_FLASH_START & 0x1FFFFF80);
 
+//    comm_init();
 
 	//Debug functions output to com1/8n1/115200
 	//does this need to be first??
 	//TODO
-	debug_frmwrk_init();_DBG_("\r\n\r\n\r\n\r\n\r\n**BOOTED**");_DBG("[OK]-debug_frmwrk_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+	debug_frmwrk_init();xprintf("\r\n\r\n\r\n\r\n\r\n**BOOTED**" " (%s:%d)\n",_F_,_L_);//_DBG_("\r\n\r\n\r\n\r\n\r\n**BOOTED**");//_DBG("[OK]-debug_frmwrk_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//	delay_ms(1000);
 
 	//eraseScreen
 //	_DBG(0x1B);//_DBG(ESCAPE);
@@ -129,38 +133,30 @@ int main(void){
 	// Initialize the timer for millis()
 	SYSTICK_InternalInit(1); // from NXP - 1ms interval
 	SYSTICK_IntCmd(ENABLE);
-	SYSTICK_Cmd(ENABLE);_DBG("[OK]-SYSTICK_Cmd()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-
-
-    comm_init();
-    xprintf("xprintf now works\nFile=" __FILE__ "\n");
-    xprintf("xprintf now works\nLine= %b \n",__LINE__);
-    delay_ms(1000);
- //   xprintf("Hello from a C++ demo by Martin Thomas\nVersion \n");
-    printf("\r\nprintf now works, line= %d\r\n", __LINE__);
-    delay_ms(1000);
+	SYSTICK_Cmd(ENABLE);//xprintf(OK "SYSTICK_Cmd()" " (%s:%d)\n",_F_,_L_);//_DBG("[OK]-SYSTICK_Cmd()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
 	// Initialize USB<->Serial
-	serial_init();_DBG("[OK]-serial_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-
+//	serial_init();_DBG("[OK]-serial_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 //	uart_writestr("[OK]-uart_Start");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 //	serial_writestr("[OK]-serial_Start");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
 	// Init RTC module
-    RTC_time_Init();_DBG("[OK]-RTC_time_Init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+    RTC_time_Init();xprintf(OK "RTC_time_Init()" " (%s:%d)\n",_F_,_L_);//_DBG("[OK]-RTC_time_Init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//    delay_ms(1000);
+    LED_init();xprintf(OK "LED_init()" " (%s:%d)\n",_F_,_L_);//_DBG("[OK]-LED_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+ //   delay_ms(1000);
+    LED_test();xprintf(OK "LED_test()" " (%s:%d)\n",_F_,_L_);//_DBG("[OK]-LED_test()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+#if 0
+    time_t rawtime;
+//    gettimeofday();
+    struct tm * timeinfo;
 
-    LED_init();_DBG("[OK]-LED_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-//    LED_test();_DBG("[OK]-LED_test()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-
-//    time_t rawtime;
- //   	  struct tm * timeinfo;
-
-//    	  time ( &rawtime );
- //   	  timeinfo = localtime ( &rawtime );
-  //  	  xprintf ( "The current date/time is: %s", asctime (timeinfo) );
-
+	time ( &rawtime );
+	timeinfo = localtime ( &rawtime );
+	xprintf ( "The current date/time is: %s", asctime (timeinfo) );
+#endif
 	// Wifi init
-//	WiFi_init();_DBG("[OK]-WiFi_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//	WiFi_init();xprintf(OK "WiFi_init" " (%s:%d)\n",_F_,_L_);//_DBG("[OK]-WiFi_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
 	// main loop
 	long timer1, steptimeout, count1, tcount=Getunix();
@@ -175,10 +171,12 @@ int main(void){
 		#define DELAY 10
 //		_DBD16(tcount);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 		if(tcount<=Getunix()){
+//			_DBG(".");
 //		if(RTC_GetTime(LPC_RTC, RTC_TIMETYPE_SECOND)==0){
 			tcount=DELAY+Getunix();
 //			_DBD16(tcount);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-			_DBG("[INFO]-for (;;) ");_DBD32(Getunix());_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+			printf(INFO "for (;;) %d" " (%s:%d)\n",Getunix(),_F_,_L_);//_DBG("[INFO]-for (;;) ");_DBD32(Getunix());_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+
 //			RTC_print_time();
 		}
 /*

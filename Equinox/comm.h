@@ -13,6 +13,26 @@
 #endif
 
 #include "lpc17xx_uart.h"
+#include "term_io.h"
+#include <stdio.h>
+#include <string.h>
+
+#if 1
+#ifndef WIN32
+#define __SHORT_FILE__ ((strrchr(__FILE__, '/') ? : __FILE__- 1) + 1)
+#else
+#define __SHORT_FILE__ ((strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__))
+#endif
+#endif
+
+#define _L_ __LINE__
+//#define __SHORT_FILE__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
+//#define __SHORT_FILE__ (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__)
+//#define __SHORT_FILE__ (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__)
+#define _F_ __SHORT_FILE__
+//#define _F_ __FILE__
+#define _FL_ __F__,__LINE__
+//#define _FUN_ __FUNCTION__
 
 int8_t __putchar(int8_t ch);
 uint8_t comm_get(void);

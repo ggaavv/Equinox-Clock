@@ -1,10 +1,34 @@
-/*
+/* Copyright (c) 2011 Jamie Clarke - jamie.clarke.jc@gmail.com       */
+/* All rights reserved.
 
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions are met:
+
+   * Redistributions of source code must retain the above copyright
+     notice, this list of conditions and the following disclaimer.
+   * Redistributions in binary form must reproduce the above copyright
+     notice, this list of conditions and the following disclaimer in
+     the documentation and/or other materials provided with the
+     distribution.
+   * Neither the name of the copyright holders nor the names of
+     contributors may be used to endorse or promote products derived
+     from this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "debug_frmwrk.h"
 #include "ShiftPWM.h"
-
 #include "pinout.h"
 #include "lpc17xx_pinsel.h"
 #include "lpc17xx_gpio.h"
@@ -15,7 +39,24 @@
 #include "lpc17xx_systick.h"
 #include "lpc17xx_timer.h"
 
-#define end_ _DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n")
+//#define MAX_BAM_BITS 16
+#define MAX_BAM_BITS 8
+
+//const uint32_t BITORDER[] = { 0,1,2,3,4,5,6,7,7,6,5,4,3,2,1,0 };
+const uint32_t BITORDER[] = { 0,7,2,5,4,3,6,1,1,6,3,4,5,2,7,0 };
+
+#define START_TIME 32 //smallest time inteval 33us
+//#define START_TIME 32/2 //fastest possible
+//#define START_TIME 32*10 //for uart
+
+volatile uint32_t SENDSEQ;
+volatile uint32_t DELAY_TIME; //so RIT ms is not set to 0
+volatile uint32_t NEXT_DELAY_TIME; //so RIT ms is not set to 0
+volatile uint32_t SEND_BIT;
+volatile uint32_t NEXT_SEND_BIT;
+
+
+//#define end_ _DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n")
 
 /* For DMA controller */
 #define DMA_DATA_SIZE	65
@@ -31,14 +72,6 @@ uint8_t dma_src[DMA_DATA_SIZE];
 
 // DMA source variable
 uint8_t dma_dst[DMA_DATA_SIZE];
-
-#define MAX_BAM_BITS 16
-
-volatile uint32_t SENDSEQ;
-volatile uint32_t DELAY_TIME; //so RIT ms is not set to 0
-volatile uint32_t NEXT_DELAY_TIME; //so RIT ms is not set to 0
-volatile uint32_t SEND_BIT;
-volatile uint32_t NEXT_SEND_BIT;
 
 /*
 uint32_t SEQ_BIT[] = {
@@ -79,11 +112,6 @@ uint32_t SEQ_TIME[] = {
 };
 */
 
-
-const uint32_t BITORDER[] = { 0,1,2,3,4,5,6,7,7,6,5,4,3,2,1,0 };
-
-#define START_TIME 32*10 //lowest with coms 5
-//#define START_TIME 32*100 //lowest with coms 5
 const uint32_t BITTIME[] = {
 		START_TIME*1, //Bit 0 time (LSB)
 		START_TIME*2, //Bit 1 time
@@ -110,7 +138,7 @@ uint16_t SEQ_BIT[16];
 uint32_t SEQ_TIME[16];
 
 uint16_t LED_RAW[LEDS];
-uint16_t LED_PRECALC[REGS*3][BITS];//TODO check why lockup occurs with values less than *3??
+uint16_t LED_PRECALC[REGS*20][BITS];//TODO check why lockup occurs with values less than *3??
 
 //uint16_t BITINREG[LEDS];
 //uint16_t WHICHREG[LEDS];
@@ -123,19 +151,18 @@ void TIMER0_IRQHandler(void){
 //	_DBG_("Match interrupt occur...1");
 	if (TIM_GetIntStatus(LPC_TIM0, TIM_MR0_INT)== SET){
 //		_DBG("[");
-#if 1
+//		FIO_SetValue(LED_LE_PORT, LED_LE_BIT);
+#if 0
 //		char tempstr[50];
 
-		if(TOG==1){
+		if(TOG)
 			FIO_SetValue(LED_LE_PORT, LED_LE_BIT);
-			TOG=0;
-		}
-		else{
+		else
 			FIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
-			TOG=1;
-		}
-		TIM_ClearIntPending(LPC_TIM0, TIM_MR0_INT);
-		return;
+		TOG=!TOG;
+
+//		TIM_ClearIntPending(LPC_TIM0, TIM_MR0_INT);
+//		return;
 #endif
 
 #if 0
@@ -166,7 +193,7 @@ void TIMER0_IRQHandler(void){
 		_DBG("[INFO]-SEQ_BIT[SENDSEQ]= ");_DBD(SEQ_BIT[SENDSEQ]);end_;
 #endif
 
-		TIM_UpdateMatchValue(LPC_TIM0,0,SEQ_TIME[SENDSEQ]);
+//		TIM_UpdateMatchValue(LPC_TIM0,0,SEQ_TIME[SENDSEQ]);
 
 
 		for(uint32_t reg=0; reg<REGS;reg++){
@@ -177,12 +204,13 @@ void TIMER0_IRQHandler(void){
 			SSP_SendData(LPC_SSP1, LED_PRECALC[reg][SEND_BIT]);
 
 			while(!SSP_GetStatus(LPC_SSP1,SSP_STAT_BUSY));//Wait if TX buffer full
-#if 0
+#if 1
 			FIO_SetValue(LED_LE_PORT, LED_LE_BIT);
 			FIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
 #endif
 		}
-		_DBG(".");
+//		_DBG(".");
+//		FIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
 	}
 	TIM_ClearIntPending(LPC_TIM0, TIM_MR0_INT);
 }

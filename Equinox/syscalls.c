@@ -66,9 +66,9 @@ int _getpid(void)
 {
 	return 1;
 }
-//_gettimeofday(){
-
-//}
+int gettimeofday (struct timeval *__p, void *__tz){
+	return 1;
+}
 
 
 extern char _end; /* Defined by the linker */
