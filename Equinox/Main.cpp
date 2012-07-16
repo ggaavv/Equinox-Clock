@@ -116,13 +116,14 @@ int main(void){
 	in case the user application uses interrupts */
 	SCB->VTOR = (USER_FLASH_START & 0x1FFFFF80);
 
-//    comm_init();
-
 	//Debug functions output to com1/8n1/115200
 	//does this need to be first??
 	//TODO
-	debug_frmwrk_init();xprintf("\r\n\r\n\r\n\r\n\r\n**BOOTED**" " (%s:%d)\n",_F_,_L_);//_DBG_("\r\n\r\n\r\n\r\n\r\n**BOOTED**");//_DBG("[OK]-debug_frmwrk_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-//	delay_ms(1000);
+//	debug_frmwrk_init();//_DBG("[OK]-debug_frmwrk_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+
+	// Initialize UART
+    comm_init();xprintf("\r\n\r\n\r\n\r\n\r\n**BOOTED**" " (%s:%d)\n",_F_,_L_);
+
 
 	//eraseScreen
 //	_DBG(0x1B);//_DBG(ESCAPE);
@@ -133,27 +134,26 @@ int main(void){
 	// Initialize the timer for millis()
 	SYSTICK_InternalInit(1); // from NXP - 1ms interval
 	SYSTICK_IntCmd(ENABLE);
-	SYSTICK_Cmd(ENABLE);//xprintf(OK "SYSTICK_Cmd()" " (%s:%d)\n",_F_,_L_);//_DBG("[OK]-SYSTICK_Cmd()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+	SYSTICK_Cmd(ENABLE);//xprintf(OK "SYSTICK_Cmd()" " (%s:%d)\n",_F_,_L_);
 
 	// Initialize USB<->Serial
-//	serial_init();_DBG("[OK]-serial_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-//	uart_writestr("[OK]-uart_Start");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-//	serial_writestr("[OK]-serial_Start");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//	serial_init();_DBG("[OK]-serial_init()");
+//	uart_writestr("[OK]-uart_Start");
+//	serial_writestr("[OK]-serial_Start");
 
 	// Init RTC module
-    RTC_time_Init();xprintf(OK "RTC_time_Init()" " (%s:%d)\n",_F_,_L_);//_DBG("[OK]-RTC_time_Init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-//    delay_ms(1000);
-    LED_init();xprintf(OK "LED_init()" " (%s:%d)\n",_F_,_L_);//_DBG("[OK]-LED_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
- //   delay_ms(1000);
-    LED_test();xprintf(OK "LED_test()" " (%s:%d)\n",_F_,_L_);//_DBG("[OK]-LED_test()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-#if 0
+    RTC_time_Init();xprintf(OK "RTC_time_Init()" " (%s:%d)\n",_F_,_L_);
+
+    // Init LED module
+    LED_init();xprintf(OK "LED_init()" " (%s:%d)\n",_F_,_L_);
+    LED_test();xprintf(OK "LED_test()" " (%s:%d)\n",_F_,_L_);
+#if 1
     time_t rawtime;
-//    gettimeofday();
     struct tm * timeinfo;
 
-	time ( &rawtime );
-	timeinfo = localtime ( &rawtime );
-	xprintf ( "The current date/time is: %s", asctime (timeinfo) );
+    time( &rawtime );
+    timeinfo = localtime ( &rawtime );
+    xprintf( "The current date/time is: %s", asctime (timeinfo) );
 #endif
 	// Wifi init
 //	WiFi_init();xprintf(OK "WiFi_init" " (%s:%d)\n",_F_,_L_);//_DBG("[OK]-WiFi_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");

@@ -10,6 +10,9 @@
 #include <stdlib.h> /* abort */
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/time.h>
+#include <time.h>
+//#include "rtc.h"
 
 #include "term_io.h"
 #include "LPC17xx.h" /* for _get_PSP() from core_cm3.h*/
@@ -21,6 +24,9 @@ char *__env[1] = { 0 };
 char **environ = __env;
 
 int _execve(char *name, char **argv, char **env) {
+	(void)name; /* avoid warning */
+	(void)argv; /* avoid warning */
+	(void)env; /* avoid warning */
 	errno = ENOMEM;
 	return -1;
 }
@@ -29,20 +35,115 @@ int _fork(void) {
 	return -1;
 }
 int _link(char *old, char *new) {
+	(void)old; /* avoid warning */
+	(void)new; /* avoid warning */
 	errno = EMLINK;
 	return -1;
 }
 int _times(struct tms *buf) {
+	(void)buf; /* avoid warning */
 	return -1;
 }
 int _unlink(char *name) {
+	(void)name; /* avoid warning */
 	errno = ENOENT;
 	return -1;
 }
 int _wait(int *status) {
+	(void)status; /* avoid warning */
 	errno = ECHILD;
 	return -1;
 }
+#if 1
+int _gettimeofday (struct timeval * tp, void * tzvp){
+	(void)tp; /* avoid warning */
+	(void)tzvp; /* avoid warning */
+//	return sys_millis();
+//	return time2.unix;
+	return -1;
+}
+#else
+int
+_gettimeofday (struct timeval * tp, void * tzvp)
+{
+  struct timezone *tzp = tzvp;
+  if (tp)
+    {
+    /* Ask the host for the seconds since the Unix epoch.  */
+#ifdef ARM_RDI_MONITOR
+      tp->tv_sec = do_AngelSWI (AngelSWI_Reason_Time,NULL);
+#else
+      {
+        int value;
+        asm ("swi %a1; mov %0, r0" : "=r" (value): "i" (SWI_Time) : "r0");
+        tp->tv_sec = value;
+      }
+#endif
+      tp->tv_usec = 0;
+    }
+
+  /* Return fixed data for the timezone.  */
+  if (tzp)
+    {
+      tzp->tz_minuteswest = 0;
+      tzp->tz_dsttime = 0;
+    }
+
+  return 0;
+}
+#endif
+
+
+#if 0
+/* Return a clock that ticks at 100Hz.  */
+clock_t
+_clock (void)
+{
+  clock_t timeval;
+
+#ifdef ARM_RDI_MONITOR
+  timeval = do_AngelSWI (AngelSWI_Reason_Clock,NULL);
+#else
+  asm ("swi %a1; mov %0, r0" : "=r" (timeval): "i" (SWI_Clock) : "r0");
+#endif
+  return timeval;
+}
+#endif
+
+
+#if 0
+/* Return a clock that ticks at 100Hz.  */
+clock_t
+_times (struct tms * tp)
+{
+  clock_t timeval = _clock();
+
+  if (tp)
+    {
+      tp->tms_utime  = timeval;	/* user time */
+      tp->tms_stime  = 0;	/* system time */
+      tp->tms_cutime = 0;	/* user time, children */
+      tp->tms_cstime = 0;	/* system time, children */
+    }
+
+  return timeval;
+}
+#endif
+
+#if 0
+/* Return a clock that ticks at 100Hz.  */
+clock_t _times (struct tms * tp){
+	clock_t timeval = _clock();
+
+	if (tp){
+		tp->tms_utime  = timeval;	/* user time */
+		tp->tms_stime  = 0;	/* system time */
+		tp->tms_cutime = 0;	/* user time, children */
+		tp->tms_cstime = 0;	/* system time, children */
+    }
+	return timeval;
+}
+#endif
 
 
 
@@ -66,9 +167,7 @@ int _getpid(void)
 {
 	return 1;
 }
-int gettimeofday (struct timeval *__p, void *__tz){
-	return 1;
-}
+
 
 
 extern char _end; /* Defined by the linker */

@@ -322,7 +322,7 @@ bool home_page(char* URL){
 	}
 
 	// URL not found
-    _DBG("[INFO]-strcmp(URL, ?) URL not found");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+	xprintf(ERR "strcmp(URL, ?) URL not found" " (%s:%d)\n",_F_,_L_);
 	return false;
 };
 

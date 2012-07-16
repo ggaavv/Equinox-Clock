@@ -10,6 +10,7 @@
 
 extern "C" {
 	#include "lpc_types.h"
+	#include "comm.h"
 }
 
 typedef enum {

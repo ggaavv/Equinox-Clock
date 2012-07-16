@@ -101,12 +101,10 @@ void comm_puts(const void *str){
 }
 
 void comm_init(void){
-//	_DBG("[");
-    delay_ms(1000);
 	// UART Configuration structure variable
 	UART_CFG_Type UARTConfigStruct;
 	// UART FIFO configuration Struct variable
-	UART_FIFO_CFG_Type UARTFIFOConfigStruct;
+//	UART_FIFO_CFG_Type UARTFIFOConfigStruct;
 	// Pin configuration for UART0
 	PINSEL_CFG_Type PinCfg;
 /*
@@ -126,7 +124,8 @@ void comm_init(void){
 	PinCfg.Pinnum = 3;
 	PINSEL_ConfigPin(&PinCfg);
 
-
+	UART_ConfigStructInit(&UARTConfigStruct);
+	// Re-configure baudrate to 115200bps
 	/* Initialize UART Configuration parameter structure to default state:
 	 * Baudrate = 115200bps
 	 * 8 data bit
@@ -137,11 +136,9 @@ void comm_init(void){
 	UARTConfigStruct.Parity = UART_PARITY_NONE;
 	UARTConfigStruct.Stopbits = UART_STOPBIT_1;
 	UARTConfigStruct.Databits = UART_DATABIT_8;
-//	UART_ConfigStructInit(&UARTConfigStruct);//messes setup up
 
 	// Initialize UART0 peripheral with given to corresponding parameter
 	UART_Init(LPC_UART0, &UARTConfigStruct);
-
 
 	/* Initialize FIFOConfigStruct to default state:
 	 * 				- FIFO_DMAMode = DISABLE
@@ -181,7 +178,6 @@ void comm_init(void){
 	/* Enable Interrupt for UART0 channel */
     NVIC_EnableIRQ(UART0_IRQn);
 #endif
-//	_DBG("]");
 }
 
 

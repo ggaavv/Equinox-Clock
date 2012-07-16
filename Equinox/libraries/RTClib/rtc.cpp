@@ -11,8 +11,8 @@ extern "C" {
 	#include "lpc17xx_rtc.h"
 	#include "sunrise.h"
 	#include "lpc17xx_nvic.h"
+	#include "comm.h"
 //#include <sys/stdio.h>
-//#include <time.h>
 //#include <sys/time.h>
 }
 #include "comm.h"

@@ -50,6 +50,7 @@ extern "C" {
 	#include "strings.c"
 	#include "pinout.h"
 	#include "lpc17xx_gpio.h"
+	#include "comm.h"
 	void stack_init(void);
 	void stack_process(void);
 }
