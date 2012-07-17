@@ -99,6 +99,32 @@ struct {
 //	uint32_t use_utc;
 } time2;
 
+
+struct {
+	uint32_t unix_utc;	// updated once a second
+	uint32_t unix;		// updated once a second
+	uint16_t year;		// updated once a second //format 2xxx
+	uint8_t month;		// updated once a second //format 1-12
+	uint8_t dom;		// updated once a second //format 1-31
+	uint8_t dow;		// updated once a second //format 0-6
+	uint8_t doy;		// updated once a second //format 1-366
+	uint8_t hh;			// updated once a second //format 0-23
+	uint8_t mm;			// updated once a second //format 0-59
+	uint8_t ss;			// updated once a second //format 0-59
+	uint32_t DST_begin_calculated;	// updated once a year
+	uint32_t DST_end_calculated;	// updated once a year
+	uint32_t unix_dst_last_update;	// updated once a year
+	int32_t dst_correction;		// updated once
+	uint32_t sunrise_unix;	// updated once a day
+	uint32_t sunset_unix;	// updated once a day
+	uint32_t noon_unix;  	// updated once a day
+	uint8_t day_night;  	// updated once a day
+	uint8_t no_set_rise;  	// updated once a day
+	uint8_t second_inc;		// updated once a second
+	uint8_t alarm_no_active;// updated when alarm set and after it has been activated
+//	uint32_t use_utc;
+} timestruct;
+
 void RTC_time_Init(void);
 
 // Interrupt checks

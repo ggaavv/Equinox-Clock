@@ -229,10 +229,42 @@ int _lseek(int file, int ptr, int dir) {
 
 int _read(int file, char *ptr, int len)
 {
-	(void)file; /* avoid warning */
-	(void)ptr;  /* avoid warning */
-	(void)len;  /* avoid warning */
-	return 0;
+//	(void)file; /* avoid warning */
+//	(void)ptr;  /* avoid warning */
+//	(void)len;  /* avoid warning */
+//	xprintf("len=%d,func=%s{\n",len,__func__);
+	xprintf("len=%d,ptr=%s,func=%s{\n",len,ptr,__func__);
+//	switch (file) {
+//		case STDIN_FILENO:
+//			UART_Receive(LPC_UART0, ptr, len, BLOCKING);
+			UART_Receive(LPC_UART0, ptr, 1, BLOCKING);
+			xprintf("%s}\n",__func__);
+//			break;
+//		default:
+//			errno = EBADF;
+//			return -1;
+//	}
+	return 1;//len;
+
+#if 0
+	int n;
+	int num = 0;
+	switch (file) {
+		case STDIN_FILENO:
+			for (n = 0; n < len; n++) {
+				while ((USART1->SR & USART_FLAG_RXNE) == (uint16_t)RESET) {}
+				char c = (char)(USART1->DR & (uint16_t)0x01FF);
+				*ptr++ = c;
+				num++;
+			}
+			break;
+		default:
+			errno = EBADF;
+			return -1;
+	}
+	return num;
+#endif
+//	return 0;
 }
 
 int _write(int file, char *ptr, int len)

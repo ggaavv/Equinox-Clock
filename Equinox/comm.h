@@ -9,7 +9,7 @@
 #define COMS_H_
 
 #ifdef __cplusplus
- extern "C" {
+	extern "C" {
 #endif
 
 #include "lpc17xx_uart.h"
@@ -34,9 +34,10 @@
 #define _FL_ __F__,__LINE__
 //#define _FUN_ __FUNCTION__
 
-int8_t __putchar(int8_t ch);
+int comm_test(void);
+//int8_t __putchar(int8_t ch);
 uint8_t comm_get(void);
-uint8_t comm_gets(void);
+//uint8_t comm_gets(void);
 void comm_put(uint8_t d);
 void comm_init(void);
 

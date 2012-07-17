@@ -9,8 +9,7 @@
 
 #include "lpc17xx_uart.h"
 #include "lpc17xx_pinsel.h"
-	#include "debug_frmwrk.h"
-	#include "sys_timer.h"
+#include "sys_timer.h"
 
 #define USARTx LPC_UART0
 
@@ -52,17 +51,45 @@ UART_RING_BUFFER_T rb;
 // Current Tx Interrupt enable state
 __IO FlagStatus TxIntStat;
 
-//for printf
+int comm_test(void){
+	xprintf("%s{\n",__func__);
+//	delay_ms(1000);
+	return ( LPC_UART0->LSR & UART_LSR_RDR ) ? 1 : 0;
+//	return 0;//always avaliable
+
+    // Wait for incomming char...
+//    while (USART_GetFlagStatus(USART1, USART_FLAG_RXNE) == RESET) ;
+//	return ( USART_GetFlagStatus(USARTx, USART_FLAG_RXNE) == RESET ) ? 0 : 1;
+}
+
+#if 0
+//for printf??
 int8_t __putchar(int8_t ch){
+	xprintf("%s{\n",__func__);
   if (ch == '\n')
 	  comm_put('\r');
   comm_put(ch);
+	xprintf("%s}\n",__func__);
 }
 
+//for scanf??
+int8_t __getchar(void){
+	xprintf("%s{\n",__func__);
+	return comm_get();
+}
+//for scanf??
+int8_t __getc(void){
+	xprintf("%s{\n",__func__);
+	return comm_get();
+}
+#endif
 
 uint8_t comm_get(void){
+	xprintf("%s{\n",__func__);
+//	delay_ms(1000);
 	uint8_t tmp = 0;
 	UART_Receive(LPC_UART0, &tmp, 1, BLOCKING);
+	xprintf("%s}\n",__func__);
 	return(tmp);
 #if 0
 	return UART_ReceiveByte(LPC_UART0);
@@ -90,8 +117,9 @@ void comm_put(uint8_t d){
 //	UARTSend(LPC_UART0, d, 1);
 //	UART_SendByte(LPC_UART0, d);
 	UART_Send(LPC_UART0, &d, 1, BLOCKING);
+//	serial_writechar(d);
 }
-
+#if 0
 void comm_puts(const void *str){
 	uint8_t *s = (uint8_t *) str;
 
@@ -99,6 +127,7 @@ void comm_puts(const void *str){
 		UARTPutChar(LPC_UART0, *s++);
 	}
 }
+#endif
 
 void comm_init(void){
 	// UART Configuration structure variable
@@ -139,6 +168,7 @@ void comm_init(void){
 
 	// Initialize UART0 peripheral with given to corresponding parameter
 	UART_Init(LPC_UART0, &UARTConfigStruct);
+
 
 	/* Initialize FIFOConfigStruct to default state:
 	 * 				- FIFO_DMAMode = DISABLE

@@ -32,6 +32,9 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdarg.h>
+#include <stdio.h>
+#include <time.h>
+#include <sys/time.h>
 
 extern "C" {
 	#include "g2100.h"
@@ -46,12 +49,8 @@ extern "C" {
 	#include "serial.h"
 	#include "ShiftPWM.h"
 	#include "comm.h"
-//#include "term_io.h"
-#include "syscalls.h"
-#include <stdio.h>
-#include <time.h>
+	#include "syscalls.h"
 }
-#include <sys/time.h>
 
 #define USER_FLASH_START 0x3000 // For USB bootloader
 //#define USER_FLASH_START 0x0 // No USB bootloader
@@ -122,8 +121,46 @@ int main(void){
 //	debug_frmwrk_init();//_DBG("[OK]-debug_frmwrk_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
 	// Initialize UART
-    comm_init();xprintf("\r\n\r\n\r\n\r\n\r\n**BOOTED**" " (%s:%d)\n",_F_,_L_);
+	comm_init();xprintf("\033[2J");xprintf("\r\n\r\n\r\n\r\n\r\n**BOOTED**" " (%s:%d)\n",_F_,_L_);
+#if 0
+//	while(getc((void)NULL));
 
+//	fflush(stdin);
+	xprintf( "Press ANY key to continue...\n" );
+//	char n[80];
+//	gets(n);
+//	fgetc(NULL);
+	getchar();
+//	scanf ("%10c",&n);
+//	xprintf( "Pressed=%s\n", n);
+//	get_line(n, 10);//sizeof(n));
+//	comm_get();
+//	char tmp[10];
+//	get_line(tmp,4);
+
+	char buf[100];
+	int inumber,i2;
+	char string[80];
+	sscanf(buf,"%d %s",&inumber,string);
+	printf("inumber=%d  string=%s",inumber,string);
+	int last=0xff,curr;
+	while(1){
+		curr = xavail();
+		if(last!=curr)
+			xprintf("curr=%b\n",curr);
+		if(xgetc()=='f')
+			xprintf("xgetc()=%b\n",xgetc());
+		last = curr;
+	}
+	xprintf("%b",xgetc());
+#endif
+//	while(1){
+//    	while(!UART_Receive(LPC_UART0, tmp, 1, BLOCKING));
+//    	xprintf("tmp=%s" " (%s:%d)\n",tmp,_F_,_L_);
+//    	xprintf("tmp=%b" " (%s:%d)\n",UART_ReceiveByte(LPC_UART0),_F_,_L_);
+//    }
+
+//    while (getchar() != '\n');
 
 	//eraseScreen
 //	_DBG(0x1B);//_DBG(ESCAPE);
@@ -137,9 +174,9 @@ int main(void){
 	SYSTICK_Cmd(ENABLE);//xprintf(OK "SYSTICK_Cmd()" " (%s:%d)\n",_F_,_L_);
 
 	// Initialize USB<->Serial
-//	serial_init();_DBG("[OK]-serial_init()");
+	serial_init();xprintf(OK "serial_init()" " (%s:%d)\n",_F_,_L_);
 //	uart_writestr("[OK]-uart_Start");
-//	serial_writestr("[OK]-serial_Start");
+	serial_writestr("[OK]-serial_Start");
 
 	// Init RTC module
     RTC_time_Init();xprintf(OK "RTC_time_Init()" " (%s:%d)\n",_F_,_L_);
@@ -172,7 +209,7 @@ int main(void){
 //		_DBD16(tcount);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 		if(tcount<=Getunix()){
 //			_DBG(".");
-//		if(RTC_GetTime(LPC_RTC, RTC_TIMETYPE_SECOND)==0){
+//		if(GetSS==0){
 			tcount=DELAY+Getunix();
 //			_DBD16(tcount);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 			printf(INFO "for (;;) %d" " (%s:%d)\n",Getunix(),_F_,_L_);//_DBG("[INFO]-for (;;) ");_DBD32(Getunix());_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");

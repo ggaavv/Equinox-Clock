@@ -797,6 +797,8 @@ uint32_t getDSTstatus(void){
 		return 0;
 }
 
+//void PrintUnix(str)
+
 
 #if 0
 //uint32_t

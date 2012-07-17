@@ -179,12 +179,14 @@ void put_dump (const uint8_t *buff, uint32_t ofs, int cnt)
 
 void get_line (char *buff, int len)
 {
+	xprintf("%s{\n",__func__);
+//	delay_ms(1000);
 	char c;
 	int idx = 0;
 
 	for (;;) {
 		c = xgetc();
-		if (c == '\r') break;
+		if ((c == '\r')||(c == '\n')) break;
 		if ((c == '\b') && idx) {
 			idx--; xputc(c);
 			xputc(' '); xputc(c); // added by mthomas for Eclipse Terminal plug-in
