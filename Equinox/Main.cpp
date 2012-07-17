@@ -126,25 +126,53 @@ int main(void){
 //	while(getc((void)NULL));
 
 //	fflush(stdin);
-	xprintf( "Press ANY key to continue...\n" );
-//	char n[80];
+//	xprintf( "Press ANY key to continue..." "(%s:%d)\n",_F_,_L_);
+	char n[80];
 //	gets(n);
 //	fgetc(NULL);
-	getchar();
-//	scanf ("%10c",&n);
+//	getchar(); //not working (no call to _read??)
+
+	xprintf("\nscanf 2i" " (%s:%d)\n",_F_,_L_);
+	scanf ("%2i",&n);//works gets 10 chars
+	xprintf("\nscanf n=%s" " (%s:%d)\n",n,_F_,_L_);
+	
+	n[0]=NULL;
+	xprintf("scanf 10[^nl]" " (%s:%d)\n",_F_,_L_);
+	scanf ("%10[^\n]",&n);//works
+	xprintf("\nscanf n=%s" " (%s:%d)\n",n,_F_,_L_);
+	
+	n[0]=NULL;
+	xprintf("scanf [^nl]" " (%s:%d)\n",_F_,_L_);
+	scanf ("%[^\n]",&n);//works
+	xprintf("\nscanf n=%s" " (%s:%d)\n",n,_F_,_L_);
+	
 //	xprintf( "Pressed=%s\n", n);
 //	get_line(n, 10);//sizeof(n));
 //	comm_get();
 //	char tmp[10];
 //	get_line(tmp,4);
 
+	n=0;
 	char buf[100];
-	int inumber,i2;
+	uint32_t inumber,i2;
 	char string[80];
-	sscanf(buf,"%d %s",&inumber,string);
-	printf("inumber=%d  string=%s",inumber,string);
+	
+	xprintf("fgets(string,100,NULL)" " (%s:%d)\n",_F_,_L_);
+	fgets(string,100,NULL);//not working (no call to _read??)
+	xprintf("scanf string=%s" " (%s:%d)\n",string,_F_,_L_);
+	
+	
+	xprintf("sscanf" "(%s:%d)\n",_F_,_L_);
+	sscanf(buf,"%d %s",&inumber,string);//not working (no call to _read??)
+	xprintf("sscanf inumber=%d string=%s" "(%s:%d)\n",inumber,string,_F_,_L_);
+
+//	printf("inumber=%d  string=%s\n",inumber,string);
+//	xprintf("scanf" "(%s:%d)\n",_F_,_L_);
+
+	scanf("%d %s",&inumber,string);//gets only 1 char
+	printf("inumber=%d  string=%s\n",inumber,string);
 	int last=0xff,curr;
-	while(1){
+	while(0){
 		curr = xavail();
 		if(last!=curr)
 			xprintf("curr=%b\n",curr);
@@ -152,7 +180,7 @@ int main(void){
 			xprintf("xgetc()=%b\n",xgetc());
 		last = curr;
 	}
-	xprintf("%b",xgetc());
+	xprintf("%b",xgetc());//works
 #endif
 //	while(1){
 //    	while(!UART_Receive(LPC_UART0, tmp, 1, BLOCKING));

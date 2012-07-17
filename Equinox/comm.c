@@ -77,19 +77,19 @@ int8_t __getchar(void){
 	xprintf("%s{\n",__func__);
 	return comm_get();
 }
+#endif
 //for scanf??
-int8_t __getc(void){
+int8_t _getc(void){
 	xprintf("%s{\n",__func__);
 	return comm_get();
 }
-#endif
 
 uint8_t comm_get(void){
-	xprintf("%s{\n",__func__);
+//	xprintf("%s{\n",__func__);
 //	delay_ms(1000);
 	uint8_t tmp = 0;
 	UART_Receive(LPC_UART0, &tmp, 1, BLOCKING);
-	xprintf("%s}\n",__func__);
+//	xprintf("%s}\n",__func__);
 	return(tmp);
 #if 0
 	return UART_ReceiveByte(LPC_UART0);
