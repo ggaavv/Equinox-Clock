@@ -12,10 +12,12 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <time.h>
-//#include "rtc.h"
 
 #include "term_io.h"
 #include "LPC17xx.h" /* for _get_PSP() from core_cm3.h*/
+#include "rtc.h"
+
+extern UNIX;
 
 #undef errno
 extern int errno;
@@ -24,6 +26,7 @@ char *__env[1] = { 0 };
 char **environ = __env;
 
 int _execve(char *name, char **argv, char **env) {
+//	xprintf("%s{\n",__func__);
 	(void)name; /* avoid warning */
 	(void)argv; /* avoid warning */
 	(void)env; /* avoid warning */
@@ -31,36 +34,46 @@ int _execve(char *name, char **argv, char **env) {
 	return -1;
 }
 int _fork(void) {
+//	xprintf("%s{\n",__func__);
 	errno = EAGAIN;
 	return -1;
 }
 int _link(char *old, char *new) {
+//	xprintf("%s{\n",__func__);
 	(void)old; /* avoid warning */
 	(void)new; /* avoid warning */
 	errno = EMLINK;
 	return -1;
 }
 int _times(struct tms *buf) {
+//	xprintf("%s{\n",__func__);
 	(void)buf; /* avoid warning */
 	return -1;
 }
 int _unlink(char *name) {
+//	xprintf("%s{\n",__func__);
 	(void)name; /* avoid warning */
 	errno = ENOENT;
 	return -1;
 }
 int _wait(int *status) {
+//	xprintf("%s{\n",__func__);
 	(void)status; /* avoid warning */
 	errno = ECHILD;
 	return -1;
 }
 #if 1
 int _gettimeofday (struct timeval * tp, void * tzvp){
+//	xprintf("%s{\n",__func__);
 	(void)tp; /* avoid warning */
 	(void)tzvp; /* avoid warning */
 //	return sys_millis();
+//	return Getunix();
 //	return time2.unix;
-	return -1;
+//	xprintf("%d\n",UNIX);
+	tp->tv_sec=UNIX;
+	return 0;
+//	return -1;
 }
 #else
 int
@@ -151,6 +164,7 @@ clock_t _times (struct tms * tp){
 
 int _kill(int pid, int sig)
 {
+//	xprintf("%s{\n",__func__);
 	(void)pid;
 	(void)sig; /* avoid warnings */
 	errno = EINVAL;
@@ -165,6 +179,7 @@ void _exit(int status)
 
 int _getpid(void)
 {
+//	xprintf("%s{\n",__func__);
 	return 1;
 }
 
@@ -173,17 +188,20 @@ static char *heap_end;
 
 char* get_heap_end(void)
 {
+//	xprintf("%s{\n",__func__);
 	return (char*) heap_end;
 }
 
 char* get_stack_top(void)
 {
+//	xprintf("%s{\n",__func__);
 	return (char*) __get_MSP();
 	// return (char*) __get_PSP();
 }
 
 caddr_t _sbrk(int incr)
 {
+//	xprintf("%s{\n",__func__);
 	char *prev_heap_end;
 	if (heap_end == 0) {
 		heap_end = &_end;
@@ -200,6 +218,13 @@ caddr_t _sbrk(int incr)
 }
 
 int _close(int file)
+{
+//	xprintf("%s{\n",__func__);
+	(void)file; /* avoid warning */
+	return -1;
+}
+
+int _open(int file)
 {
 //	xprintf("%s{\n",__func__);
 	(void)file; /* avoid warning */

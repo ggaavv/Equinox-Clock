@@ -6,6 +6,7 @@
 #endif
 
 #include <stdint.h>
+#include <stdio.h>
 #include "comm.h"
 
 #define OK "[OK]-"
@@ -14,6 +15,12 @@
 
 #define xgetc() (char)comm_get()
 #define xavail() comm_test()
+
+//#define	getchar() (char)comm_get()
+//#define	getc() (char)comm_get_i(stdio)
+//#define	getchar() (char)comm_get()
+#define	getc() (char)comm_get()
+#define	getc(stdio) (char)comm_get()
 
 int xatoi (char**, long*);
 void xputc (char);

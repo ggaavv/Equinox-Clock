@@ -15,11 +15,14 @@ extern "C" {
 //#include <sys/stdio.h>
 //#include <sys/time.h>
 }
+
 #include "comm.h"
 #include "term_io.h"
 #include "rtc.h"
 #include <stdio.h>
+#include <time.h>
 //#include <ctime.h>
+uint32_t UNIX=0;
 
 #define DSTEurope
 //#define DSTUSA
@@ -114,7 +117,9 @@ void RTC_time_Init(void){
 	RTC_Cmd(LPC_RTC, ENABLE);
 	update_time();
 //	RTC_CalibCounterCmd(LPC_RTC, DISABLE);
-	RTC_WriteGPREG(LPC_RTC, 4, 0x55);
+
+//	RTC_WriteGPREG(LPC_RTC, 4, 0x55);//force clock set
+
     //Set time if no data in GPREG
     if (!(RTC_ReadGPREG(LPC_RTC, 4)==(0xaa)))
     {
@@ -415,6 +420,7 @@ void update_time(void){
 	time2.ss = RTC_GetTime(LPC_RTC, RTC_TIMETYPE_SECOND);
 #endif
 	time2.unix = RTC_time_FindUnixtime(GetY(), GetM(), GetDOM(), GetHH(), GetMM(), GetSS());
+	UNIX = time2.unix;
 //	_DBG("[INFO]-time2.unix = ");_DBD32(time2.unix);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 }
 
@@ -488,12 +494,36 @@ void RTC_set_default_time_to_compiled(void) {
 }
 
 void RTC_print_time(void){
-	xprintf(INFO "%d/%d/%d %d:%d:%d" " (%s:%d)\n",GetDOM(),GetM(),GetY(),GetHH(),GetMM(),GetSS(),_F_,_L_);
-	xprintf(INFO "Unix: %d" " (%s:%d)\n",time2.unix,_F_,_L_);
-	xprintf(INFO "Sunrise: %d" " (%s:%d)\n",time2.sunrise_unix,_F_,_L_);
-	xprintf(INFO "Sunset: %d" " (%s:%d)\n",time2.sunset_unix,_F_,_L_);
-	xprintf(INFO "Noon: %d" " (%s:%d)\n",time2.noon_unix,_F_,_L_);
-	xprintf(INFO "Day/Night: %d" " (%s:%d)\n",time2.day_night,_F_,_L_);
+	char buffer[100];
+    time_t rawtime;
+    struct tm * timeinfo;
+
+
+//	xprintf(INFO "%d/%d/%d %d:%d:%d" " (%s:%d)\n",GetDOM(),GetM(),GetY(),GetHH(),GetMM(),GetSS(),_F_,_L_);
+	time( &rawtime );
+    timeinfo = localtime ( &rawtime );
+	strftime(buffer,90,"%d/%m/%Y %I:%M:%S%p WOY:%U DOY:%j",timeinfo);
+	xprintf(INFO "%s" " (%s:%d)\n", buffer,_F_,_L_);
+//	xprintf(INFO "%d/%d/%d %d:%d:%d" " (%s:%d)\n",_F_,_L_);
+//	xprintf(INFO "Unix: %d" " (%s:%d)\n",time2.unix,_F_,_L_);
+
+//	xprintf(INFO "Sunrise: %d" " (%s:%d)\n",time2.sunrise_unix,_F_,_L_);
+	timeinfo = localtime ( &time2.sunrise_unix );
+	strftime(buffer,80,"Sunrise: %I:%M:%S%p.",timeinfo);
+	xprintf(INFO "%s" " (%s:%d)\n", buffer,_F_,_L_);
+
+//	xprintf(INFO "Sunset: %d" " (%s:%d)\n",time2.sunset_unix,_F_,_L_);
+	timeinfo = localtime ( &time2.sunset_unix );
+	strftime(buffer,80,"Sunset: %I:%M:%S%p.",timeinfo);
+	xprintf(INFO "%s" " (%s:%d)\n", buffer,_F_,_L_);
+
+//	xprintf(INFO "Noon: %d" " (%s:%d)\n",time2.noon_unix,_F_,_L_);
+	timeinfo = localtime ( &time2.noon_unix );
+	strftime(buffer,80,"Noon: %I:%M:%S%p.",timeinfo);
+	xprintf(INFO "%s" " (%s:%d)\n", buffer,_F_,_L_);
+
+	xprintf(INFO "It's %s" " (%s:%d)\n",time2.day_night ? "Night time" : "Day time" ,_F_,_L_);
+//	xprintf(INFO "Day/Night: %d" " (%s:%d)\n",time2.day_night,_F_,_L_);
 	xprintf(INFO "DST begin: %d end: %d" " (%s:%d)\n",time2.DST_begin_calculated,time2.DST_end_calculated,_F_,_L_);
 
 

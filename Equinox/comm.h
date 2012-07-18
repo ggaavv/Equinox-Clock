@@ -36,12 +36,11 @@
 
 int comm_test(void);
 //int8_t __putchar(int8_t ch);
+uint8_t comm_get2(int name);
 uint8_t comm_get(void);
 //uint8_t comm_gets(void);
 void comm_put(uint8_t d);
 void comm_init(void);
-
-
 
 void UART0_IRQHandler(void);
 void UART_IntReceive(void);

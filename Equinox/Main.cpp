@@ -59,6 +59,7 @@ extern "C" {
 /* External function prototypes ----------------------------------------------*/
 extern "C" char* get_heap_end(void);
 extern "C" char* get_stack_top(void);
+extern int LINE_READY;
 
 /*
 void execute_bootloader(void){
@@ -93,6 +94,7 @@ void EINT0_IRQHandler (void)
  * @brief	Main sub-routine
  **********************************************************************/
 int main(void){
+	char buffer[100];
 
 	LPC_GPIO1->FIODIR = 1 << 23;
 	LPC_GPIO1->FIODIR = 1 << 21;
@@ -121,16 +123,18 @@ int main(void){
 //	debug_frmwrk_init();//_DBG("[OK]-debug_frmwrk_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
 	// Initialize UART
-	comm_init();xprintf("\033[2J");xprintf("\r\n\r\n\r\n\r\n\r\n**BOOTED**" " (%s:%d)\n",_F_,_L_);
+	comm_init();
+//	xprintf("\033[2J");
+	xprintf("\r\n\r\n\r\n\r\n\r\n**BOOTED**" " (%s:%d)\n",_F_,_L_);
 #if 0
-//	while(getc((void)NULL));
+	getc(); //working
+	getchar(); //working
 
 //	fflush(stdin);
 //	xprintf( "Press ANY key to continue..." "(%s:%d)\n",_F_,_L_);
 	char n[80];
 //	gets(n);
 //	fgetc(NULL);
-//	getchar(); //not working (no call to _read??)
 
 	xprintf("\nscanf 2i" " (%s:%d)\n",_F_,_L_);
 	scanf ("%2i",&n);//works gets 10 chars
@@ -153,7 +157,6 @@ int main(void){
 //	get_line(tmp,4);
 
 	n=0;
-	char buf[100];
 	uint32_t inumber,i2;
 	char string[80];
 	
@@ -212,13 +215,16 @@ int main(void){
     // Init LED module
     LED_init();xprintf(OK "LED_init()" " (%s:%d)\n",_F_,_L_);
     LED_test();xprintf(OK "LED_test()" " (%s:%d)\n",_F_,_L_);
-#if 1
+#if 0
     time_t rawtime;
     struct tm * timeinfo;
-
     time( &rawtime );
     timeinfo = localtime ( &rawtime );
     xprintf( "The current date/time is: %s", asctime (timeinfo) );
+
+//    rawtime = time (NULL);
+//    printf ("%ld hours since January 1, 1970", asctime (time (NULL)));///3600);
+
 #endif
 	// Wifi init
 //	WiFi_init();xprintf(OK "WiFi_init" " (%s:%d)\n",_F_,_L_);//_DBG("[OK]-WiFi_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
@@ -240,8 +246,20 @@ int main(void){
 //		if(GetSS==0){
 			tcount=DELAY+Getunix();
 //			_DBD16(tcount);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-			printf(INFO "for (;;) %d" " (%s:%d)\n",Getunix(),_F_,_L_);//_DBG("[INFO]-for (;;) ");_DBD32(Getunix());_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//			printf(INFO "for (;;) %d" " (%s:%d)\n",Getunix(),_F_,_L_);//_DBG("[INFO]-for (;;) ");_DBD32(Getunix());_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
+			time_t rawtime;
+			struct tm * timeinfo;
+			time( &rawtime );
+			timeinfo = localtime ( &rawtime );
+			strftime(buffer,80,"Now it's %I:%M:%S%p.",timeinfo);
+			xprintf( "%s" " (%s:%d)\n", buffer,_F_,_L_);
+//			xprintf( "date/time is: %s" " (%s:%d)\n", asctime (timeinfo) ,_F_,_L_);
+
+			if(LINE_READY){
+				xprintf( "LINE_READY" " (%s:%d)\n",_F_,_L_);
+				LINE_READY=0;
+			}
 //			RTC_print_time();
 		}
 /*

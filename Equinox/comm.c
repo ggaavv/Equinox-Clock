@@ -11,6 +11,8 @@
 #include "lpc17xx_pinsel.h"
 #include "sys_timer.h"
 
+int LINE_READY=0;
+
 #define USARTx LPC_UART0
 
 /************************** PRIVATE DEFINTIONS *************************/
@@ -77,25 +79,34 @@ int8_t __getchar(void){
 	xprintf("%s{\n",__func__);
 	return comm_get();
 }
-#endif
 //for scanf??
 int8_t _getc(void){
 	xprintf("%s{\n",__func__);
 	return comm_get();
 }
+#endif
 
-uint8_t comm_get(void){
-//	xprintf("%s{\n",__func__);
-//	delay_ms(1000);
-	uint8_t tmp = 0;
-	UART_Receive(LPC_UART0, &tmp, 1, BLOCKING);
-//	xprintf("%s}\n",__func__);
-	return(tmp);
-#if 0
-	return UART_ReceiveByte(LPC_UART0);
-	uint8_t buffer, len;
+
+uint8_t comm_get2(int name){
+	(void)name; /* avoid warning */
+	uint8_t buffer[2], len;
 	while (len == 0){
 		len = UART_Receive(LPC_UART0, buffer, sizeof(buffer), NONE_BLOCKING);
+	}
+	return buffer;// buffer;
+}
+
+uint8_t comm_get(void){
+#if 0
+//	xprintf("%s{\n",__func__);
+	uint8_t tmp = 0;
+	UART_Receive(LPC_UART0, &tmp, 1, BLOCKING);
+	return(tmp);
+#endif
+#if 1
+	uint8_t buffer[1], len;
+	while (len == 0){
+		len = UARTReceive(LPC_UART0, buffer, 1);
 	}
 	return buffer;
 #endif
@@ -113,12 +124,14 @@ uint8_t comm_gets(void){
 #endif
 
 void comm_put(uint8_t d){
-//	UARTSend(LPC_UART_TypeDef *UARTPort, uint8_t *txbuf, uint8_t buflen)
-//	UARTSend(LPC_UART0, d, 1);
-//	UART_SendByte(LPC_UART0, d);
-	UART_Send(LPC_UART0, &d, 1, BLOCKING);
-//	serial_writechar(d);
+////	UARTSend(LPC_UART_TypeDef *UARTPort, uint8_t *txbuf, uint8_t buflen)
+////	UARTSend(LPC_UART0, d, 1);
+////	UART_SendByte(LPC_UART0, d);
+//	UART_Send(LPC_UART0, &d, 1, BLOCKING);//without interrupt
+	UARTSend(LPC_UART0, &d, 1);//with interrupt
+////	serial_writechar(d);
 }
+
 #if 0
 void comm_puts(const void *str){
 	uint8_t *s = (uint8_t *) str;
@@ -185,7 +198,7 @@ void comm_init(void){
 
 	// Enable UART Transmit
 	UART_TxCmd(LPC_UART0, ENABLE);
-#if 0
+#if 1
     /* Enable UART Rx interrupt */
 	UART_IntConfig((LPC_UART_TypeDef *)LPC_UART0, UART_INTCFG_RBR, ENABLE);
 	/* Enable UART line status interrupt */
@@ -211,7 +224,7 @@ void comm_init(void){
 }
 
 
-
+#if 1
 /*----------------- INTERRUPT SERVICE ROUTINES --------------------------*/
 /*********************************************************************//**
  * @brief		UART0 interrupt handler sub-routine
@@ -226,6 +239,7 @@ void UART0_IRQHandler(void)
 	intsrc = UART_GetIntId(LPC_UART0);
 	tmp = intsrc & UART_IIR_INTID_MASK;
 
+
 	// Receive Line Status
 	if (tmp == UART_IIR_INTID_RLS){
 		// Check line status
@@ -235,18 +249,19 @@ void UART0_IRQHandler(void)
 				| UART_LSR_BI | UART_LSR_RXFE);
 		// If any error exist
 		if (tmp1) {
-				UART_IntErr(tmp1);
+			UART_IntErr(tmp1);
 		}
 	}
 
 	// Receive Data Available or Character time-out
 	if ((tmp == UART_IIR_INTID_RDA) || (tmp == UART_IIR_INTID_CTI)){
-			UART_IntReceive();
+		UART_IntReceive();
 	}
 
 	// Transmit Holding Empty
 	if (tmp == UART_IIR_INTID_THRE){
-			UART_IntTransmit();
+//		xprintf("t---%s{\n",__func__);
+		UART_IntTransmit();
 	}
 
 }
@@ -266,6 +281,9 @@ void UART_IntReceive(void)
 		rLen = UART_Receive((LPC_UART_TypeDef *)LPC_UART0, &tmpc, 1, NONE_BLOCKING);
 		// If data received
 		if (rLen){
+			if((tmpc=='\r')||(tmpc=='\n')){
+				LINE_READY = 1;
+			}
 			/* Check if buffer is more space
 			 * If no more space, remaining character will be trimmed out
 			 */
@@ -431,7 +449,7 @@ uint32_t UARTReceive(LPC_UART_TypeDef *UARTPort, uint8_t *rxbuf, uint8_t buflen)
 
     return bytes;
 }
-
+#endif
 #if 0
 /*********************************************************************//**
  * @brief	Print Welcome Screen Menu subroutine
