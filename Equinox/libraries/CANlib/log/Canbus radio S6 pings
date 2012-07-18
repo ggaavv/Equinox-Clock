@@ -1,0 +1,152 @@
+With nothing happening roughly every second:
+t3DF 8 79 00 81 81 81 81 81 81
+t3CF 8 69 00 A2 A2 A2 A2 A2 A2
+odd:
+t3CF8611100A2A2A2A2A2
+t3DF87A01818181818181t3DF87900818181818181
+t3DF8701A110000000001t3DF8701A110000000001
+
+M04203020
+mB10F8E0F
+
+Volume up pressed:
+t0A9 8 03 89 00 04 A2 A2 A2 A2
+reply:
+t4A9 8 74 81 81 81 81 81 81 81
+
+
+RADIO 1 (1)
+Power on:
+t1B1 8 04 52 02 FF FF 81 81 81
+t5B1 8 74 A2 A2 A2 A2 A2 A2 A2
+
+t1C1 8 02 64 0F A2 A2 A2 A2 A2
+t5C1 8 74 81 81 81 81 81 81 81
+
+t121 8 10 1C 7F 55 55 FF 60 01
+t521 8 30 01 00 A2 A2 A2 A2 A2
+
+t121 8 21 46 4D 20 20 20 20 20
+t521 8 30 01 00 A2 A2 A2 A2 A2
+
+t121 8 22 20 10 52 41 44 49 4F
+t521 8 30 01 00 A2 A2 A2 A2 A2
+
+t121 8 23 20 46 4D 20 20 20 20
+t521 8 30 01 00 A2 A2 A2 A2 A2
+
+t121 8 24 00 81 81 81 81 81 81
+t521 8 74 A2 A2 A2 A2 A2 A2 A2<<different end maybe
+
+
+Working with 8 IDs : 
+        0A9  000010101001
+        4A9  010010101001
+        121  000100100001
+        521  010100100001
+        1B1  000110110001
+        5B1  010110110001
+        1C1  000111000001
+        5C1  010111000001.......
+Number of possible combinations = 254
+Best result = 32  Worst result = 256
+  32 results : 	ACR = 04203020    AMR = B10F8E0F
+	 :: 021  029  0A1  0A9  121  129  181  191  1A1  1A9  1B1  1C1  1D1  1E1  1F1  421  429  4A1  4A9  521  529  581  591  5A1  5A9  5B1  5C1  5D1  5E1  5F1  
+  32 results : 	ACR = 14202020    AMR = A30F9C0F
+	 :: 0A1  0A9  0B1  0B9  101  121  141  161  181  1A1  1A9  1B1  1B9  1C1  1E1  4A1  4A9  4B1  4B9  501  521  541  561  581  5A1  5A9  5B1  5B9  5C1  5E1  
+  32 results : 	ACR = 20201420    AMR = 9C0FA30F
+	 :: 0A1  0A9  0B1  0B9  101  121  141  161  181  1A1  1A9  1B1  1B9  1C1  1E1  4A1  4A9  4B1  4B9  501  521  541  561  581  5A1  5A9  5B1  5B9  5C1  5E1  
+  32 results : 	ACR = 30200420    AMR = 8E0FB10F
+	 :: 021  029  0A1  0A9  121  129  181  191  1A1  1A9  1B1  1C1  1D1  1E1  1F1  421  429  4A1  4A9  521  529  581  591  5A1  5A9  5B1  5C1  5D1  5E1  5F1  
+
+0x121_1 = t12181019767601486561 - 0x121_1_ascii = ..vv.Hea - No. 283.
+0x121_2 = t12182172743936361020 - 0x121_2_ascii = !rt966.  - No. 284.
+0x121_3 = t12182248656172743936 - 0x121_3_ascii = "Heart96 - No. 285.
+0x121_4 = t12182336205036008181 - 0x121_4_ascii = #6 P6... - No. 286.
+
+0x121_5 = t12181019766001205041 - 0x121_5_ascii = ..v`. PA - No. 287.
+0x121_0 = t12182155534520201020 - 0x121_0_ascii = !USE  .  - No. 288.
+0x121_1 = t12182220205041555345 - 0x121_1_ascii = "  PAUSE - No. 289.
+0x121_2 = t12182320202020008181 - 0x121_2_ascii = #    ... - No. 290.
+
+0x121_3 = t12181019767601486561 - 0x121_3_ascii = ..vv.Hea - No. 291.
+0x121_4 = t12182172743936361020 - 0x121_4_ascii = !rt966.  - No. 292.
+0x121_5 = t12182248656172743936 - 0x121_5_ascii = "Heart96 - No. 293.
+0x121_0 = t12182336205036008181 - 0x121_0_ascii = #6 P6... - No. 294.
+
+
+0x121_3 = t12181019766001205041 - 0x121_3_ascii = ..v`. PA - No. 303.
+0x121_4 = t12182155534520201020 - 0x121_4_ascii = !USE  .  - No. 304.
+0x121_5 = t12182220205041555345 - 0x121_5_ascii = "  PAUSE - No. 305.
+0x121_0 = t12182320202020008181 - 0x121_0_ascii = #    ... - No. 306.
+
+0x121_5 = t1218101C7F5155FF6001 - 0x121_5_ascii = ..QU.`. - No. 383.
+0x121_0 = t12182141555820202020 - 0x121_0_ascii = !AUX     - No. 384.
+0x121_1 = t12182220104155582020 - 0x121_1_ascii = " .AUX   - No. 385.
+0x121_2 = t12182320202020202020 - 0x121_2_ascii = #        - No. 386.
+0x121_3 = t12182400818181818181 - 0x121_3_ascii = $....... - No. 387.
+
+all with traffic
+
+0x121_4 = t12181019766001415558 - 0x121_4_ascii = ..v`.AUX - No. 424.
+0x121_5 = t12182120202020201041 - 0x121_5_ascii = !     .A - No. 425.
+0x121_0 = t12182255582020202020 - 0x121_0_ascii = "UX      - No. 426.
+0x121_1 = t12182320202020008181 - 0x121_1_ascii = #    ... - No. 427.
+ 
+        0x0A9 = NULL - 0x0A9_ascii = NULL
+                             0x4A9 = NULL - 0x4A9_ascii = NULL
+
+                             0x121_0 = t1218101C7F5555FF6001 - 0x121_0_ascii = ..UU.`. - No. 10.
+                             0x121_1 = t121821464D2020202020 - 0x121_1_ascii = !FM      - No. 11.
+                             0x121_2 = t1218222010524144494F - 0x121_2_ascii = " .RADIO - No. 12.
+                             0x121_3 = t12182320464D20202020 - 0x121_3_ascii = # FM     - No. 13.
+                             0x121_4 = t12182400818181818181 - 0x121_4_ascii = $....... - No. 14.
+                             0x121_5 = NULL - 0x121_5_ascii = NULL - No. 0.
+
+                             0x521_0 = NULL - 0x521_0_ascii = NULL - No. 0.
+                             0x521_1 = NULL - 0x521_1_ascii = NULL - No. 0.
+                             0x521_2 = NULL - 0x521_2_ascii = NULL - No. 0.
+                             0x521_3 = NULL - 0x521_3_ascii = NULL - No. 0.
+                             0x521_4 = NULL - 0x521_4_ascii = NULL - No. 0.
+                             0x521_5 = NULL - 0x521_5_ascii = NULL - No. 0.
+
+                             0x3CF = t3CF86900A2A2A2A2A2A2 - 0x3CF_ascii = i.......
+                             0x3DF = t3DF87900818181818181 - 0x3DF_ascii = y.......
+                             0x1C1 = t1C1802640FA2A2A2A2A2 - 0x1C1_ascii = .d......
+                             0x5C1 = NULL - 0x5C1_ascii = NULL
+                             0x5B1 = NULL - 0x5B1_ascii = NULL
+                             0x1B1 = t1B18045200FFFF818181 - 0x1B1_ascii = .R......
+                     Done 772 Screen updates.
+
+                             0x0A9 = NULL - 0x0A9_ascii = NULL
+                             0x4A9 = NULL - 0x4A9_ascii = NULL
+
+                             0x121_0 = t1218101C7F5555FF6001 - 0x121_0_ascii = ..UU.`. - No. 0.
+                             0x121_1 = t12182141555820202020 - 0x121_1_ascii = !AUX     - No. 1.
+                             0x121_2 = t12182220104155582020 - 0x121_2_ascii = " .AUX   - No. 2.
+                             0x121_3 = t12182320202020202020 - 0x121_3_ascii = #        - No. 3.
+                             0x121_4 = t12182400818181818181 - 0x121_4_ascii = $....... - No. 4.
+                             0x121_5 = NULL - 0x121_5_ascii = NULL - No. 0.
+
+                             0x521_0 = NULL - 0x521_0_ascii = NULL - No. 0.
+                             0x521_1 = NULL - 0x521_1_ascii = NULL - No. 0.
+                             0x521_2 = NULL - 0x521_2_ascii = NULL - No. 0.
+                             0x521_3 = NULL - 0x521_3_ascii = NULL - No. 0.
+                             0x521_4 = NULL - 0x521_4_ascii = NULL - No. 0.
+                             0x521_5 = NULL - 0x521_5_ascii = NULL - No. 0.
+
+                             0x3CF = t3CF86900A2A2A2A2A2A2 - 0x3CF_ascii = i.......
+                             0x3DF = t3DF87900818181818181 - 0x3DF_ascii = y.......
+                             0x1C1 = t1C1802640FA2A2A2A2A2 - 0x1C1_ascii = .d......
+                             0x5C1 = NULL - 0x5C1_ascii = NULL
+                             0x5B1 = NULL - 0x5B1_ascii = NULL
+                             0x1B1 = t1B18045202FFFF818181 - 0x1B1_ascii = .R......
+                     Done 261 Screen updates.
+
+
+
+
+
+
+
+
