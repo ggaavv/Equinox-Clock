@@ -24,6 +24,7 @@
  *****************************************************************************/
 
 #include "hsv2rgb.h"
+#include "comm.h"
 
 void hsv2rgb(unsigned int hue, unsigned int sat, unsigned int val, \
               unsigned char * r, unsigned char * g, unsigned char * b, unsigned char maxBrightness ) { 
@@ -74,6 +75,7 @@ void hsv2rgb(unsigned int hue, unsigned int sat, unsigned int val, \
   *r = *r * maxBrightness/255;
   *g = *g * maxBrightness/255;
   *b = *b * maxBrightness/255;
+// xprintf(INFO "h=%d s=%d v=%d r=%d g=%d b=%d" " (%s:%d)\n", hue, sat, val, *r, *g, *b,_F_,_L_);
 }
 
 

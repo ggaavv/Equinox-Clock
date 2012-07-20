@@ -41,22 +41,36 @@
 							</tool>
 						</toolChain>
 					</folderInfo>
+					<folderInfo id="0.1707562682.570081166" name="/" resourcePath="libmaple">
+						<toolChain id="org.eclipse.cdt.build.core.prefbase.toolchain.1670061789" name="No ToolChain" superClass="org.eclipse.cdt.build.core.prefbase.toolchain" unusedChildren="">
+							<tool id="org.eclipse.cdt.build.core.settings.holder.libs.911053741" name="holder for library settings" superClass="org.eclipse.cdt.build.core.settings.holder.libs.492852172"/>
+							<tool id="org.eclipse.cdt.build.core.settings.holder.236047262" name="Assembly" superClass="org.eclipse.cdt.build.core.settings.holder.502425424">
+								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.2078365646" languageId="org.eclipse.cdt.core.assembly" languageName="Assembly" sourceContentType="org.eclipse.cdt.core.asmSource" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
+							</tool>
+							<tool id="org.eclipse.cdt.build.core.settings.holder.1588785019" name="GNU C++" superClass="org.eclipse.cdt.build.core.settings.holder.1295014070">
+								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.933771292" languageId="org.eclipse.cdt.core.g++" languageName="GNU C++" sourceContentType="org.eclipse.cdt.core.cxxSource,org.eclipse.cdt.core.cxxHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
+							</tool>
+							<tool id="org.eclipse.cdt.build.core.settings.holder.1689819562" name="GNU C" superClass="org.eclipse.cdt.build.core.settings.holder.1110649032">
+								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.374555186" languageId="org.eclipse.cdt.core.gcc" languageName="GNU C" sourceContentType="org.eclipse.cdt.core.cSource,org.eclipse.cdt.core.cHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
+							</tool>
+						</toolChain>
+					</folderInfo>
 					<folderInfo id="0.1707562682.2043836843" name="/" resourcePath="Equinox">
 						<toolChain id="org.eclipse.cdt.build.core.prefbase.toolchain.265682530" name="No ToolChain" superClass="org.eclipse.cdt.build.core.prefbase.toolchain" unusedChildren="">
 							<tool id="org.eclipse.cdt.build.core.settings.holder.libs.125033324" name="holder for library settings" superClass="org.eclipse.cdt.build.core.settings.holder.libs.492852172"/>
 							<tool id="org.eclipse.cdt.build.core.settings.holder.553729405" name="Assembly" superClass="org.eclipse.cdt.build.core.settings.holder.502425424">
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.2115194794" languageId="org.eclipse.cdt.core.assembly" languageName="Assembly" sourceContentType="org.eclipse.cdt.core.asmSource" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 							</tool>
-							<tool id="org.eclipse.cdt.build.core.settings.holder.2010348633" name="GNU C++" superClass="org.eclipse.cdt.build.core.settings.holder.1295014070">
-								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.361969331" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
+							<tool id="org.eclipse.cdt.build.core.settings.holder.2010348633" name="GNU C++" superClass="org.eclipse.cdt.build.core.settings.holder.502425424">
+								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.361969331" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;C:\Program Files (x86)\CodeSourcery\Sourcery_CodeBench_Lite_for_ARM_EABI\lib\gcc\arm-none-eabi\4.6.3\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;C:\Program Files (x86)\CodeSourcery\Sourcery_CodeBench_Lite_for_ARM_EABI\arm-none-eabi\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;C:\Program Files (x86)\CodeSourcery\Sourcery_CodeBench_Lite_for_ARM_EABI\lib\gcc\arm-none-eabi\4.6.3\include-fixed&quot;"/>
 								</option>
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.2050891586" languageId="org.eclipse.cdt.core.g++" languageName="GNU C++" sourceContentType="org.eclipse.cdt.core.cxxSource,org.eclipse.cdt.core.cxxHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 							</tool>
-							<tool id="org.eclipse.cdt.build.core.settings.holder.524865391" name="GNU C" superClass="org.eclipse.cdt.build.core.settings.holder.1110649032">
-								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.1587601629" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
+							<tool id="org.eclipse.cdt.build.core.settings.holder.524865391" name="GNU C" superClass="org.eclipse.cdt.build.core.settings.holder.502425424">
+								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.1587601629" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;C:\Program Files (x86)\CodeSourcery\Sourcery_CodeBench_Lite_for_ARM_EABI\lib\gcc\arm-none-eabi\4.6.3\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;C:\Program Files (x86)\CodeSourcery\Sourcery_CodeBench_Lite_for_ARM_EABI\lib\gcc\arm-none-eabi\4.6.3\include-fixed&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;C:\Program Files (x86)\CodeSourcery\Sourcery_CodeBench_Lite_for_ARM_EABI\arm-none-eabi\include&quot;"/>
@@ -65,6 +79,9 @@
 							</tool>
 						</toolChain>
 					</folderInfo>
+					<sourceEntries>
+						<entry excluding="libmaple|contiki-2.5" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+					</sourceEntries>
 				</configuration>
 			</storageModule>
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
@@ -79,10 +96,8 @@
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		</scannerConfigBuildInfo>
 	</storageModule>
-	<storageModule moduleId="refreshScope" versionNumber="2">
-		<configuration configurationName="Default">
-			<resource resourceType="PROJECT" workspacePath="/Equinox-Clock"/>
-		</configuration>
+	<storageModule moduleId="refreshScope" versionNumber="1">
+		<resource resourceType="PROJECT" workspacePath="/Equinox-Clock"/>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
 	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets">

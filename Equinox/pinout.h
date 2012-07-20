@@ -71,6 +71,20 @@
 
 #define LED_SPI_CHN			0
 
+#define LED_1_PORT			1
+#define LED_1_PIN			18
+#define LED_1_BIT			_BIT(LED_1_PIN)
+#define LED_2_PORT			1
+#define LED_2_PIN			20
+#define LED_2_BIT			_BIT(LED_2_PIN)
+#define LED_3_PORT			1
+#define LED_3_PIN			21
+#define LED_3_BIT			_BIT(LED_3_PIN)
+#define LED_4_PORT			1
+#define LED_4_PIN			23
+#define LED_4_BIT			_BIT(LED_4_PIN)
+
+
 //      Wifi Pins
 /*
 //For Equinox clock board

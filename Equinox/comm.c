@@ -9,9 +9,16 @@
 
 #include "lpc17xx_uart.h"
 #include "lpc17xx_pinsel.h"
+#include "lpc17xx_gpio.h"
 #include "sys_timer.h"
+#include "pinout.h"
 
-int LINE_READY=0;
+volatile int LINE_READY=0;
+volatile int RX_TOG=0;
+volatile int TX_TOG=0;
+
+volatile uint8_t UART_LINE[50];
+volatile uint32_t UART_LINE_LEN=0;
 
 #define USARTx LPC_UART0
 
@@ -108,6 +115,7 @@ uint8_t comm_get(void){
 	while (len == 0){
 		len = UARTReceive(LPC_UART0, buffer, 1);
 	}
+	UART_LINE_LEN=0;
 	return buffer;
 #endif
 }
@@ -143,6 +151,9 @@ void comm_puts(const void *str){
 #endif
 
 void comm_init(void){
+
+	UART_LINE_LEN=0;
+
 	// UART Configuration structure variable
 	UART_CFG_Type UARTConfigStruct;
 	// UART FIFO configuration Struct variable
@@ -260,7 +271,6 @@ void UART0_IRQHandler(void)
 
 	// Transmit Holding Empty
 	if (tmp == UART_IIR_INTID_THRE){
-//		xprintf("t---%s{\n",__func__);
 		UART_IntTransmit();
 	}
 
@@ -276,13 +286,27 @@ void UART_IntReceive(void)
 	uint8_t tmpc;
 	uint32_t rLen;
 
+	if(RX_TOG)
+		GPIO_SetValue(LED_3_PORT, LED_3_BIT);
+	else
+		GPIO_ClearValue(LED_3_PORT, LED_3_BIT);
+	RX_TOG=!RX_TOG;
+
 	while(1){
 		// Call UART read function in UART driver
 		rLen = UART_Receive((LPC_UART_TypeDef *)LPC_UART0, &tmpc, 1, NONE_BLOCKING);
 		// If data received
 		if (rLen){
+			UART_LINE[UART_LINE_LEN++]=tmpc;
+//			xprintf("%s|%s;---%s{=%s\n",tmpc,UART_LINE[UART_LINE_LEN],__func__,tmpc);
+
+//			xprintf("r---%s{=%s\n",__func__,tmpc);
 			if((tmpc=='\r')||(tmpc=='\n')){
 				LINE_READY = 1;
+				UART_LINE[UART_LINE_LEN-1]=NULL;
+				UART_LINE_LEN=0;
+//				UART_LINE[0]='\0';
+//				xprintf("LINE_READY = 1;---%s{=%s\n",__func__,tmpc);
 			}
 			/* Check if buffer is more space
 			 * If no more space, remaining character will be trimmed out
@@ -306,6 +330,12 @@ void UART_IntReceive(void)
  *********************************************************************/
 void UART_IntTransmit(void)
 {
+	if(TX_TOG)
+		GPIO_SetValue(LED_2_PORT, LED_2_BIT);
+	else
+		GPIO_ClearValue(LED_2_PORT, LED_2_BIT);
+	TX_TOG=!TX_TOG;
+
     // Disable THRE interrupt
     UART_IntConfig((LPC_UART_TypeDef *)LPC_UART0, UART_INTCFG_THRE, DISABLE);
 

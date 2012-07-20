@@ -1,12 +1,15 @@
 
 
 #include "sys_timer.h"
+#include "lpc_types.h"
+extern volatile uint32_t USER_MILLIS;
 
 static volatile long millis_ticks;
 
 void SysTick_Handler(void)
 {
   millis_ticks++;
+  USER_MILLIS++;
 }
 
 long sys_millis(void)

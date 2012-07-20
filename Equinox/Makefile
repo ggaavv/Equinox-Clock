@@ -181,6 +181,7 @@ SRC = \
 	$(APPLIBDIR)/WiShield/uip-neighbor.c \
 	$(APPLIBDIR)/WiShield/uip-split.c \
 	$(APPLIBDIR)/TESTShiftPWM/ShiftPWM.c \
+	$(APPLIBDIR)/TESTShiftPWM/hsv2rgb.c \
 	$(APPSRC) \
 	$(APPLIBDIR)/R2C2/sys_timer.c \
 	$(APPLIBDIR)/R2C2/serial.c \
