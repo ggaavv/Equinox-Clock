@@ -44,10 +44,10 @@
 const uint32_t BITORDER[] = { 0,1,2,3,4,5,6,7,7,6,5,4,3,2,1,0 };
 //const uint32_t BITORDER[] = { 0,7,2,5,4,3,6,1,1,6,3,4,5,2,7,0 };
 
-#define START_TIME 32*80 //for uart
+#define START_TIME 32*1000 //for uart
 //#define START_TIME 32 //smallest time inteval 33us
 //#define START_TIME 32/2 //fastest possible
-//#define START_TIME 32*100 //for uart
+//#define START_TIME 32*1000 //for uart
 
 volatile uint32_t SENDSEQ;
 volatile uint32_t DELAY_TIME; //so RIT ms is not set to 0
@@ -135,7 +135,7 @@ uint16_t SEQ_BIT[16];
 uint32_t SEQ_TIME[16];
 
 uint16_t LED_RAW[LEDS];
-uint16_t LED_PRECALC[REGS][BITS];//TODO check why lockup occurs with values less than *3??
+uint16_t LED_PRECALC[REGS*20][BITS];//TODO check why lockup occurs with values less than *3??
 
 //uint16_t BITINREG[LEDS];
 //uint16_t WHICHREG[LEDS];
@@ -162,7 +162,7 @@ void TIMER0_IRQHandler(void){
 //		TIM_ClearIntPending(LPC_TIM0, TIM_MR0_INT);
 //		return;
 #endif
-		xprintf(INFO "RIT No=%d BIT=%x NXT_time=%6d TX=%03b\n",SENDSEQ,SEND_BIT,DELAY_TIME,LED_PRECALC[0][SEND_BIT]);
+		xprintf(INFO "RIT N=%d B=%x NXT_T=%6d TX=%03b\n",SENDSEQ,SEND_BIT,DELAY_TIME,LED_PRECALC[0][SEND_BIT]);
 
 		//Set bit/time
 		DELAY_TIME=NEXT_DELAY_TIME;
@@ -183,28 +183,26 @@ void TIMER0_IRQHandler(void){
 
 		for(uint32_t reg=0; reg<REGS;reg++){
 //			delay_ms(100);//fails led irq has higher priority
-			SSP_SendData(LPC_SSP1, LED_PRECALC[reg][SEND_BIT]);
-//			SSP_SendData(LPC_SSP1, LED_PRECALC[reg][SEND_BIT]<<6);
+			SSP_SendData(LED_SPI_CHN, LED_PRECALC[reg][SEND_BIT]);
+//			SSP_SendData(LED_SPI_CHN, LED_PRECALC[reg][SEND_BIT]<<6);
 			WaitForSend();//Wait if TX buffer full
 		}
 		LatchIn();
 //		FIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
-		TIM_ClearIntPending(LPC_TIM0, TIM_MR0_INT);
-		return;
 
-
-		UPDATE_COUNT+=1;
+/*		UPDATE_COUNT+=1;
 		if(UPDATE_COUNT>=(160*MAX_BAM_BITS)){
 			UPDATE_COUNT=0;
 			LED_UPDATE_REQUIRED=1;
 		}
+*/
 //		FIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
 	}
 	TIM_ClearIntPending(LPC_TIM0, TIM_MR0_INT);
 }
 
 void LatchIn(void){
-#if 1
+#if 0
 	asm("mov r0,r0");
 	asm("mov r0,r0");
 	asm("mov r0,r0");
@@ -247,7 +245,7 @@ void LatchIn(void){
 	asm("mov r0,r0");
 #endif
 	FIO_SetValue(LED_LE_PORT, LED_LE_BIT);
-#if 1
+#if 0
 	asm("mov r0,r0");
 	asm("mov r0,r0");
 	asm("mov r0,r0");
@@ -419,8 +417,8 @@ void LED_init(){
 	SSP_CFG_Type SSP_ConfigStruct;
 	SSP_ConfigStruct.CPHA = SSP_CPHA_FIRST;
 	SSP_ConfigStruct.CPOL = SSP_CPOL_LO;
-	SSP_ConfigStruct.ClockRate = 500000;
-//	SSP_ConfigStruct.ClockRate = 10000000;
+//	SSP_ConfigStruct.ClockRate = 500000;
+	SSP_ConfigStruct.ClockRate = 1000000;
 //	SSP_ConfigStruct.ClockRate = 30000000; /* TLC5927 max freq = 30Mhz */
 	SSP_ConfigStruct.Databit = SSP_DATABIT_16;
 	SSP_ConfigStruct.Mode = SSP_MASTER_MODE;
@@ -449,8 +447,8 @@ void LED_init(){
 	//Toggle MR0.0 pin if MR0 matches it
 	TIM_MatchConfigStruct.ExtMatchOutputType = TIM_EXTMATCH_NOTHING;
 	// Set Match value, count value of 1000000 (1000000 * 1uS = 1000000us = 1s --> 1 Hz)
-	TIM_MatchConfigStruct.MatchValue   = DELAY_TIME*1000000;;
-//	TIM_MatchConfigStruct.MatchValue   = SEQ_TIME[SENDSEQ];
+//	TIM_MatchConfigStruct.MatchValue   = DELAY_TIME*1000000;;
+	TIM_MatchConfigStruct.MatchValue   = SEQ_TIME[1];
 
 	// Set configuration for Tim_config and Tim_MatchConfig
 	TIM_Init(LPC_TIM0, TIM_TIMER_MODE,&TIM_ConfigStruct);
