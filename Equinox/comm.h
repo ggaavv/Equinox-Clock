@@ -34,6 +34,7 @@
 #define _FL_ __F__,__LINE__
 //#define _FUN_ __FUNCTION__
 
+void exec_cmd(char *cmd);
 int comm_test(void);
 //int8_t __putchar(int8_t ch);
 uint8_t comm_get2(int name);

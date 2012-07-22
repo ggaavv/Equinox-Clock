@@ -5,13 +5,24 @@
  *      Author: Jamie
  */
 
+#include <string.h>
 #include "comm.h"
 
 #include "lpc17xx_uart.h"
 #include "lpc17xx_pinsel.h"
 #include "lpc17xx_gpio.h"
+#include "lpc17xx_wdt.h"
 #include "sys_timer.h"
 #include "pinout.h"
+#include "ShiftPWM.h"
+
+//Watchodog time out in 2 seconds
+#define WDT_TIMEOUT 	2000000
+
+
+#define USER_FLASH_START 0x3000 // For USB bootloader
+//#define USER_FLASH_START 0x0 // No USB bootloader
+#define BOOTLOADER_START 0x0 // To enter bootloader
 
 volatile int LINE_READY=0;
 volatile int RX_TOG=0;
@@ -59,6 +70,32 @@ UART_RING_BUFFER_T rb;
 
 // Current Tx Interrupt enable state
 __IO FlagStatus TxIntStat;
+
+void exec_cmd(char *cmd){
+	if(stricmp(cmd,"RS")==0){
+		xprintf(INFO "reseting" " (%s:%d)\n",_F_,_L_);
+		WDT_Init(WDT_CLKSRC_IRC, WDT_MODE_RESET);
+		WDT_Start(WDT_TIMEOUT);
+		while(1);//lockup, wdt will reset board
+		//WDT_ClrTimeOutFlag();
+	}
+	else if(stricmp(cmd,"BL")==0){
+		xprintf(INFO "resetting to bootloader" " (%s:%d)\n",_F_,_L_);
+		(*(void(*)())BOOTLOADER_START)();//doesn't work
+	}
+	else if(stricmp(cmd,"test")==0){
+		xprintf(INFO "tests running" " (%s:%d)\n",_F_,_L_);
+		LED_test();
+	}
+	else if(stricmp(cmd,"")==0){
+		xprintf(INFO "\r\nRS-Resets board\r\nBL-Resets to bootloader(does not work)\r\n" " (%s:%d)\n",_F_,_L_);
+		(*(void(*)())BOOTLOADER_START)();//doesn't work
+	}
+	else{
+		xprintf(INFO "Command not found (cmd=%s)" " (%s:%d)\n",cmd,_F_,_L_);
+	}
+	return;
+}
 
 int comm_test(void){
 	xprintf("%s{\n",__func__);
@@ -303,7 +340,7 @@ void UART_IntReceive(void)
 //			xprintf("r---%s{=%s\n",__func__,tmpc);
 			if((tmpc=='\r')||(tmpc=='\n')){
 				LINE_READY = 1;
-				UART_LINE[UART_LINE_LEN-1]=NULL;
+				UART_LINE[UART_LINE_LEN-1]='\0';
 				UART_LINE_LEN=0;
 //				UART_LINE[0]='\0';
 //				xprintf("LINE_READY = 1;---%s{=%s\n",__func__,tmpc);

@@ -530,6 +530,23 @@ void LED_test(){
 //			t = _DG;//wait for key press
 		}
 	}
+//	_DBG("[INFO]-Sending: ");
+//	while(1){
+	for(temp=0; temp<1; temp++){
+		send_data = 0xffff;
+//		_DBH16(send_data);_DBG(", ");
+		SSP_SendData(LPC_SSP1, send_data);
+		while(!SSP_GetStatus(LPC_SSP1,SSP_STAT_BUSY));//Wait if TX buffer full
+//		delay_ms(1);
+		LatchIn();
+		if(0)
+			delay_ms(1000);
+		else {
+			xprintf(INFO "[INPUT]sent=%015b  *any key*" " (%s:%d)\n",send_data,_F_,_L_);getc(); //working
+//			scanf ("%[^\n]",NULL);//works
+//			t = _DG;//wait for key press
+		}
+	}
 	xprintf("\n");
 	TIM_Cmd(LPC_TIM0,ENABLE);
 #endif

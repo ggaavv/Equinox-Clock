@@ -296,6 +296,7 @@ int main(void){
 //			strncpy(c,"help",4);
 #endif
 			xprintf(INFO "LINE_READY UART_LINE=%s" " (%s:%d)\n",UART_LINE,_F_,_L_);
+			exec_cmd(UART_LINE);
 			LINE_READY=0;
 		}
 #endif
