@@ -89,7 +89,6 @@ void exec_cmd(char *cmd){
 	}
 	else if(stricmp(cmd,"")==0){
 		xprintf(INFO "\r\nRS-Resets board\r\nBL-Resets to bootloader(does not work)\r\n" " (%s:%d)\n",_F_,_L_);
-		(*(void(*)())BOOTLOADER_START)();//doesn't work
 	}
 	else{
 		xprintf(INFO "Command not found (cmd=%s)" " (%s:%d)\n",cmd,_F_,_L_);
