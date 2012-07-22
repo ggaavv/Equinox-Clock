@@ -131,8 +131,8 @@ void Server::setIndicatorPins(int tx, int rx) {
 	txPin = tx;
 	rxPin = rx;
 	// Set pin modes as needed
-	if (tx != -1) GPIO_SetDir(LED_1_PORT, LED_1_BIT, 1);
-	if (rx != -1) GPIO_SetDir(LED_2_PORT, LED_2_BIT, 1);
+//	if (tx != -1) GPIO_SetDir(LED_1_PORT, LED_1_BIT, 1);
+//	if (rx != -1) GPIO_SetDir(LED_2_PORT, LED_2_BIT, 1);
 //	if (tx != -1) pinMode(tx, OUTPUT);
 //	if (rx != -1) pinMode(rx, OUTPUT);
 }
@@ -142,9 +142,9 @@ void Server::setIndicatorPins(int tx, int rx) {
  */
 void setTXPin(uint8_t value) {
 	if (value){
-	GPIO_SetValue(LED_1_PORT, LED_1_BIT);
+//	GPIO_SetValue(LED_1_PORT, LED_1_BIT);
 	}else{
-	GPIO_ClearValue(LED_1_PORT, LED_1_BIT);
+//	GPIO_ClearValue(LED_1_PORT, LED_1_BIT);
 	}
 //	if (txPin != -1) digitalWrite(txPin, value);
 }
@@ -154,9 +154,9 @@ void setTXPin(uint8_t value) {
  */
 void setRXPin(uint8_t value) {
 	if (value){
-	GPIO_SetValue(LED_2_PORT, LED_2_BIT);
+//	GPIO_SetValue(LED_2_PORT, LED_2_BIT);
 	}else{
-	GPIO_ClearValue(LED_2_PORT, LED_2_BIT);
+//	GPIO_ClearValue(LED_2_PORT, LED_2_BIT);
 	}
 //	if (rxPin != -1) digitalWrite(rxPin, value);
 }

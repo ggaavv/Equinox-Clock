@@ -70,23 +70,26 @@ __IO FlagStatus TxIntStat;
 
 void exec_cmd(char *cmd){
 	comm_flush();
-	if(stricmp(cmd,"RS")==0){
+	if(stricmp(cmd,"b")==0){
+		xprintf(INFO "resetting to bootloader" " (%s:%d)\n",_F_,_L_);
+		(*(void(*)())BOOTLOADER_START)();//doesn't work
+	}
+	else if(stricmp(cmd,"r")==0){
 		xprintf(INFO "reseting" " (%s:%d)\n",_F_,_L_);
 		WDT_Init(WDT_CLKSRC_IRC, WDT_MODE_RESET);
 		WDT_Start(1);
 		while(1);//lockup, wdt will reset board
 		//WDT_ClrTimeOutFlag();
 	}
-	else if(stricmp(cmd,"BL")==0){
-		xprintf(INFO "resetting to bootloader" " (%s:%d)\n",_F_,_L_);
-		(*(void(*)())BOOTLOADER_START)();//doesn't work
-	}
-	else if(stricmp(cmd,"test")==0){
+	else if(stricmp(cmd,"t")==0){
 		xprintf(INFO "tests running" " (%s:%d)\n",_F_,_L_);
 		LED_test();
 	}
+	else if(stricmp(cmd,"q")==0){
+		xprintf(INFO "q" " (%s:%d)\n",_F_,_L_);
+	}
 	else if(stricmp(cmd,"")==0){
-		xprintf(INFO "\r\nRS-Resets board\r\nBL-Resets to bootloader(does not work)\r\n" " (%s:%d)\n",_F_,_L_);
+		xprintf(INFO "\r\nr-Resets board\r\nb-Resets to bootloader(does not work)\r\nt-led test\r\n" " (%s:%d)\n",_F_,_L_);
 	}
 	else{
 		xprintf(INFO "Command not found (cmd=%s)" " (%s:%d)\n",cmd,_F_,_L_);
@@ -149,7 +152,6 @@ uint8_t comm_get(void){
 	while (len == 0){
 		len = UARTReceive(LPC_UART0, buffer, 1);
 	}
-
 	UART_LINE_LEN=0;
 	UART_LINE[0]='\0';
 	return buffer;
@@ -175,9 +177,6 @@ uint8_t comm_gets(void){
 #endif
 
 void comm_put(uint8_t d){
-////	UARTSend(LPC_UART_TypeDef *UARTPort, uint8_t *txbuf, uint8_t buflen)
-////	UARTSend(LPC_UART0, d, 1);
-////	UART_SendByte(LPC_UART0, d);
 //	UART_Send(LPC_UART0, &d, 1, BLOCKING);//without interrupt
 	UARTSend(LPC_UART0, &d, 1);//with interrupt
 ////	serial_writechar(d);
@@ -203,14 +202,8 @@ void comm_init(void){
 //	UART_FIFO_CFG_Type UARTFIFOConfigStruct;
 	// Pin configuration for UART0
 	PINSEL_CFG_Type PinCfg;
-/*
-	uint32_t idx, len;
-	__IO FlagStatus exitflag;
-	uint8_t buffer[100];
-*/
-	/*
-	 * Initialize UART0 pin connect
-	 */
+
+	//Initialize UART0 pin connect
 	PinCfg.Funcnum = 1;
 	PinCfg.OpenDrain = 0;
 	PinCfg.Pinmode = 0;
@@ -235,20 +228,6 @@ void comm_init(void){
 
 	// Initialize UART0 peripheral with given to corresponding parameter
 	UART_Init(LPC_UART0, &UARTConfigStruct);
-
-
-	/* Initialize FIFOConfigStruct to default state:
-	 * 				- FIFO_DMAMode = DISABLE
-	 * 				- FIFO_Level = UART_FIFO_TRGLEV0
-	 * 				- FIFO_ResetRxBuf = ENABLE
-	 * 				- FIFO_ResetTxBuf = ENABLE
-	 * 				- FIFO_State = ENABLE
-	 */
-//	UART_FIFOConfigStructInit(&UARTFIFOConfigStruct);
-
-	// Initialize FIFO for UART0 peripheral
-//	UART_FIFOConfig((LPC_UART_TypeDef *)LPC_UART0, &UARTFIFOConfigStruct);
-
 
 	// Enable UART Transmit
 	UART_TxCmd(LPC_UART0, ENABLE);
@@ -328,28 +307,23 @@ void UART_IntReceive(void)
 {
 	uint8_t tmpc;
 	uint32_t rLen;
-
+/*
 	if(RX_TOG)
 		GPIO_SetValue(LED_3_PORT, LED_3_BIT);
 	else
 		GPIO_ClearValue(LED_3_PORT, LED_3_BIT);
 	RX_TOG=!RX_TOG;
-
+*/
 	while(1){
 		// Call UART read function in UART driver
 		rLen = UART_Receive((LPC_UART_TypeDef *)LPC_UART0, &tmpc, 1, NONE_BLOCKING);
 		// If data received
 		if (rLen){
 			UART_LINE[UART_LINE_LEN++]=tmpc;
-//			xprintf("%s|%s;---%s{=%s\n",tmpc,UART_LINE[UART_LINE_LEN],__func__,tmpc);
-
-//			xprintf("r---%s{=%s\n",__func__,tmpc);
 			if((tmpc=='\r')||(tmpc=='\n')){
 				LINE_READY = 1;
 				UART_LINE[UART_LINE_LEN-1]='\0';
 				UART_LINE_LEN=0;
-//				UART_LINE[0]='\0';
-//				xprintf("LINE_READY = 1;---%s{=%s\n",__func__,tmpc);
 			}
 			/* Check if buffer is more space
 			 * If no more space, remaining character will be trimmed out
@@ -373,11 +347,13 @@ void UART_IntReceive(void)
  *********************************************************************/
 void UART_IntTransmit(void)
 {
+/*
 	if(TX_TOG)
 		GPIO_SetValue(LED_2_PORT, LED_2_BIT);
 	else
 		GPIO_ClearValue(LED_2_PORT, LED_2_BIT);
 	TX_TOG=!TX_TOG;
+*/
 
     // Disable THRE interrupt
     UART_IntConfig((LPC_UART_TypeDef *)LPC_UART0, UART_INTCFG_THRE, DISABLE);

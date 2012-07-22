@@ -39,8 +39,8 @@
 //#define _FUN_ __FUNCTION__
 #define FL() xprintf(" (%s:%d)",_F_,_L_)
 #define FL_() xprintf(" (%s:%d)\n",_F_,_L_)
-#define FFL() xprintf(" (%s():%s:%d)",_F_,__func__,_L_)
-#define FFL_() xprintf(" (%s():%s:%d)\n",_F_,__func__,_L_)
+#define FFL() xprintf(" (%s:%s():%d)",_F_,__func__,_L_)
+#define FFL_() xprintf(" (%s:%s():%d)\n",_F_,__func__,_L_)
 //#define FFL_() xprintf(" (%s:%s:%d)\n",_F_,__func__,_L_)
 
 void exec_cmd(char *cmd);

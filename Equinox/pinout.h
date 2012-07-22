@@ -34,9 +34,9 @@
 //#define DEV
 
 #ifdef DEV
-#define BOARD "Dev board"
+#define BOARD "DEV"
 #else
-#define BOARD "Equinox clock board"
+#define BOARD "CLOCK"
 #endif
 
 //general purpose
@@ -104,6 +104,7 @@
 #define LED_4_PIN			23
 #define LED_4_BIT			_BIT(LED_4_PIN)
 #else
+/*
 // LPCMini LED's no leds on eq clock
 #define LED_1_PORT			0
 #define LED_1_PIN			0
@@ -117,12 +118,13 @@
 #define LED_4_PORT			0
 #define LED_4_PIN			0
 #define LED_4_BIT			_BIT(LED_4_PIN)
+*/
 #endif
 
 //      Wifi Pins
 #ifdef DEV
 //For DEV board
-#define WF_SPI_CHN			LPC_SSP1
+#define WF_SPI_CHN			LPC_SSP0
 #define WF_EINT_PORT		EINT3_PORT
 #define WF_EINT_PIN			EINT3_PIN
 #define WF_EINT_BIT			EINT3_BIT
@@ -149,7 +151,7 @@
 
 #else
 //For Equinox clock board
-#define WF_SPI_CHN			LPC_SSP0
+#define WF_SPI_CHN			LPC_SSP1
 #define WF_EINT_PORT		EINT0_PORT
 #define WF_EINT_PIN			EINT0_PIN
 #define WF_EINT_BIT			EINT0_BIT

@@ -105,7 +105,7 @@ void EINT0_IRQHandler (void)
  **********************************************************************/
 int main(void){
 	char buffer[100];
-
+/*
 	GPIO_SetDir(LED_1_PORT, LED_1_BIT, 1);
 	GPIO_SetValue(LED_1_PORT, LED_1_BIT);
 	GPIO_ClearValue(LED_1_PORT, LED_1_BIT);
@@ -121,6 +121,7 @@ int main(void){
 	GPIO_SetDir(LED_4_PORT, LED_4_BIT, 1);
 	GPIO_SetValue(LED_4_PORT, LED_4_BIT);
 	GPIO_ClearValue(LED_4_PORT, LED_4_BIT);
+*/
 
 //	LPC_GPIO1->FIODIR = 1 << 23;
 //	LPC_GPIO1->FIODIR = 1 << 21;
@@ -150,6 +151,7 @@ int main(void){
 
 	// Initialize UART
 	comm_init();
+	comm_flush();
 //	xprintf("\033[2J");
 	xprintf("\r\n\r\n\r\n\r\n" BOARD "\r\n**BOOTED**" " (%s:%d)\n",_F_,_L_);
 	FFL_();
@@ -233,16 +235,16 @@ int main(void){
 	SYSTICK_Cmd(ENABLE);//xprintf(OK "SYSTICK_Cmd()" " (%s:%d)\n",_F_,_L_);
 
 	// Initialize USB<->Serial
-	serial_init();xprintf(OK "serial_init()\n" " (%s:%d)\n",_F_,_L_);
+	serial_init();xprintf(OK "serial_init()");FFL_();
 //	uart_writestr("[OK]-uart_Start");
 	serial_writestr("[OK]-serial_Start\n");
 
 	// Init RTC module
-    RTC_time_Init();xprintf(OK "RTC_time_Init()" " (%s:%d)\n",_F_,_L_);
+    RTC_time_Init();xprintf(OK "RTC_time_Init()");FFL_();
 
     // Init LED module
-    LED_init();xprintf(OK "LED_init()" " (%s:%d)\n",_F_,_L_);
-    LED_test();xprintf(OK "LED_test()" " (%s:%d)\n",_F_,_L_);
+    LED_init();xprintf(OK "LED_init()");FFL_();
+    LED_test();xprintf(OK "LED_test()");FFL_();
 #if 0
     time_t rawtime;
     struct tm * timeinfo;
@@ -277,26 +279,21 @@ int main(void){
 //		if(GetSS==0){
 			tcount=DELAY+Getunix();
 //			_DBD16(tcount);
-//			xprintf(INFO "for (;;) %d" " (%s:%d)\n",Getunix(),_F_,_L_);
+//			xprintf(INFO "for (;;) %d",Getunix());FFL_();
 
 			time_t rawtime;
 			struct tm * timeinfo;
 			time( &rawtime );
 			timeinfo = localtime ( &rawtime );
 			strftime(buffer,80,"Now it's %I:%M:%S%p.",timeinfo);
-			xprintf( "%s" " (%s:%d)\n", buffer,_F_,_L_);
-//			xprintf( "date/time is: %s" " (%s:%d)\n", asctime (timeinfo) ,_F_,_L_);
-
+			xprintf( "%s", buffer);FFL_();
+//			xprintf( "date/time is: %s", asctime (timeinfo));FFL_();
 
 //			RTC_print_time();
 		}
 #endif
 #if 1
 		if(LINE_READY){
-#if 0
-//			strncpy(c,"help",4);
-#endif
-			xprintf(INFO "LINE_READY UART_LINE=%s" " (%s:%d)\n",UART_LINE,_F_,_L_);
 			exec_cmd(UART_LINE);
 			LINE_READY=0;
 		}
@@ -310,21 +307,21 @@ int main(void){
 			if(colorshift==360)
 				colorshift=0;
 //			delay_ms(10);
-			resetLeds();
+//			resetLeds();
 //			for(int cycle=0;cycle<numCycles;cycle++){ // shift the raibom numCycles times
-//				for(int led=0;led<numRGBLeds;led++){ // loop over all LED's
-//				for(int led=0;led<1;led++){ // loop over all LED's
-					hue = colorshift;//(1*360/1+colorshift)%360; // Set hue from 0 to 360 from first to last led and shift the hue
-//					hue = ((led)*360/1+colorshift)%360; // Set hue from 0 to 360 from first to last led and shift the hue
+//				for(int led=0;led<RGBS;led++){ // loop over all LED's
+				for(int led=0;led<5;led++){ // loop over all LED's
+//					hue = colorshift;//(1*360/1+colorshift)%360; // Set hue from 0 to 360 from first to last led and shift the hue
+					hue = ((led)*360/1+colorshift)%360; // Set hue from 0 to 360 from first to last led and shift the hue
 					sat = 255;
 					val = 255;
 //					hsv2rgb(hue, sat, val, &red, &green, &blue, maxBrightness); // convert hsv to rgb values
-					hsv2rgb(hue, sat, val, &red, &green, &blue, 0xff); // convert hsv to rgb values
-//					xprintf(INFO "h=%d s=%d v=%d r=%d g=%d b=%d" " (%s:%d)\n", hue, sat, val, red, green, blue,_F_,_L_);
-//					SetRGB(led, red, green, blue); // write rgb values
-					SetRGB(0, red, green, blue); // write rgb values
+					hsv2rgb(hue, sat, val, &red, &green, &blue, 0x10); // convert hsv to rgb values
+//					xprintf(INFO "h=%d s=%d v=%d r=%d g=%d b=%d", hue, sat, val, red, green, blue);FFL_();
+					SetRGB(led, red, green, blue); // write rgb values
+//					SetRGB(0, red, green, blue); // write rgb values
 					calulateLEDMIBAMBits();
-//				}
+				}
 //			}
 			LED_UPDATE_REQUIRED=0;
 		}
@@ -333,7 +330,7 @@ int main(void){
 		if (timer1 < sys_millis()){
 			timer1 = sys_millis() + 100;
 			count1++;
-//			_DBD16(count1);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//			xprintf(INFO "count=",count1);FFL_();
 
 
 			// If there are no activity during 30 seconds, power off the machine
