@@ -17,6 +17,10 @@
 #include <stdio.h>
 #include <string.h>
 
+#define OK "[OK]-"
+#define ERR "[ERR]-"
+#define INFO "[INFO]-"
+
 #if 1
 #ifndef WIN32
 #define __SHORT_FILE__ ((strrchr(__FILE__, '/') ? : __FILE__- 1) + 1)
@@ -33,12 +37,18 @@
 //#define _F_ __FILE__
 #define _FL_ __F__,__LINE__
 //#define _FUN_ __FUNCTION__
+#define FL() xprintf(" (%s:%d)",_F_,_L_)
+#define FL_() xprintf(" (%s:%d)\n",_F_,_L_)
+#define FFL() xprintf(" (%s():%s:%d)",_F_,__func__,_L_)
+#define FFL_() xprintf(" (%s():%s:%d)\n",_F_,__func__,_L_)
+//#define FFL_() xprintf(" (%s:%s:%d)\n",_F_,__func__,_L_)
 
 void exec_cmd(char *cmd);
 int comm_test(void);
 //int8_t __putchar(int8_t ch);
 uint8_t comm_get2(int name);
 uint8_t comm_get(void);
+void comm_flush(void);
 //uint8_t comm_gets(void);
 void comm_put(uint8_t d);
 void comm_init(void);

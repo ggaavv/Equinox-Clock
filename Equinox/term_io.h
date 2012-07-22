@@ -9,10 +9,6 @@
 #include <stdio.h>
 #include "comm.h"
 
-#define OK "[OK]-"
-#define ERR "[ERR]-"
-#define INFO "[INFO]-"
-
 #define xgetc() (char)comm_get()
 #define xavail() comm_test()
 

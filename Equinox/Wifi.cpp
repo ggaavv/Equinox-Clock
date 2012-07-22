@@ -67,8 +67,8 @@ void WiFi_init(){
 	PinCfg.Funcnum   = PINSEL_FUNC_1;
 	PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
 	PinCfg.Pinmode   = PINSEL_PINMODE_PULLUP;
-	PinCfg.Pinnum    = WF_EINT3_PIN;//TODO: change to eint0 after debug
-	PinCfg.Portnum   = WF_EINT3_PORT;//TODO: change to eint0 after debug
+	PinCfg.Pinnum    = WF_EINT_PIN;
+	PinCfg.Portnum   = WF_EINT_PORT;
 	PINSEL_ConfigPin(&PinCfg);
 
 	// Configuring Ext Int
@@ -78,8 +78,8 @@ void WiFi_init(){
 	EXTICfg.EXTI_polarity 	= EXTI_POLARITY_LOW_ACTIVE_OR_FALLING_EDGE;
 	EXTI_Config(&EXTICfg);
 
-    NVIC_SetPriority(EINT3_IRQn, 9); // set according to main.c
-	NVIC_EnableIRQ(EINT3_IRQn); //TODO: change to eint0 after debug
+    NVIC_SetPriority(EINT_IRQn, 9); // set according to main.c
+	NVIC_EnableIRQ(EINT_IRQn);
 
 	/* initialize SSP configuration structure */
 	SSP_CFG_Type SSP_ConfigStruct;
@@ -89,10 +89,10 @@ void WiFi_init(){
 	SSP_ConfigStruct.Databit = SSP_DATABIT_8;
 	SSP_ConfigStruct.Mode = SSP_MASTER_MODE;
 	SSP_ConfigStruct.FrameFormat = SSP_FRAME_SPI;
-	SSP_Init(LPC_SSP0, &SSP_ConfigStruct);//TODO: change to LPC_SSP1 after debug
+	SSP_Init(WF_SPI_CHN, &SSP_ConfigStruct);
 
 	/* Enable SSP peripheral */
-	SSP_Cmd(LPC_SSP0, ENABLE);//TODO: change to LPC_SSP1 after debug
+	SSP_Cmd(WF_SPI_CHN, ENABLE);
 
 //	zg_init();//_DBG("[OK]-zg_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 

@@ -151,7 +151,8 @@ int main(void){
 	// Initialize UART
 	comm_init();
 //	xprintf("\033[2J");
-	xprintf("\r\n\r\n\r\n\r\n\r\n**BOOTED**" " (%s:%d)\n",_F_,_L_);
+	xprintf("\r\n\r\n\r\n\r\n" BOARD "\r\n**BOOTED**" " (%s:%d)\n",_F_,_L_);
+	FFL_();
 #if 0
 //	getc(); //working
 //	getchar(); //working
@@ -309,7 +310,7 @@ int main(void){
 			if(colorshift==360)
 				colorshift=0;
 //			delay_ms(10);
-			SetRGB(0,0,0,0);
+			resetLeds();
 //			for(int cycle=0;cycle<numCycles;cycle++){ // shift the raibom numCycles times
 //				for(int led=0;led<numRGBLeds;led++){ // loop over all LED's
 //				for(int led=0;led<1;led++){ // loop over all LED's

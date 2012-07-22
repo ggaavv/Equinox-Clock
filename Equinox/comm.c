@@ -16,9 +16,6 @@
 #include "pinout.h"
 #include "ShiftPWM.h"
 
-//Watchodog time out in 2 seconds
-#define WDT_TIMEOUT 	2000000
-
 
 #define USER_FLASH_START 0x3000 // For USB bootloader
 //#define USER_FLASH_START 0x0 // No USB bootloader
@@ -35,7 +32,7 @@ volatile uint32_t UART_LINE_LEN=0;
 
 /************************** PRIVATE DEFINTIONS *************************/
 /* buffer size definition */
-#define UART_RING_BUFSIZE 256
+#define UART_RING_BUFSIZE 1024
 
 /* Buf mask */
 #define __BUF_MASK (UART_RING_BUFSIZE-1)
@@ -72,10 +69,11 @@ UART_RING_BUFFER_T rb;
 __IO FlagStatus TxIntStat;
 
 void exec_cmd(char *cmd){
+	comm_flush();
 	if(stricmp(cmd,"RS")==0){
 		xprintf(INFO "reseting" " (%s:%d)\n",_F_,_L_);
 		WDT_Init(WDT_CLKSRC_IRC, WDT_MODE_RESET);
-		WDT_Start(WDT_TIMEOUT);
+		WDT_Start(1);
 		while(1);//lockup, wdt will reset board
 		//WDT_ClrTimeOutFlag();
 	}
@@ -151,8 +149,17 @@ uint8_t comm_get(void){
 	while (len == 0){
 		len = UARTReceive(LPC_UART0, buffer, 1);
 	}
+
 	UART_LINE_LEN=0;
+	UART_LINE[0]='\0';
 	return buffer;
+#endif
+}
+
+void comm_flush(void){
+#if 1
+	uint8_t buffer[1], len;
+	while (UARTReceive(LPC_UART0, buffer, 1));
 #endif
 }
 

@@ -9,10 +9,12 @@
 
 void TIMER0_IRQHandler(void);
 void LatchIn(void);
+void WaitForSend(void);
 void DMA_IRQHandler (void);
 void LED_init();
 void LED_test();
-void SetRGB(uint8_t group, uint8_t v0, uint8_t v1, uint8_t v2);
+void SetRGB(int8_t group, uint8_t v0, uint8_t v1, uint8_t v2);
+void resetLeds(void);
 void calulateLEDMIBAMBits();
 
 
