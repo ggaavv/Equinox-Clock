@@ -38,13 +38,13 @@
 #include "hsv2rgb.h"
 #include "comm.h"
 
-#define MAX_BAM_BITS 16
-//#define MAX_BAM_BITS 8
+//#define MAX_BAM_BITS 16
+#define MAX_BAM_BITS 8
 
 //const uint32_t BITORDER[] = { 0,1,2,3,4,5,6,7,7,6,5,4,3,2,1,0 };
 const uint32_t BITORDER[] = { 0,7,2,5,4,3,6,1,1,6,3,4,5,2,7,0 };
 
-#define START_TIME 32*3 //smallest time inteval 33us
+#define START_TIME 32*6 //smallest time inteval 33us
 //#define START_TIME 32/2 //fastest possible
 //#define START_TIME 32*1000 //for uart
 
@@ -160,7 +160,7 @@ uint32_t LED_UPDATE_REQUIRED;
 void TIMER0_IRQHandler(void){
 	if (TIM_GetIntStatus(LPC_TIM0,TIM_MR0_INT)==SET){
 //		FIO_SetValue(LED_OE_PORT, LED_OE_BIT);//LED's off. active low
-		FIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
+//		FIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
 #if 0
 //		char tempstr[50];
 
@@ -202,7 +202,7 @@ void TIMER0_IRQHandler(void){
 //			SSP_SendData(LED_SPI_CHN, LED_PRECALC[reg][SEND_BIT]<<6);
 			WaitForSend();//Wait if TX buffer full
 		}
-//		LatchIn();
+		LatchIn();
 //		FIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
 
 		UPDATE_COUNT+=1;
@@ -212,19 +212,19 @@ void TIMER0_IRQHandler(void){
 		}
 //		FIO_ClearValue(LED_OE_PORT, LED_OE_BIT);//LED's on. active low
 
-		FIO_SetValue(LED_LE_PORT, LED_LE_BIT);
+//		FIO_SetValue(LED_LE_PORT, LED_LE_BIT);
 	}
 	TIM_ClearIntPending(LPC_TIM0, TIM_MR0_INT);
 }
 
 void LatchIn(void){
-#if 0
+#if 1
 	for(uint32_t i=0;i<20;i++){
 		asm("nop");
 	}
 #endif
 	FIO_SetValue(LED_LE_PORT, LED_LE_BIT);
-#if 0
+#if 1
 	for(uint32_t i=0;i<20;i++){
 		asm("nop");
 	}
@@ -234,7 +234,7 @@ void LatchIn(void){
 
 void WaitForSend(void){
 	while(SSP_GetStatus(LED_SPI_CHN,SSP_STAT_BUSY)){
-#if 0
+#if 1
 		for(uint32_t i=0;i<20;i++){
 			asm("mov r0,r0");
 		}
@@ -363,11 +363,14 @@ void LED_init(){
 
 	/* initialize SSP configuration structure */
 	SSP_CFG_Type SSP_ConfigStruct;
-	SSP_ConfigStruct.CPHA = SSP_CPHA_FIRST;
+	SSP_ConfigStructInit(&SSP_ConfigStruct);
+	SSP_ConfigStruct.CPHA = SSP_CPHA_SECOND;
+//	SSP_ConfigStruct.CPOL = SSP_CPOL_HI;
+//	SSP_ConfigStruct.CPHA = SSP_CPHA_FIRST;
 	SSP_ConfigStruct.CPOL = SSP_CPOL_LO;
 //	SSP_ConfigStruct.ClockRate = 500000;
-	SSP_ConfigStruct.ClockRate = 10000000;
-//	SSP_ConfigStruct.ClockRate = 30000000; /* TLC5927 max freq = 30Mhz */
+	SSP_ConfigStruct.ClockRate = 1000000;
+	SSP_ConfigStruct.ClockRate = 30000000; /* TLC5927 max freq = 30Mhz */
 	SSP_ConfigStruct.FrameFormat = SSP_FRAME_SPI;
 	SSP_ConfigStruct.Databit = SSP_DATABIT_16;
 	SSP_ConfigStruct.Mode = SSP_MASTER_MODE;
@@ -511,7 +514,7 @@ void LED_test(){
 	xprintf(INFO "SetRGB(0,0,0,0xff);",send_data);FFL_();//getc();
 	delay_ms(1000);
 #endif
-#if 1
+#if 0
 	TIM_Cmd(LPC_TIM0,DISABLE);
 //	LatchIn();
 	for(temp=0; temp<3; temp++){

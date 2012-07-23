@@ -300,7 +300,7 @@ int main(void){
 #endif
 #if 1
 		#define LEDDELAY 10
-		if(USER_MILLIS>=10){
+		if(USER_MILLIS>=6){
 //		if(LED_UPDATE_REQUIRED){
 			USER_MILLIS=0;
 			colorshift+=1;
@@ -316,7 +316,7 @@ int main(void){
 					sat = 255;
 					val = 255;
 //					hsv2rgb(hue, sat, val, &red, &green, &blue, maxBrightness); // convert hsv to rgb values
-					hsv2rgb(hue, sat, val, &red, &green, &blue, 0x10); // convert hsv to rgb values
+					hsv2rgb(hue, sat, val, &red, &green, &blue, 0xff); // convert hsv to rgb values
 //					xprintf(INFO "h=%d s=%d v=%d r=%d g=%d b=%d", hue, sat, val, red, green, blue);FFL_();
 					SetRGB(led, red, green, blue); // write rgb values
 //					SetRGB(0, red, green, blue); // write rgb values
