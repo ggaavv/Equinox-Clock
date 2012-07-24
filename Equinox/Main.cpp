@@ -63,30 +63,31 @@ extern "C" {
 extern "C" char* get_heap_end(void);
 extern "C" char* get_stack_top(void);
 extern volatile int LINE_READY;
-extern uint32_t LED_UPDATE_REQUIRED;
+extern volatile uint32_t LED_UPDATE_REQUIRED;
+extern volatile uint32_t LED_SEND;
 
 volatile uint32_t TOG[4] = {0,0,0,0};
 volatile uint32_t USER_MILLIS;
 
-volatile uint8_t UART_LINE[50];
+volatile char UART_LINE[50];
 volatile uint32_t UART_LINE_LEN;
 
 /*
 void execute_bootloader(void){
- //  void (*user_code_entry)(void);
+   void (*user_code_entry)(void);
 
 // Change the Vector Table to the USER_FLASH_START
 // in case the user application uses interrupts
 
-//    volatile const uint32_t *stack_adr = 0x00000000;
-//    volatile const uint32_t *start_adr = 0x00000004;
+    volatile const uint32_t *stack_adr = 0x00000000;
+    volatile const uint32_t *start_adr = 0x00000004;
 
-//    __set_PSP(*stack_adr);
+    __set_PSP(*stack_adr);
 
-//    NVIC_SetVTOR(BOOTLOADER_START);
+    NVIC_SetVTOR(BOOTLOADER_START);
 
-//    user_code_entry = (void (*)(void))(*start_adr);
-//    user_code_entry();
+    user_code_entry = (void (*)(void))(*start_adr);
+    user_code_entry();
 }
 
 void EINT0_IRQHandler (void)
@@ -300,8 +301,9 @@ int main(void){
 #endif
 #if 1
 		#define LEDDELAY 10
-		if(USER_MILLIS>=6){
+		if(USER_MILLIS>=10){
 //		if(LED_UPDATE_REQUIRED){
+			LED_UPDATE_REQUIRED=0;
 			USER_MILLIS=0;
 			colorshift+=1;
 			if(colorshift==360)
@@ -310,20 +312,37 @@ int main(void){
 //			resetLeds();
 //			for(int cycle=0;cycle<numCycles;cycle++){ // shift the raibom numCycles times
 //				for(int led=0;led<RGBS;led++){ // loop over all LED's
-				for(int led=0;led<5;led++){ // loop over all LED's
+				for(int led=0;led<1;led++){ // loop over all LED's
 //					hue = colorshift;//(1*360/1+colorshift)%360; // Set hue from 0 to 360 from first to last led and shift the hue
-					hue = ((led)*360/1+colorshift)%360; // Set hue from 0 to 360 from first to last led and shift the hue
+					hue = ((led*50)*360/1+colorshift)%360; // Set hue from 0 to 360 from first to last led and shift the hue
 					sat = 255;
 					val = 255;
 //					hsv2rgb(hue, sat, val, &red, &green, &blue, maxBrightness); // convert hsv to rgb values
-					hsv2rgb(hue, sat, val, &red, &green, &blue, 0xff); // convert hsv to rgb values
+					hsv2rgb(hue, sat, val, &red, &green, &blue, 0x7f); // convert hsv to rgb values
 //					xprintf(INFO "h=%d s=%d v=%d r=%d g=%d b=%d", hue, sat, val, red, green, blue);FFL_();
 					SetRGB(led, red, green, blue); // write rgb values
 //					SetRGB(0, red, green, blue); // write rgb values
-					calulateLEDMIBAMBits();
 				}
+				calulateLEDMIBAMBits();
 //			}
-			LED_UPDATE_REQUIRED=0;
+		}
+#endif
+#if 0
+		for(uint32_t led=0;led<15;led++){ // loop over all LED's
+			for(int32_t b=0;b<0xff;b++){
+				SetLED(led,b);
+//				while(!LED_SEND);
+				calulateLEDMIBAMBits();
+				delay_ms(3);
+			}
+			for(int32_t b=0xff;b>0;b--){
+				SetLED(led,b);
+//				while(!LED_SEND);
+				calulateLEDMIBAMBits();
+				delay_ms(3);
+			}
+			SetLED(led,0);
+			resetLeds();
 		}
 #endif
 /*

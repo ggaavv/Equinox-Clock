@@ -41,10 +41,13 @@
 //#define MAX_BAM_BITS 16
 #define MAX_BAM_BITS 8
 
-//const uint32_t BITORDER[] = { 0,1,2,3,4,5,6,7,7,6,5,4,3,2,1,0 };
-const uint32_t BITORDER[] = { 0,7,2,5,4,3,6,1,1,6,3,4,5,2,7,0 };
+const uint32_t BITORDER[] = { 0,1,2,3,4,5,6,7,7,6,5,4,3,2,1,0 };
+//const uint32_t BITORDER[] = { 0,7,2,5,4,3,6,1,1,6,3,4,5,2,7,0 };
+//const uint32_t BITORDER[] = { 5,3,1,7,2,4,6,0,5,3,1,7,2,4,6 };
 
-#define START_TIME 32*6 //smallest time inteval 33us
+#define START_TIME 4096 //largest time inteval??
+//#define START_TIME 2000 //largest time inteval??
+//#define START_TIME 32 //smallest time inteval 33us
 //#define START_TIME 32/2 //fastest possible
 //#define START_TIME 32*1000 //for uart
 
@@ -53,6 +56,7 @@ volatile uint32_t DELAY_TIME; //so RIT ms is not set to 0
 volatile uint32_t NEXT_DELAY_TIME; //so RIT ms is not set to 0
 volatile uint32_t SEND_BIT;
 volatile uint32_t NEXT_SEND_BIT;
+volatile uint32_t LED_SEND;
 
 /* For DMA controller */
 #define DMA_DATA_SIZE	65
@@ -109,15 +113,27 @@ uint32_t SEQ_TIME[] = {
 */
 #if 1
 const uint32_t BITTIME[] = {
+		START_TIME/128, //Bit 0 time (LSB)
+		START_TIME/64, //Bit 1 time
+		START_TIME/32, //Bit 2 time
+		START_TIME/16, //Bit 3 time
+		START_TIME/8, //Bit 4 time
+		START_TIME/4, //Bit 5 time
+		START_TIME/2, //Bit 6 time
+		START_TIME //Bit 7 time (MSB)
+};
+/*
+const uint32_t BITTIME[] = {
 		START_TIME*1, //Bit 0 time (LSB)
 		START_TIME*2, //Bit 1 time
 		START_TIME*3, //Bit 2 time
 		START_TIME*4, //Bit 3 time
-		START_TIME*8, //Bit 4 time
-		START_TIME*16, //Bit 5 time
-		START_TIME*24, //Bit 6 time
-		START_TIME*50 //Bit 7 time (MSB)
+		START_TIME*6, //Bit 4 time
+		START_TIME*12, //Bit 5 time
+		START_TIME*20, //Bit 6 time
+		START_TIME*25 //Bit 7 time (MSB)
 };
+*/
 #else
 const uint32_t BITTIME[] = {
 		START_TIME*1, //Bit 0 time (LSB)
@@ -144,21 +160,23 @@ const uint32_t BITTIME[] = {
 uint16_t SEQ_BIT[16];
 uint32_t SEQ_TIME[16];
 
-uint16_t LED_RAW[LEDS];
-uint16_t LED_PRECALC1[REGS][BITS];
-uint16_t LED_PRECALC2[REGS][BITS];
-uint32_t BUFFER=1;
+volatile uint32_t LED_RAW[LEDS];
+volatile uint32_t LED_PRECALC[REGS][BITS];
+volatile uint32_t LED_PRECALC1[REGS][BITS];
+volatile uint32_t LED_PRECALC2[REGS][BITS];
+volatile uint32_t BUFFER=1;
 
 //uint16_t BITINREG[LEDS];
 //uint16_t WHICHREG[LEDS];
 //uint32_t LAST_MS;
 //uint32_t TOTAL_MS;
 extern volatile uint32_t TOG[4];
-uint32_t UPDATE_COUNT;
-uint32_t LED_UPDATE_REQUIRED;
+volatile uint32_t UPDATE_COUNT;
+volatile uint32_t LED_UPDATE_REQUIRED;
 
 void TIMER0_IRQHandler(void){
-	if (TIM_GetIntStatus(LPC_TIM0,TIM_MR0_INT)==SET){
+	//if (TIM_GetIntStatus(LPC_TIM0,TIM_MR0_INT)==SET){
+	if ((LPC_TIM0->IR)& TIM_IR_CLR(TIM_MR0_INT)){
 //		FIO_SetValue(LED_OE_PORT, LED_OE_BIT);//LED's off. active low
 //		FIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
 #if 0
@@ -180,7 +198,13 @@ void TIMER0_IRQHandler(void){
 		//Set bit/time
 		DELAY_TIME=NEXT_DELAY_TIME;
 		SEND_BIT=NEXT_SEND_BIT;
-
+/*
+		//longest
+		if(SEND_BIT==)
+			LED_SEND=1;
+		else
+			LED_SEND=0;
+*/
 		//Retart sequence if required
 		SENDSEQ+=1;
 		if (SENDSEQ>=MAX_BAM_BITS)
@@ -191,56 +215,68 @@ void TIMER0_IRQHandler(void){
 		NEXT_DELAY_TIME=SEQ_TIME[SENDSEQ];
 		NEXT_SEND_BIT=SEQ_BIT[SENDSEQ];
 
-		TIM_UpdateMatchValue(LPC_TIM0,0,SEQ_TIME[SENDSEQ]);
+		//TIM_UpdateMatchValue(LPC_TIM0,0,NEXT_DELAY_TIME);
+		LPC_TIM0->MR0 = NEXT_DELAY_TIME;
 //		FIO_SetValue(LED_LE_PORT, LED_LE_BIT);
 
 		for(uint32_t reg=0; reg<REGS;reg++){
+#if 0
 			if(BUFFER==1)
 				SSP_SendData(LED_SPI_CHN, LED_PRECALC1[reg][SEND_BIT]);
 			else
 				SSP_SendData(LED_SPI_CHN, LED_PRECALC2[reg][SEND_BIT]);
-//			SSP_SendData(LED_SPI_CHN, LED_PRECALC[reg][SEND_BIT]<<6);
-			WaitForSend();//Wait if TX buffer full
-		}
-		LatchIn();
-//		FIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
+			//SSP_SendData(LED_SPI_CHN, LED_PRECALC[reg][SEND_BIT]<<6);
+#endif
+			//SSP_SendData(LED_SPI_CHN, LED_PRECALC[reg][SEND_BIT]);
+			LED_SPI_CHN->DR = LED_PRECALC[reg][SEND_BIT];
 
+			//WaitForSend();//Wait if TX buffer full
+			while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+		}
+		//LatchIn();
+		LPC_GPIO0->FIOSET = LED_LE_BIT;
+		LPC_GPIO0->FIOCLR = LED_LE_BIT;
+
+//		FIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
+/*
 		UPDATE_COUNT+=1;
-		if(UPDATE_COUNT>=(160*MAX_BAM_BITS)){
+		if(UPDATE_COUNT>=(1600/MAX_BAM_BITS)){
 			UPDATE_COUNT=0;
 			LED_UPDATE_REQUIRED=1;
 		}
+*/
 //		FIO_ClearValue(LED_OE_PORT, LED_OE_BIT);//LED's on. active low
 
 //		FIO_SetValue(LED_LE_PORT, LED_LE_BIT);
 	}
-	TIM_ClearIntPending(LPC_TIM0, TIM_MR0_INT);
+	//TIM_ClearIntPending(LPC_TIM0, TIM_MR0_INT);
+	LPC_TIM0->IR |= TIM_IR_CLR(TIM_MR0_INT);
 }
 
-void LatchIn(void){
-#if 1
-	for(uint32_t i=0;i<20;i++){
+inline void LatchIn(void){
+#if 0
+	for(uint32_t i=0;i<15;i++){
 		asm("nop");
 	}
 #endif
 	FIO_SetValue(LED_LE_PORT, LED_LE_BIT);
-#if 1
-	for(uint32_t i=0;i<20;i++){
+#if 0
+	for(uint32_t i=0;i<10;i++){
 		asm("nop");
 	}
 #endif
 	FIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
 }
 
-void WaitForSend(void){
+inline void WaitForSend(void){
 	while(SSP_GetStatus(LED_SPI_CHN,SSP_STAT_BUSY)){
-#if 1
+#if 0
 		for(uint32_t i=0;i<20;i++){
 			asm("mov r0,r0");
 		}
 #endif
 	}
-	while(!SSP_GetStatus(LED_SPI_CHN,SSP_STAT_TXFIFO_EMPTY));
+//	while(!SSP_GetStatus(LED_SPI_CHN,SSP_STAT_TXFIFO_EMPTY));
 }
 
 
@@ -274,6 +310,14 @@ void LED_init(){
 	NEXT_SEND_BIT=0;
 	UPDATE_COUNT=0;
 	LED_UPDATE_REQUIRED=0;
+	LED_SEND=0;
+
+	GPIO_SetDir(LED_OE_PORT, LED_OE_BIT, 1);
+	GPIO_SetValue(LED_OE_PORT, LED_OE_BIT);//turn off leds active low
+
+	GPIO_SetDir(LED_LE_PORT, LED_LE_BIT, 1);
+	GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
+
 	LatchIn();//reset
 
 	for (tmp=0;tmp<MAX_BAM_BITS;tmp++){
@@ -297,6 +341,12 @@ void LED_init(){
 			LED_PRECALC2[a][b]=0;
 		}
 	}
+	for(uint32_t a=0; a<REGS; a++){
+		for (uint32_t b=0;b<BITS;b++){
+			LED_PRECALC[a][b]=0;
+		}
+	}
+	resetLeds();
 
 #if 0
 	//which bit in register
@@ -315,12 +365,6 @@ void LED_init(){
 	}
 #endif
 	//TODO lsb first spi mode 0 0?
-
-	GPIO_SetDir(LED_OE_PORT, LED_OE_BIT, 1);
-	GPIO_SetValue(LED_OE_PORT, LED_OE_BIT);//turn off leds active low
-
-	GPIO_SetDir(LED_LE_PORT, LED_LE_BIT, 1);
-	GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
 
 	// Initialize SPI pin connect
 	PINSEL_CFG_Type PinCfg;
@@ -369,7 +413,7 @@ void LED_init(){
 //	SSP_ConfigStruct.CPHA = SSP_CPHA_FIRST;
 	SSP_ConfigStruct.CPOL = SSP_CPOL_LO;
 //	SSP_ConfigStruct.ClockRate = 500000;
-	SSP_ConfigStruct.ClockRate = 1000000;
+//	SSP_ConfigStruct.ClockRate = 10000000;
 	SSP_ConfigStruct.ClockRate = 30000000; /* TLC5927 max freq = 30Mhz */
 	SSP_ConfigStruct.FrameFormat = SSP_FRAME_SPI;
 	SSP_ConfigStruct.Databit = SSP_DATABIT_16;
@@ -399,7 +443,7 @@ void LED_init(){
 	TIM_MatchConfigStruct.ExtMatchOutputType = TIM_EXTMATCH_NOTHING;
 	// Set Match value, count value of 1000000 (1000000 * 1uS = 1000000us = 1s --> 1 Hz)
 //	TIM_MatchConfigStruct.MatchValue   = DELAY_TIME*1000000;;
-	TIM_MatchConfigStruct.MatchValue   = SEQ_TIME[1];
+	TIM_MatchConfigStruct.MatchValue   = BITTIME[1];
 
 	// Set configuration for Tim_config and Tim_MatchConfig
 	TIM_Init(LPC_TIM0, TIM_TIMER_MODE,&TIM_ConfigStruct);
@@ -498,21 +542,12 @@ void LED_test(){
 	}
 */
 #if 1
-	SetRGB(0,0,0,0);
-	SetRGB(0,0xff,0,0);
-	calulateLEDMIBAMBits();
-	xprintf(INFO "SetRGB(0,0xff,0,0);",send_data);FFL_();//getc();
-	delay_ms(1000);
-	SetRGB(0,0,0,0);
-	SetRGB(0,0,0xff,0);
-	calulateLEDMIBAMBits();
-	xprintf(INFO "SetRGB(0,0,0xff,0);",send_data);FFL_();//getc();
-	delay_ms(1000);
-	SetRGB(0,0,0,0);
-	SetRGB(0,0,0,0x0ff);
-	calulateLEDMIBAMBits();
-	xprintf(INFO "SetRGB(0,0,0,0xff);",send_data);FFL_();//getc();
-	delay_ms(1000);
+	for(uint32_t led=0; led<LEDS;led++){
+		SetLED(led,1);
+		calulateLEDMIBAMBits();
+		delay_ms(300);
+		SetLED(led,0);
+	}
 #endif
 #if 0
 	TIM_Cmd(LPC_TIM0,DISABLE);
@@ -535,9 +570,10 @@ void LED_test(){
 #endif
 }
 
-void SetRGB(int8_t group, uint8_t v0, uint8_t v1, uint8_t v2){
+void SetRGB(int32_t group, uint8_t v0, uint8_t v1, uint8_t v2){
 //	if(group<0)
-//		group = m_amountOfOutputs + group;
+//		group = RGBS + group;
+/*
 	if(group==-1)
 		group = 59;
 	if(group==-2)
@@ -550,22 +586,21 @@ void SetRGB(int8_t group, uint8_t v0, uint8_t v1, uint8_t v2){
 		group = 55;
 	if(group==-6)
 		group = 54;
-//	if(IsValidPin(group*3+2) ){
+*/
 	LED_RAW[group*3]=v0;
 	LED_RAW[group*3+1]=v1;
 	LED_RAW[group*3+2]=v2;
-//	LED_RAW[group*3]=0xff;
-//	LED_RAW[group*3+1]=0xff;
-//	LED_RAW[group*3+2]=0xff;
-//	}
+}
+void SetLED(int32_t led, uint8_t v0){
+	LED_RAW[led]=v0;
 }
 
 void resetLeds(void){
 	//clear led bits
 	for(uint32_t a=0; a<LEDS; a++){
 		LED_RAW[a]=0;
-		//_DBG("[INFO]-LED_RAW[a] = ");_DBH16(LED_RAW[a]);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 	}
+	calulateLEDMIBAMBits();
 }
 //LED_PRECALC[reg][bit] = (0x01<<bit) & LED_RAW[led];
 
@@ -619,25 +654,25 @@ void calulateLEDMIBAMBits(){
 				bitinreg++;
 				led++;
 			}
-#if 0
+#if 1
 			LED_PRECALC[reg][bit] =
-					tt[14] |
-					tt[13] |
-					tt[12] |
-					tt[11] |
-					tt[10] |
-					tt[9] |
-					tt[8] |
-					tt[7] |
-					tt[6] |
-					tt[5] |
-					tt[4] |
-					tt[3] |
-					tt[2] |
-					tt[1] |
-					tt[0];
+				tt[0] |
+				tt[1] |
+				tt[2] |
+				tt[3] |
+				tt[4] |
+				tt[5] |
+				tt[6] |
+				tt[7] |
+				tt[8] |
+				tt[9] |
+				tt[10] |
+				tt[11] |
+				tt[12] |
+				tt[13] |
+				tt[14];
 #else
-			if(BUFFER==2){
+			if(BUFFER==1){
 				LED_PRECALC1[reg][bit] =
 					tt[0] |
 					tt[1] |
