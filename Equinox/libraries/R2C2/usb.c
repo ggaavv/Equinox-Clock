@@ -224,7 +224,7 @@ static void BulkOut(U8 bEP, U8 bEPStatus)
 		UART_LINE[UART_LINE_LEN-1]='\0';
 		UART_LINE_LEN=0;
 	}
-	xprintf(INFO "abBulkBuf[i]=%c",abBulkBuf[i]);FFL_();
+//	xprintf(INFO "abBulkBuf[i]=%c",abBulkBuf[i]);FFL_();
   }
 }
 
