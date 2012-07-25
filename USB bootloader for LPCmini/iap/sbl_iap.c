@@ -224,6 +224,12 @@ void check_isp_entry_pin(void)
 {
 	unsigned long i,j;
 	uint8_t pin_pressed = 0;
+
+	if ( *(volatile unsigned long *)(0x4002404C) == 0xbbbbbbbb ){ // General Purpose Register 2
+		*(volatile unsigned long *)(0x4002404C) = 0;
+		pin_pressed = 1;
+		i = 21;
+	}
 	LPC_GPIO1->FIODIR = all_led_1to4;
 	for(i=0; i < 20 ; i++)
 	{

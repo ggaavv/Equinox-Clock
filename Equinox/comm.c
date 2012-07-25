@@ -15,6 +15,7 @@
 #include "sys_timer.h"
 #include "pinout.h"
 #include "ShiftPWM.h"
+#include "lpc17xx_wdt.h"
 
 
 #define USER_FLASH_START 0x3000 // For USB bootloader
@@ -72,7 +73,11 @@ void exec_cmd(char *cmd){
 	comm_flush();
 	if(stricmp(cmd,"b")==0){
 		xprintf(INFO "resetting to bootloader" " (%s:%d)\n",_F_,_L_);
-		(*(void(*)())BOOTLOADER_START)();//doesn't work
+		SCB->VTOR = (BOOTLOADER_START & 0x1FFFFF80);
+		RTC_WriteGPREG(LPC_RTC, 2, 0xbbbbbbbb);
+		WDT_Init (WDT_CLKSRC_PCLK, WDT_MODE_RESET);
+		WDT_Start(1);
+		NVIC_EnableIRQ(WDT_IRQn);
 	}
 	else if(stricmp(cmd,"r")==0){
 		xprintf(INFO "reseting" " (%s:%d)\n",_F_,_L_);
@@ -89,7 +94,7 @@ void exec_cmd(char *cmd){
 		xprintf(INFO "q" " (%s:%d)\n",_F_,_L_);
 	}
 	else if(stricmp(cmd,"")==0){
-		xprintf(INFO "\r\nr-Resets board\r\nb-Resets to bootloader(does not work)\r\nt-led test\r\n" " (%s:%d)\n",_F_,_L_);
+		xprintf(INFO "\r\nr-Resets board\r\nb-Resets to bootloader\r\nt-led test\r\n" " (%s:%d)\n",_F_,_L_);
 	}
 	else{
 		xprintf(INFO "Command not found (cmd=%s)" " (%s:%d)\n",cmd,_F_,_L_);
