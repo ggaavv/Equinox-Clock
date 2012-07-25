@@ -75,7 +75,17 @@ void exec_cmd(char *cmd){
 	comm_flush();
 	usb_flush();
 	if(stricmp(cmd,"bl")==0){
-		xprintf(INFO "resetting to bootloader");FFL_();
+		xprintf(INFO "resetting to bootloader in 5 seconds");FFL_();
+		delay_ms(1000);
+		xprintf(INFO "resetting to bootloader in 4 seconds");
+		delay_ms(1000);
+		xprintf(INFO "resetting to bootloader in 3 seconds");
+		delay_ms(1000);
+		xprintf(INFO "resetting to bootloader in 2 seconds");
+		delay_ms(1000);
+		xprintf(INFO "resetting to bootloader in 1 seconds");
+		delay_ms(1000);
+
 		SCB->VTOR = (BOOTLOADER_START & 0x1FFFFF80);
 		RTC_WriteGPREG(LPC_RTC, 2, 0xbbbbbbbb);
 		WDT_Init (WDT_CLKSRC_PCLK, WDT_MODE_RESET);
@@ -98,7 +108,16 @@ void exec_cmd(char *cmd){
 		xprintf(INFO "q");FFL_();
 	}
 	else if(stricmp(cmd,"rs")==0){
-		xprintf(INFO "reseting");FFL_();
+		xprintf(INFO "reseting in 5 seconds");FFL_();
+		delay_ms(1000);
+		xprintf(INFO "reseting in 4 seconds");
+		delay_ms(1000);
+		xprintf(INFO "reseting in 3 seconds");
+		delay_ms(1000);
+		xprintf(INFO "reseting in 2 seconds");
+		delay_ms(1000);
+		xprintf(INFO "reseting in 1 seconds");
+		delay_ms(1000);
 		WDT_Init(WDT_CLKSRC_IRC, WDT_MODE_RESET);
 		WDT_Start(1);
 		while(1);//lockup, wdt will reset board

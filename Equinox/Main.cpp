@@ -260,8 +260,6 @@ int main(void){
 	// CAN init
 	CAN_init();xprintf(OK "CAN_init()");FFL_();
 
-	delay_ms(5000);
-
 	// main loop
 	long timer1, steptimeout, count1, tcount=Getunix(), colorshift=0;
 	int hue, sat, val;
