@@ -69,22 +69,15 @@ UART_RING_BUFFER_T rb;
 // Current Tx Interrupt enable state
 __IO FlagStatus TxIntStat;
 
-void WDT_IRQHandler (void){
-	NVIC_DisableIRQ(WDT_IRQn);
-	xprintf("WDT_IRQHandler" " (%s:%d)\n",_F_,_L_);
-	SCB->VTOR = (BOOTLOADER_START & 0x1FFFFF80);
-	RTC_WriteGPREG(LPC_RTC, 2, 0xbbbbbbbb);
-	WDT_Init (WDT_CLKSRC_PCLK, WDT_MODE_RESET);
-	WDT_Start(1);
-	NVIC_EnableIRQ(WDT_IRQn);
-	while(1);
-}
-
 void exec_cmd(char *cmd){
 	comm_flush();
 	if(stricmp(cmd,"b")==0){
 		xprintf(INFO "resetting to bootloader" " (%s:%d)\n",_F_,_L_);
-		(*(void(*)())BOOTLOADER_START)();//doesn't work
+		SCB->VTOR = (BOOTLOADER_START & 0x1FFFFF80);
+		RTC_WriteGPREG(LPC_RTC, 2, 0xbbbbbbbb);
+		WDT_Init (WDT_CLKSRC_PCLK, WDT_MODE_RESET);
+		WDT_Start(1);
+		NVIC_EnableIRQ(WDT_IRQn);
 	}
 	else if(stricmp(cmd,"r")==0){
 		xprintf(INFO "reseting" " (%s:%d)\n",_F_,_L_);
@@ -101,12 +94,7 @@ void exec_cmd(char *cmd){
 		xprintf(INFO "q" " (%s:%d)\n",_F_,_L_);
 	}
 	else if(stricmp(cmd,"")==0){
-		xprintf(INFO "reseting to bootloader" " (%s:%d)\n",_F_,_L_);
-		SCB->VTOR = (BOOTLOADER_START & 0x1FFFFF80);
-		RTC_WriteGPREG(LPC_RTC, 2, 0xbbbbbbbb);
-		WDT_Init (WDT_CLKSRC_PCLK, WDT_MODE_RESET);
-		WDT_Start(1);
-		NVIC_EnableIRQ(WDT_IRQn);
+		xprintf(INFO "\r\nr-Resets board\r\nb-Resets to bootloader\r\nt-led test\r\n" " (%s:%d)\n",_F_,_L_);
 	}
 	else{
 		xprintf(INFO "Command not found (cmd=%s)" " (%s:%d)\n",cmd,_F_,_L_);
