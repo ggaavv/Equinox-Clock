@@ -77,13 +77,13 @@ void exec_cmd(char *cmd){
 	if(stricmp(cmd,"bl")==0){
 		xprintf(INFO "resetting to bootloader in 5 seconds");FFL_();
 		delay_ms(1000);
-		xprintf(INFO "resetting to bootloader in 4 seconds");
+		xprintf(INFO "resetting to bootloader in 4 seconds");FFL_();
 		delay_ms(1000);
-		xprintf(INFO "resetting to bootloader in 3 seconds");
+		xprintf(INFO "resetting to bootloader in 3 seconds");FFL_();
 		delay_ms(1000);
-		xprintf(INFO "resetting to bootloader in 2 seconds");
+		xprintf(INFO "resetting to bootloader in 2 seconds");FFL_();
 		delay_ms(1000);
-		xprintf(INFO "resetting to bootloader in 1 seconds");
+		xprintf(INFO "resetting to bootloader in 1 seconds");FFL_();
 		delay_ms(1000);
 
 		SCB->VTOR = (BOOTLOADER_START & 0x1FFFFF80);
@@ -110,13 +110,13 @@ void exec_cmd(char *cmd){
 	else if(stricmp(cmd,"rs")==0){
 		xprintf(INFO "reseting in 5 seconds");FFL_();
 		delay_ms(1000);
-		xprintf(INFO "reseting in 4 seconds");
+		xprintf(INFO "reseting in 4 seconds");FFL_();
 		delay_ms(1000);
-		xprintf(INFO "reseting in 3 seconds");
+		xprintf(INFO "reseting in 3 seconds");FFL_();
 		delay_ms(1000);
-		xprintf(INFO "reseting in 2 seconds");
+		xprintf(INFO "reseting in 2 seconds");FFL_();
 		delay_ms(1000);
-		xprintf(INFO "reseting in 1 seconds");
+		xprintf(INFO "reseting in 1 seconds");FFL_();
 		delay_ms(1000);
 		WDT_Init(WDT_CLKSRC_IRC, WDT_MODE_RESET);
 		WDT_Start(1);
