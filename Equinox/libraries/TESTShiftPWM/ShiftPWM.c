@@ -37,6 +37,7 @@
 #include "lpc17xx_timer.h"
 #include "hsv2rgb.h"
 #include "comm.h"
+#include "sys_timer.h"
 
 //#define MAX_BAM_BITS 16
 #define MAX_BAM_BITS 8
@@ -364,7 +365,6 @@ void LED_init(){
 			tmp2++;
 	}
 #endif
-	//TODO lsb first spi mode 0 0?
 
 	// Initialize SPI pin connect
 	PINSEL_CFG_Type PinCfg;
@@ -456,7 +456,7 @@ void LED_init(){
 	// To start timer 0
 	TIM_Cmd(LPC_TIM0,ENABLE);
 	FIO_ClearValue(LED_OE_PORT, LED_OE_BIT);//LED's on. active low
-#if 0 //dma no used yet
+#if 0 //dma not used yet
 	GPDMA_Channel_CFG_Type GPDMACfg;
 
 	/* GPDMA Interrupt configuration section ------------------------------------------------- */
@@ -526,48 +526,14 @@ void LED_init(){
 
 
 void LED_test(){
-	uint16_t temp, send_data;
-	FFL_();
-
-/*
-
-//	_DBG("[INFO]-(1<<0)&1= ");_DBH((1<<0)&1);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-//	_DBG("[INFO]-(1<<1)&2= ");_DBH((1<<1)&2);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-//	_DBG("[INFO]-(1<<0)&1|(1<<1)&2= ");_DBH16((1<<0)&1|(1<<1)&2);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-//	_DBG("[INFO]-0x1|0x10|0x100= ");_DBH16(0x1|0x10|0x100);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-//	_DBG("[INFO]-0x1<<15= ");_DBH16(0x1<<15);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-
-	for(uint32_t t=0,e;t<16;t++){
-		_DBH16(0x1<<e++);_DBG("\r\n");
-	}
-*/
-#if 1
+//#if 1 //led test
 	for(uint32_t led=0; led<LEDS;led++){
 		SetLED(led,1);
 		calulateLEDMIBAMBits();
-		delay_ms(300);
+		delay_ms(200);
 		SetLED(led,0);
 	}
-#endif
-#if 0
-	TIM_Cmd(LPC_TIM0,DISABLE);
-//	LatchIn();
-	for(temp=0; temp<3; temp++){
-		send_data = 1<<temp;
-		SSP_SendData(LED_SPI_CHN, send_data);
-		WaitForSend();
-		LatchIn();
-		xprintf(INFO "led=%015b  *any key*",send_data);FFL_();delay_ms(1000);//getc(); //working
-	}
-	for(temp=0; temp<1; temp++){
-		send_data = 0xffff;
-		SSP_SendData(LED_SPI_CHN, send_data);
-		WaitForSend();
-		LatchIn();
-		xprintf(INFO "led=%015b  *any key*",send_data);FFL_();delay_ms(1000);//getc(); //working
-	}
-	TIM_Cmd(LPC_TIM0,ENABLE);
-#endif
+//#endif
 }
 
 void SetRGB(int32_t group, uint8_t v0, uint8_t v1, uint8_t v2){
@@ -607,8 +573,6 @@ void resetLeds(void){
 void calulateLEDMIBAMBits(){
 	uint32_t led,bitinreg;
 
-//	start=sys_millis();
-//	for(uint32_t bit=0; bit<1; bit++){
 	for(uint32_t bit=0; bit<BITS; bit++){
 //	uint32_t bit=7;
 		led=0;
@@ -736,7 +700,6 @@ void calulateLEDMIBAMBits(){
 		}
 	}
 	//	UPDATE_REQUIRED=true;
-//	end=sys_millis();
 //	_DBG("[INFO]-MIBAM Precal time = ");_DBD32(end-start);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 }
 /*

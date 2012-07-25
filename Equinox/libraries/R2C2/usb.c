@@ -35,6 +35,11 @@
 #include "usbapi.h"
 #include "usbdebug.h"
 #include "serial_fifo.h"
+#include "comm.h"
+
+extern volatile int LINE_READY;
+extern volatile uint8_t UART_LINE[50];
+extern volatile uint32_t UART_LINE_LEN;
 
 #define BAUD_RATE   115200
 
@@ -213,6 +218,13 @@ static void BulkOut(U8 bEP, U8 bEPStatus)
       ASSERT(FALSE);
       break;
     }
+	UART_LINE[UART_LINE_LEN++]=abBulkBuf[i];
+	if((abBulkBuf[i]=='\r')||(abBulkBuf[i]=='\n')){
+		LINE_READY = 1;
+		UART_LINE[UART_LINE_LEN-1]='\0';
+		UART_LINE_LEN=0;
+	}
+	xprintf(INFO "abBulkBuf[i]=%c",abBulkBuf[i]);FFL_();
   }
 }
 

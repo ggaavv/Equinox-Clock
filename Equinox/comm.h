@@ -49,6 +49,7 @@ int comm_test(void);
 uint8_t comm_get2(int name);
 uint8_t comm_get(void);
 void comm_flush(void);
+void usb_flush(void);
 //uint8_t comm_gets(void);
 void comm_put(uint8_t d);
 void comm_init(void);

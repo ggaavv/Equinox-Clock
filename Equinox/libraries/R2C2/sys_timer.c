@@ -3,10 +3,11 @@
 #include "sys_timer.h"
 #include "lpc_types.h"
 #define millis_per_60th_sec 1000/60// (16ms)
+#define millis_per_sec 1000
 volatile uint32_t USER_MILLIS=0;
 volatile uint32_t SEC_MILLIS=0;
 volatile uint32_t _60th_SEC_COUNT=0;
-volatile uint32_t UPDATES_PER_SEC=0;
+volatile uint32_t UPDATES_PER_SEC=60;
 volatile uint32_t LED_UPDATE_REQUIRED=0;
 volatile uint32_t LED_UPDATE_REQUIRED_COUNT=0;
 
@@ -22,7 +23,7 @@ void SysTick_Handler(void){
 	else
 		_60th_SEC_COUNT++;
 
-	if(LED_UPDATE_REQUIRED_COUNT++>(millis_per_60th_sec*UPDATES_PER_SEC)){
+	if(LED_UPDATE_REQUIRED_COUNT++>(millis_per_sec/UPDATES_PER_SEC)){
 		LED_UPDATE_REQUIRED=TRUE;
 		LED_UPDATE_REQUIRED_COUNT=0;
 	}

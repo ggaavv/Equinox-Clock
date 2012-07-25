@@ -81,7 +81,7 @@ void CAN_init (void){
 	CAN_Init(LPC_CAN2, 500000);
 
 	//Enable self-test mode
-	//CAN_ModeConfig(LPC_CAN2, CAN_SELFTEST_MODE, ENABLE);
+	CAN_ModeConfig(LPC_CAN2, CAN_SELFTEST_MODE, ENABLE);
 	//CAN_ModeConfig(LPC_CAN2, CAN_LISTENONLY_MODE, ENABLE);
 
 	//Enable Interrupt
@@ -128,7 +128,7 @@ uint8_t exec_usart_cmd (uint8_t * cmd_buf){
 		++cmd_buf_pntr;
     }
 #ifdef VERBOSE
-	xprintf("cmd_len - %x\r",cmd_len);
+	//xprintf("cmd_len - %x\r",cmd_len);
 #endif
 
     cmd_buf_pntr = &(*cmd_buf);	// reset pointer
@@ -172,9 +172,9 @@ uint8_t exec_usart_cmd (uint8_t * cmd_buf){
             // read status flag
         case READ_STATUS:
             // check if CAN controller is in reset mode
-            if (!CHECKBIT (CAN_flags, BUS_ON)){
+            if (!CANBUS_ON()){
 #ifdef VERBOSE
-            	xprintf("ERR-Bus is not on.\n");
+            	xprintf("ERR-Bus is not on.\n");FFL_();
 #endif
 				return ERROR;
             }
@@ -196,7 +196,7 @@ uint8_t exec_usart_cmd (uint8_t * cmd_buf){
             // check valid cmd length and if CAN was initialized before
             if (cmd_len != 9){
 #ifdef VERBOSE
-            	xprintf("ERR-Wrong command length should be 9 but is %d.\r",cmd_len);
+            	xprintf("ERR-Wrong command length should be 9 but is %d.\r",cmd_len);FFL_();
 #endif
             	return ERROR;	// check valid cmd length
             }
@@ -359,17 +359,19 @@ uint8_t exec_usart_cmd (uint8_t * cmd_buf){
         	return CR;
 
         case SEND_11BIT_ID:
+#if 1
             // check if CAN controller is in reset mode or busy
-            if (!CHECKBIT (CAN_flags, BUS_ON) || CHECKBIT (CAN_flags, TX_BUSY)){
+            if (!CANBUS_ON()||!TX_BUSY()){
 #ifdef VERBOSE
-            	xprintf("ERR-Bus is not on or tx_busy.\n");
+            	xprintf("ERR-Bus is not on or tx_busy.\n");FFL_();
 #endif
             	return ERROR;
 			}
+#endif
 
             if ((cmd_len < 5) || (cmd_len > 21)){
 #ifdef VERBOSE
-            	xprintf("ERR-Wrong command length should be less than 5 or more than 21 but is %d.",cmd_len);
+            	xprintf("ERR-Wrong command length should be less than 5 or more than 21 but is %d.",cmd_len);FFL_();
 #endif
             	return ERROR;	// check valid cmd length
 			}
@@ -393,7 +395,7 @@ uint8_t exec_usart_cmd (uint8_t * cmd_buf){
             // check number of data bytes supplied against data lenght byte
             if (TXMsg.len != ((cmd_len - 5) / 2)){
 #ifdef VERBOSE
-            	xprintf("ERR-Wrong length compared with actual TXMsg.len, is %d.\r",TXMsg.len);
+            	xprintf("ERR-Wrong length compared with actual TXMsg.len, is %d.\r",TXMsg.len);FFL_();
 #endif
             	return ERROR;
 			}
@@ -402,7 +404,7 @@ uint8_t exec_usart_cmd (uint8_t * cmd_buf){
             //if (CAN_tx_msg.len > 8)
             if (TXMsg.len > 8){
 #ifdef VERBOSE
-            	xprintf("ERR-Length of TXMsg.len is too long, is %d.\r",TXMsg.len);
+            	xprintf("ERR-Length of TXMsg.len is too long, is %d.\r",TXMsg.len);FFL_();
 #endif
                 return ERROR;	// check valid length
 			}
@@ -426,6 +428,7 @@ uint8_t exec_usart_cmd (uint8_t * cmd_buf){
                 }
 
             }
+            CAN_SetCommand(LPC_CAN2, CAN_CMR_SRR); //Self Reception request
             // if transmit buffer was empty send message
             if (CAN_SendMsg(LPC_CAN2, &TXMsg)==SUCCESS)
             	return CR;
@@ -605,14 +608,14 @@ uint8_t exec_usart_cmd (uint8_t * cmd_buf){
             // end with error on unknown commands
         default:
 #ifdef VERBOSE
-        	xprintf("ERR-Unrecognised command - %s\r",*cmd_buf_pntr);
+        	xprintf("ERR-Unrecognised command - %s\r",*cmd_buf_pntr);FFL_();
 #endif
             return ERROR;
     }				// end switch
 
     // we should never reach this return
 #ifdef VERBOSE
-    xprintf("CAN INI ERR.\n");
+    xprintf("CAN INI ERR.\n");FFL_();
 #endif
     return ERROR;
 }				// end exec_usart_cmd

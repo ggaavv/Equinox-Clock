@@ -7,6 +7,7 @@
 
 #include <string.h>
 #include "comm.h"
+#include "canlib.h"
 
 #include "lpc17xx_uart.h"
 #include "lpc17xx_pinsel.h"
@@ -16,16 +17,17 @@
 #include "pinout.h"
 #include "ShiftPWM.h"
 #include "lpc17xx_wdt.h"
+#include "lpc17xx_rtc.h"
 
 
 #define USER_FLASH_START 0x3000 // For USB bootloader
 //#define USER_FLASH_START 0x0 // No USB bootloader
 #define BOOTLOADER_START 0x0 // To enter bootloader
 
-volatile int LINE_READY=0;
 volatile int RX_TOG=0;
 volatile int TX_TOG=0;
 
+volatile int LINE_READY=0;
 volatile uint8_t UART_LINE[50];
 volatile uint32_t UART_LINE_LEN=0;
 
@@ -71,89 +73,70 @@ __IO FlagStatus TxIntStat;
 
 void exec_cmd(char *cmd){
 	comm_flush();
-	if(stricmp(cmd,"b")==0){
-		xprintf(INFO "resetting to bootloader" " (%s:%d)\n",_F_,_L_);
+	usb_flush();
+	if(stricmp(cmd,"bl")==0){
+		xprintf(INFO "resetting to bootloader");FFL_();
 		SCB->VTOR = (BOOTLOADER_START & 0x1FFFFF80);
 		RTC_WriteGPREG(LPC_RTC, 2, 0xbbbbbbbb);
 		WDT_Init (WDT_CLKSRC_PCLK, WDT_MODE_RESET);
 		WDT_Start(1);
 		NVIC_EnableIRQ(WDT_IRQn);
 	}
-	else if(stricmp(cmd,"r")==0){
-		xprintf(INFO "reseting" " (%s:%d)\n",_F_,_L_);
+	if(stricmp(cmd,"ct")==0){
+		xprintf(INFO "sending t0A9803890004A2A2A2A2 (v+)");FFL_();
+		if(exec_usart_cmd("t0A9803890004A2A2A2A2")==CR)
+			xprintf(INFO "sending successful");
+		else
+			xprintf(INFO "sending not successful");
+		FFL_();
+	}
+	else if(stricmp(cmd,"lt")==0){
+		xprintf(INFO "tests running");FFL_();
+		LED_test();
+	}
+	else if(stricmp(cmd,"q")==0){
+		xprintf(INFO "q");FFL_();
+	}
+	else if(stricmp(cmd,"rs")==0){
+		xprintf(INFO "reseting");FFL_();
 		WDT_Init(WDT_CLKSRC_IRC, WDT_MODE_RESET);
 		WDT_Start(1);
 		while(1);//lockup, wdt will reset board
 		//WDT_ClrTimeOutFlag();
 	}
-	else if(stricmp(cmd,"t")==0){
-		xprintf(INFO "tests running" " (%s:%d)\n",_F_,_L_);
-		LED_test();
-	}
-	else if(stricmp(cmd,"q")==0){
-		xprintf(INFO "q" " (%s:%d)\n",_F_,_L_);
-	}
 	else if(stricmp(cmd,"")==0){
-		xprintf(INFO "\r\nr-Resets board\r\nb-Resets to bootloader\r\nt-led test\r\n" " (%s:%d)\n",_F_,_L_);
+		xprintf(INFO "\n"
+				"bl-Resets to bootloader\n"
+				"ct-CAN test\n"
+				"lt-LED test"
+				"rs-Resets board\n"
+				"t-send CAN message with 11bit ID\n"
+				//COMMANDS
+				);FFL_();
 	}
 	else{
-		xprintf(INFO "Command not found (cmd=%s)" " (%s:%d)\n",cmd,_F_,_L_);
+		if(exec_usart_cmd(cmd)==CR)
+			xprintf(INFO "successful");
+		else
+			xprintf(INFO "not successful");
+		FFL_();
+//		xprintf(INFO "Command not found (cmd=%s)",cmd);FFL_();
 	}
 	return;
 }
 
 int comm_test(void){
-	xprintf("%s{\n",__func__);
-//	delay_ms(1000);
 	return ( LPC_UART0->LSR & UART_LSR_RDR ) ? 1 : 0;
-//	return 0;//always avaliable
-
-    // Wait for incomming char...
-//    while (USART_GetFlagStatus(USART1, USART_FLAG_RXNE) == RESET) ;
-//	return ( USART_GetFlagStatus(USARTx, USART_FLAG_RXNE) == RESET ) ? 0 : 1;
-}
-
-#if 0
-//for printf??
-int8_t __putchar(int8_t ch){
-	xprintf("%s{\n",__func__);
-  if (ch == '\n')
-	  comm_put('\r');
-  comm_put(ch);
-	xprintf("%s}\n",__func__);
-}
-
-//for scanf??
-int8_t __getchar(void){
-	xprintf("%s{\n",__func__);
-	return comm_get();
-}
-//for scanf??
-int8_t _getc(void){
-	xprintf("%s{\n",__func__);
-	return comm_get();
-}
-#endif
-
-
-uint8_t comm_get2(int name){
-	(void)name; /* avoid warning */
-	uint8_t buffer[2], len;
-	while (len == 0){
-		len = UART_Receive(LPC_UART0, buffer, sizeof(buffer), NONE_BLOCKING);
-	}
-	return buffer;// buffer;
 }
 
 uint8_t comm_get(void){
 #if 0
-//	xprintf("%s{\n",__func__);
 	uint8_t tmp = 0;
 	UART_Receive(LPC_UART0, &tmp, 1, BLOCKING);
 	return(tmp);
 #endif
 #if 1
-	uint8_t buffer[1], len;
+	uint8_t buffer[1], len=0;
 	while (len == 0){
 		len = UARTReceive(LPC_UART0, buffer, 1);
 	}
@@ -164,10 +147,13 @@ uint8_t comm_get(void){
 }
 
 void comm_flush(void){
-#if 1
-	uint8_t buffer[1], len;
+	uint8_t buffer[1], len=0;
 	while (UARTReceive(LPC_UART0, buffer, 1));
-#endif
+}
+
+void usb_flush(void){
+	while (serial_rxchars())
+		serial_popchar();
 }
 
 #if 0
@@ -184,7 +170,7 @@ uint8_t comm_gets(void){
 void comm_put(uint8_t d){
 //	UART_Send(LPC_UART0, &d, 1, BLOCKING);//without interrupt
 	UARTSend(LPC_UART0, &d, 1);//with interrupt
-////	serial_writechar(d);
+	serial_writechar(d);
 }
 
 #if 0
@@ -203,8 +189,6 @@ void comm_init(void){
 
 	// UART Configuration structure variable
 	UART_CFG_Type UARTConfigStruct;
-	// UART FIFO configuration Struct variable
-//	UART_FIFO_CFG_Type UARTFIFOConfigStruct;
 	// Pin configuration for UART0
 	PINSEL_CFG_Type PinCfg;
 
@@ -236,7 +220,7 @@ void comm_init(void){
 
 	// Enable UART Transmit
 	UART_TxCmd(LPC_UART0, ENABLE);
-#if 1
+
     /* Enable UART Rx interrupt */
 	UART_IntConfig((LPC_UART_TypeDef *)LPC_UART0, UART_INTCFG_RBR, ENABLE);
 	/* Enable UART line status interrupt */
@@ -258,19 +242,16 @@ void comm_init(void){
     NVIC_SetPriority(UART0_IRQn, ((0x01<<3)|0x01));
 	/* Enable Interrupt for UART0 channel */
     NVIC_EnableIRQ(UART0_IRQn);
-#endif
+
 }
 
-
-#if 1
 /*----------------- INTERRUPT SERVICE ROUTINES --------------------------*/
 /*********************************************************************//**
  * @brief		UART0 interrupt handler sub-routine
  * @param[in]	None
  * @return 		None
  **********************************************************************/
-void UART0_IRQHandler(void)
-{
+void UART0_IRQHandler(void){
 	uint32_t intsrc, tmp, tmp1;
 
 	/* Determine the interrupt source */
@@ -308,17 +289,18 @@ void UART0_IRQHandler(void)
  * @param[in]	None
  * @return 		None
  *********************************************************************/
-void UART_IntReceive(void)
-{
+void UART_IntReceive(void){
 	uint8_t tmpc;
 	uint32_t rLen;
-/*
+
+#ifdef DEV
 	if(RX_TOG)
 		GPIO_SetValue(LED_3_PORT, LED_3_BIT);
 	else
 		GPIO_ClearValue(LED_3_PORT, LED_3_BIT);
 	RX_TOG=!RX_TOG;
-*/
+#endif
+
 	while(1){
 		// Call UART read function in UART driver
 		rLen = UART_Receive((LPC_UART_TypeDef *)LPC_UART0, &tmpc, 1, NONE_BLOCKING);
@@ -350,15 +332,14 @@ void UART_IntReceive(void)
  * @param[in]	None
  * @return 		None
  *********************************************************************/
-void UART_IntTransmit(void)
-{
-/*
+void UART_IntTransmit(void){
+#ifdef DEV
 	if(TX_TOG)
 		GPIO_SetValue(LED_2_PORT, LED_2_BIT);
 	else
 		GPIO_ClearValue(LED_2_PORT, LED_2_BIT);
 	TX_TOG=!TX_TOG;
-*/
+#endif
 
     // Disable THRE interrupt
     UART_IntConfig((LPC_UART_TypeDef *)LPC_UART0, UART_INTCFG_THRE, DISABLE);
@@ -399,8 +380,7 @@ void UART_IntTransmit(void)
  * @param[in]	bLSErrType	UART Line Status Error Type
  * @return		None
  **********************************************************************/
-void UART_IntErr(uint8_t bLSErrType)
-{
+void UART_IntErr(uint8_t bLSErrType){
 	uint8_t test;
 	// Loop forever
 	while (1){
@@ -418,8 +398,7 @@ void UART_IntErr(uint8_t bLSErrType)
  * @param[in]	buflen Length of Transmit buffer
  * @return 		Number of bytes actually sent to the ring buffer
  **********************************************************************/
-uint32_t UARTSend(LPC_UART_TypeDef *UARTPort, uint8_t *txbuf, uint8_t buflen)
-{
+uint32_t UARTSend(LPC_UART_TypeDef *UARTPort, uint8_t *txbuf, uint8_t buflen){
     uint8_t *data = (uint8_t *) txbuf;
     uint32_t bytes = 0;
 
@@ -472,8 +451,7 @@ uint32_t UARTSend(LPC_UART_TypeDef *UARTPort, uint8_t *txbuf, uint8_t buflen)
  * @param[in]	buflen Length of Received buffer
  * @return 		Number of bytes actually read from the ring buffer
  **********************************************************************/
-uint32_t UARTReceive(LPC_UART_TypeDef *UARTPort, uint8_t *rxbuf, uint8_t buflen)
-{
+uint32_t UARTReceive(LPC_UART_TypeDef *UARTPort, uint8_t *rxbuf, uint8_t buflen){
     uint8_t *data = (uint8_t *) rxbuf;
     uint32_t bytes = 0;
 
@@ -503,166 +481,4 @@ uint32_t UARTReceive(LPC_UART_TypeDef *UARTPort, uint8_t *rxbuf, uint8_t buflen)
 
     return bytes;
 }
-#endif
-#if 0
-/*********************************************************************//**
- * @brief	Print Welcome Screen Menu subroutine
- * @param	None
- * @return	None
- **********************************************************************/
-void print_menu(void)
-{
-	uint32_t tmp, tmp2;
-	uint8_t *pDat;
-
-	tmp = sizeof(menu1);
-	tmp2 = 0;
-	pDat = (uint8_t *)&menu1[0];
-	while(tmp) {
-		tmp2 = UARTSend((LPC_UART_TypeDef *)LPC_UART0, pDat, tmp);
-		pDat += tmp2;
-		tmp -= tmp2;
-	}
-
-	tmp = sizeof(menu2);
-	tmp2 = 0;
-	pDat = (uint8_t *)&menu2[0];
-	while(tmp) {
-		tmp2 = UARTSend((LPC_UART_TypeDef *)LPC_UART0, pDat, tmp);
-		pDat += tmp2;
-		tmp -= tmp2;
-	}
-}
-/*-------------------------MAIN FUNCTION------------------------------*/
-/*********************************************************************//**
- * @brief		c_entry: Main UART program body
- * @param[in]	None
- * @return 		int
- **********************************************************************/
-int entry(void)
-{
-	// UART Configuration structure variable
-	UART_CFG_Type UARTConfigStruct;
-	// UART FIFO configuration Struct variable
-	UART_FIFO_CFG_Type UARTFIFOConfigStruct;
-	// Pin configuration for UART0
-	PINSEL_CFG_Type PinCfg;
-
-	uint32_t idx, len;
-	__IO FlagStatus exitflag;
-	uint8_t buffer[100];
-
-	/*
-	 * Initialize UART0 pin connect
-	 */
-	PinCfg.Funcnum = 1;
-	PinCfg.OpenDrain = 0;
-	PinCfg.Pinmode = 0;
-	PinCfg.Pinnum = 2;
-	PinCfg.Portnum = 0;
-	PINSEL_ConfigPin(&PinCfg);
-	PinCfg.Pinnum = 3;
-	PINSEL_ConfigPin(&PinCfg);
-
-
-	/* Initialize UART Configuration parameter structure to default state:
-	 * Baudrate = 9600bps
-	 * 8 data bit
-	 * 1 Stop bit
-	 * None parity
-	 */
-	UART_ConfigStructInit(&UARTConfigStruct);
-
-	// Initialize UART0 peripheral with given to corresponding parameter
-	UART_Init((LPC_UART_TypeDef *)LPC_UART0, &UARTConfigStruct);
-
-
-	/* Initialize FIFOConfigStruct to default state:
-	 * 				- FIFO_DMAMode = DISABLE
-	 * 				- FIFO_Level = UART_FIFO_TRGLEV0
-	 * 				- FIFO_ResetRxBuf = ENABLE
-	 * 				- FIFO_ResetTxBuf = ENABLE
-	 * 				- FIFO_State = ENABLE
-	 */
-	UART_FIFOConfigStructInit(&UARTFIFOConfigStruct);
-
-	// Initialize FIFO for UART0 peripheral
-	UART_FIFOConfig((LPC_UART_TypeDef *)LPC_UART0, &UARTFIFOConfigStruct);
-
-
-	// Enable UART Transmit
-	UART_TxCmd((LPC_UART_TypeDef *)LPC_UART0, ENABLE);
-
-    /* Enable UART Rx interrupt */
-	UART_IntConfig((LPC_UART_TypeDef *)LPC_UART0, UART_INTCFG_RBR, ENABLE);
-	/* Enable UART line status interrupt */
-	UART_IntConfig((LPC_UART_TypeDef *)LPC_UART0, UART_INTCFG_RLS, ENABLE);
-	/*
-	 * Do not enable transmit interrupt here, since it is handled by
-	 * UART_Send() function, just to reset Tx Interrupt state for the
-	 * first time
-	 */
-	TxIntStat = RESET;
-
-	// Reset ring buf head and tail idx
-	__BUF_RESET(rb.rx_head);
-	__BUF_RESET(rb.rx_tail);
-	__BUF_RESET(rb.tx_head);
-	__BUF_RESET(rb.tx_tail);
-
-    /* preemption = 1, sub-priority = 1 */
-    NVIC_SetPriority(UART0_IRQn, ((0x01<<3)|0x01));
-	/* Enable Interrupt for UART0 channel */
-    NVIC_EnableIRQ(UART0_IRQn);
-
-
-	// print welcome screen
-//	print_menu();
-
-	// reset exit flag
-	exitflag = RESET;
-
-    /* Read some data from the buffer */
-    while (exitflag == RESET)
-    {
-       len = 0;
-        while (len == 0)
-        {
-            len = UARTReceive((LPC_UART_TypeDef *)LPC_UART0, buffer, sizeof(buffer));
-        }
-
-        /* Got some data */
-        idx = 0;
-        while (idx < len)
-        {
-            if (buffer[idx] == 27)
-            {
-                /* ESC key, set exit flag */
-            	UARTSend((LPC_UART_TypeDef *)LPC_UART0, menu3, sizeof(menu3));
-                exitflag = SET;
-            }
-            else if (buffer[idx] == 'r')
-            {
-                print_menu();
-            }
-            else
-            {
-                /* Echo it back */
-            	UARTSend((LPC_UART_TypeDef *)LPC_UART0, &buffer[idx], 1);
-            }
-            idx++;
-        }
-    }
-
-    // wait for current transmission complete - THR must be empty
-    while (UART_CheckBusy((LPC_UART_TypeDef *)LPC_UART0));
-
-    // DeInitialize UART0 peripheral
-    UART_DeInit((LPC_UART_TypeDef *)LPC_UART0);
-
-    /* Loop forever */
-    while(1);
-    return 1;
-}
-#endif
 

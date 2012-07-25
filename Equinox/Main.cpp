@@ -49,6 +49,7 @@ extern "C" {
 	#include "serial.h"
 	#include "ShiftPWM.h"
 	#include "comm.h"
+	#include "uart.h"
 	#include "pinout.h"
 	#include "syscalls.h"
 	#include "hsv2rgb.h"
@@ -149,15 +150,19 @@ int main(void){
 	SCB->VTOR = (USER_FLASH_START & 0x1FFFFF80);
 
 	//Debug functions output to com1/8n1/115200
-	//does this need to be first??
-	//TODO
-//	debug_frmwrk_init();//_DBG("[OK]-debug_frmwrk_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//	debug_frmwrk_init();//_DBG("[OK]-debug_frmwrk_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\n");
+
+	// Initialize USB<->Serial
+	serial_init();xprintf(OK "serial_init()");FFL_();
+//	uart_writestr("[OK]-uart_Start");
+	serial_writestr("[OK]-usb serial_Start\n");
+
 
 	// Initialize UART
 	comm_init();
 	comm_flush();
 //	xprintf("\033[2J");//clear screen
-	xprintf("\r\n\r\n\r\n\r\n" BOARD "\r\n**BOOTED**");FFL_();
+	xprintf("\n\n\n\n" BOARD " Board\n**BOOTED**");FFL_();
 #if 0
 //	getc(); //working
 //	getchar(); //working
@@ -230,12 +235,8 @@ int main(void){
 	// Initialize the timer for millis()
 	SYSTICK_InternalInit(1); // from NXP - 1ms interval
 	SYSTICK_IntCmd(ENABLE);
-	SYSTICK_Cmd(ENABLE);//xprintf(OK "SYSTICK_Cmd()" " (%s:%d)\n",_F_,_L_);
+	SYSTICK_Cmd(ENABLE);//xprintf(OK "SYSTICK_Cmd()");FFL_();
 
-	// Initialize USB<->Serial
-	serial_init();xprintf(OK "serial_init()");FFL_();
-//	uart_writestr("[OK]-uart_Start");
-	serial_writestr("[OK]-usb serial_Start\n");
 
 	// Init RTC module
     RTC_time_Init();xprintf(OK "RTC_time_Init()");FFL_();
@@ -255,9 +256,11 @@ int main(void){
 
 #endif
 	// Wifi init
-//	WiFi_init();xprintf(OK "WiFi_init" " (%s:%d)\n",_F_,_L_);
+//	WiFi_init();xprintf(OK "WiFi_init()");FFL_();
 	// CAN init
-	CAN_init();xprintf(OK "CAN_init" " (%s:%d)\n",_F_,_L_);
+	CAN_init();xprintf(OK "CAN_init()");FFL_();
+
+	delay_ms(5000);
 
 	// main loop
 	long timer1, steptimeout, count1, tcount=Getunix(), colorshift=0;
@@ -289,7 +292,6 @@ int main(void){
 			strftime(buffer,80,"Now it's %I:%M:%S%p.",timeinfo);
 			xprintf( "%s", buffer);FFL_();
 //			xprintf( "date/time is: %s", asctime (timeinfo));FFL_();
-
 //			RTC_print_time();
 		}
 #endif
@@ -308,20 +310,15 @@ int main(void){
 			colorshift+=1;
 			if(colorshift==360)
 				colorshift=0;
-//			delay_ms(10);
-//			resetLeds();
 //			for(int cycle=0;cycle<numCycles;cycle++){ // shift the raibom numCycles times
 //				for(int led=0;led<RGBS;led++){ // loop over all LED's
 				for(int led=0;led<1;led++){ // loop over all LED's
-//					hue = colorshift;//(1*360/1+colorshift)%360; // Set hue from 0 to 360 from first to last led and shift the hue
-					hue = ((led*50)*360/1+colorshift)%360; // Set hue from 0 to 360 from first to last led and shift the hue
+					hue = ((led*1)*360/1+colorshift)%360; // Set hue from 0 to 360 from first to last led and shift the hue
 					sat = 255;
 					val = 255;
 //					hsv2rgb(hue, sat, val, &red, &green, &blue, maxBrightness); // convert hsv to rgb values
 					hsv2rgb(hue, sat, val, &red, &green, &blue, 0x7f); // convert hsv to rgb values
-//					xprintf(INFO "h=%d s=%d v=%d r=%d g=%d b=%d", hue, sat, val, red, green, blue);FFL_();
 					SetRGB(led, red, green, blue); // write rgb values
-//					SetRGB(0, red, green, blue); // write rgb values
 				}
 				calulateLEDMIBAMBits();
 //			}

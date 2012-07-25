@@ -17,7 +17,7 @@
 #endif
 
 #if !defined(ERROR)
-#define ERROR         7		// error tag (ASCII BEL)
+#define ERROR         'e'//7		// error tag (ASCII BEL)
 #endif
 
 #define false 0
@@ -44,28 +44,27 @@
 #define WRITE_REG       'W'	// write register content to SJA1000
 #define LISTEN_ONLY     'L'	// switch to listen only mode
 
-#define COMMANDS "\
-SET_BITRATE     S	 set CAN bit rate\
-SET_BTR         s	 set CAN bit rate via\
-OPEN_CAN_CHAN   O	 open CAN channel\
-CLOSE_CAN_CHAN  C	 close CAN channel\
-SEND_11BIT_ID   t	 send CAN message with 11bit ID\
-SEND_29BIT_ID   T	 send CAN message with 29bit ID\
-SEND_R11BIT_ID  r	 send CAN remote message with 11bit ID\
-SEND_R29BIT_ID  R	 send CAN remote message with 29bit ID\
-READ_STATUS     F	 read status flag byte\
-SET_ACR         M	 set Acceptance Code Register\
-SET_AMR         m	 set Acceptance Mask Register\
-GET_VERSION     V	 get hardware and software version\
-GET_SW_VERSION  v    get software version only\
-GET_SERIAL      N	 get device serial number\
-TIME_STAMP      Z	 toggle time stamp setting\
-READ_ECR        E	 read Error Capture Register\
-READ_ALCR       A	 read Arbritation Lost Capture Register\
-READ_REG        G	 read register conten from SJA1000\
-WRITE_REG       W	 write register content to SJA1000\
-LISTEN_ONLY     L	 switch to listen only mode\
-"
+#define COMMANDS \
+"SET_BITRATE     S	 set CAN bit rate\n" \
+"SET_BTR         s	 set CAN bit rate via\n" \
+"OPEN_CAN_CHAN   O	 open CAN channel\n" \
+"CLOSE_CAN_CHAN  C	 close CAN channel\n" \
+"SEND_11BIT_ID   t	 send CAN message with 11bit ID\n" \
+"SEND_29BIT_ID   T	 send CAN message with 29bit ID\n" \
+"SEND_R11BIT_ID  r	 send CAN remote message with 11bit ID\n" \
+"SEND_R29BIT_ID  R	 send CAN remote message with 29bit ID\n" \
+"READ_STATUS     F	 read status flag byte\n" \
+"SET_ACR         M	 set Acceptance Code Register\n" \
+"SET_AMR         m	 set Acceptance Mask Register\n" \
+"GET_VERSION     V	 get hardware and software version\n" \
+"GET_SW_VERSION  v	 get software version only\n" \
+"GET_SERIAL      N	 get device serial number\n" \
+"TIME_STAMP      Z	 toggle time stamp setting\n" \
+"READ_ECR        E	 read Error Capture Register\n" \
+"READ_ALCR       A	 read Arbritation Lost Capture Register\n" \
+"READ_REG        G	 read register conten from SJA1000\n" \
+"WRITE_REG       W	 write register content to SJA1000\n" \
+"LISTEN_ONLY     L	 switch to listen only mode\n"
 
 
 
@@ -77,8 +76,14 @@ LISTEN_ONLY     L	 switch to listen only mode\
 // define local CAN status flags
 #define CAN_INIT          0x0001	// set if CAN controller is initalized
 #define MSG_WAITING       0x0002	// set if Rx message is waiting
-#define BUS_ON            0x0004	// set if CAN controller is in oper mode
-#define TX_BUSY           0x0008	// set if transmit is in progress
+
+//register bits
+#define BUS_ON_REG            (1<<4)	// set if CAN controller is in oper mode
+#define TX_BUSY_REG           (1<<5)	// set if transmit is in progress
+
+#define CANBUS_ON() (!(CAN_GetCTRLStatus(LPC_CAN2, CANCTRL_GLOBAL_STS)&(BUS_ON_REG))) //0 for Bus-On
+#define TX_BUSY() (!(CAN_GetCTRLStatus(LPC_CAN2, CANCTRL_GLOBAL_STS)&(TX_BUSY_REG))) //0 for idle
+
 
 /*
 	define command receive buffer length
