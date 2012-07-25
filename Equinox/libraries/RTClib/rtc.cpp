@@ -12,6 +12,7 @@ extern "C" {
 	#include "sunrise.h"
 	#include "lpc17xx_nvic.h"
 	#include "comm.h"
+	#include "sys_timer.h"
 //#include <sys/stdio.h>
 //#include <sys/time.h>
 }
@@ -58,6 +59,8 @@ uint32_t UNIX=0;
 #define begin_DST_unix(x) RTC_time_FindUnixtime(x, begin_DST_Month, begin_DST_dayOfMonth(x), begin_DST_Hour, begin_DST_Min, 0)
 #define end_DST_unix(x) RTC_time_FindUnixtime(x, end_DST_Month, end_DST_dayOfMonth(x), end_DST_Hour, end_DST_Min, 0)
 
+extern volatile uint32_t _60th_SEC_COUNT;
+
 extern "C" void RTC_IRQHandler(void){
 //	RTC_ClearIntPending(LPC_RTC, RTC_INT_COUNTER_INCREASE);
 //	secondlyCheck();
@@ -67,8 +70,8 @@ extern "C" void RTC_IRQHandler(void){
 	if (RTC_GetIntPending(LPC_RTC, RTC_INT_COUNTER_INCREASE)){
 		// Clear pending interrupt
 		RTC_ClearIntPending(LPC_RTC, RTC_INT_COUNTER_INCREASE);
+		_60th_SEC_COUNT=0;
 		time2.second_inc=1;
-		secval = GetSS();
 		//run  checks at xx:xx:00
 		if(!GetSS()){
 			//run  checks at xx:00:00

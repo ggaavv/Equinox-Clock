@@ -53,6 +53,7 @@ extern "C" {
 	#include "syscalls.h"
 	#include "hsv2rgb.h"
 	#include "sys_timer.h"
+	#include "canlib.h"
 }
 
 #define USER_FLASH_START 0x3000 // For USB bootloader
@@ -67,7 +68,8 @@ extern volatile uint32_t LED_UPDATE_REQUIRED;
 extern volatile uint32_t LED_SEND;
 
 volatile uint32_t TOG[4] = {0,0,0,0};
-volatile uint32_t USER_MILLIS;
+extern volatile uint32_t USER_MILLIS;
+extern volatile uint32_t SEC_MILLIS;
 
 volatile char UART_LINE[50];
 volatile uint32_t UART_LINE_LEN;
@@ -106,7 +108,8 @@ void EINT0_IRQHandler (void)
  **********************************************************************/
 int main(void){
 	char buffer[100];
-/*
+
+#ifdef DEV
 	GPIO_SetDir(LED_1_PORT, LED_1_BIT, 1);
 	GPIO_SetValue(LED_1_PORT, LED_1_BIT);
 	GPIO_ClearValue(LED_1_PORT, LED_1_BIT);
@@ -122,7 +125,7 @@ int main(void){
 	GPIO_SetDir(LED_4_PORT, LED_4_BIT, 1);
 	GPIO_SetValue(LED_4_PORT, LED_4_BIT);
 	GPIO_ClearValue(LED_4_PORT, LED_4_BIT);
-*/
+#endif
 
 //	LPC_GPIO1->FIODIR = 1 << 23;
 //	LPC_GPIO1->FIODIR = 1 << 21;
@@ -153,9 +156,8 @@ int main(void){
 	// Initialize UART
 	comm_init();
 	comm_flush();
-//	xprintf("\033[2J");
-	xprintf("\r\n\r\n\r\n\r\n" BOARD "\r\n**BOOTED**" " (%s:%d)\n",_F_,_L_);
-	FFL_();
+//	xprintf("\033[2J");//clear screen
+	xprintf("\r\n\r\n\r\n\r\n" BOARD "\r\n**BOOTED**");FFL_();
 #if 0
 //	getc(); //working
 //	getchar(); //working
@@ -216,11 +218,6 @@ int main(void){
 */
 	xprintf("%b",xgetc());//works
 #endif
-//	while(1){
-//    	while(!UART_Receive(LPC_UART0, tmp, 1, BLOCKING));
-//    	xprintf("tmp=%s" " (%s:%d)\n",tmp,_F_,_L_);
-//    	xprintf("tmp=%b" " (%s:%d)\n",UART_ReceiveByte(LPC_UART0),_F_,_L_);
-//    }
 
 //    while (getchar() != '\n');
 
@@ -238,7 +235,7 @@ int main(void){
 	// Initialize USB<->Serial
 	serial_init();xprintf(OK "serial_init()");FFL_();
 //	uart_writestr("[OK]-uart_Start");
-	serial_writestr("[OK]-serial_Start\n");
+	serial_writestr("[OK]-usb serial_Start\n");
 
 	// Init RTC module
     RTC_time_Init();xprintf(OK "RTC_time_Init()");FFL_();
@@ -259,14 +256,20 @@ int main(void){
 #endif
 	// Wifi init
 //	WiFi_init();xprintf(OK "WiFi_init" " (%s:%d)\n",_F_,_L_);
+	// CAN init
+	CAN_init();xprintf(OK "CAN_init" " (%s:%d)\n",_F_,_L_);
 
 	// main loop
-	long timer1, steptimeout, count1, tcount=Getunix(), ledcount=0, colorshift=0;
+	long timer1, steptimeout, count1, tcount=Getunix(), colorshift=0;
 	int hue, sat, val;
 	unsigned char red, green, blue;
 	for (;;){
 		// Wifi Loop
 //		WiFi_loop();
+
+		//CAN Loop
+		CAN_loop();
+
 //		delay_ms(1000);
 //		RTC_print_time();
 //		LED_loop();
@@ -276,10 +279,7 @@ int main(void){
 //		_DBD16(tcount);
 #if 1
 		if(tcount<=Getunix()){
-//			_DBG(".");
-//		if(GetSS==0){
 			tcount=DELAY+Getunix();
-//			_DBD16(tcount);
 //			xprintf(INFO "for (;;) %d",Getunix());FFL_();
 
 			time_t rawtime;

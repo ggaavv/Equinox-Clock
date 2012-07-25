@@ -45,7 +45,7 @@ int Sunrise_Compute(unsigned char month, unsigned char  day, int rs) {
 		minutes+= (tz*60);
 		if(minutes<0) minutes+=1440;
 		minutes%=1440;
-	}else if(rs==READ_NOON){
+	}else{// if(rs==READ_NOON){
 		// computes minutes into the day of the event
 		minutes=720+4*lon*rd-eqt;
 

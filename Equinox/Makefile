@@ -157,6 +157,7 @@ INCLUDES = $(APPLIBDIR)/CMSISv1p30_LPC17xx/inc \
 	 $(APPLIBDIR)/R2C2/ \
 	 $(APPLIBDIR)/WiShield/ \
 	 $(APPLIBDIR)/RTClib/ \
+	 $(APPLIBDIR)/CANlib/ \
 	 $(APPLIBDIR)/TESTShiftPWM/ \
 	 $(APPLIBDIR)/i2c/ \
 	 $(APPDIR)
@@ -194,6 +195,7 @@ SRC = \
 	$(APPLIBDIR)/I2C/i2c.c\
 	$(APPLIBDIR)/I2C/MCP4018.c \
 	$(APPLIBDIR)/R2C2/syscalls.c \
+	$(APPLIBDIR)/CANlib/canlib.c \
 	statup_delay.c \
 	syscalls.c \
 	comm.c \
