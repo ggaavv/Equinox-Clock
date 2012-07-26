@@ -114,6 +114,8 @@ __cs3_interrupt_vector_cortex_m:
     .long   MCPWM_IRQHandler            /* 46: Motor Control PWM            */
     .long   QEI_IRQHandler              /* 47: Quadrature Encoder Interface */
     .long   PLL1_IRQHandler             /* 48: PLL1 Lock (USB PLL)          */
+    .long	USBActivity_IRQHandler		/* 49: USB Activity 				*/
+    .long 	CANActivity_IRQHandler		/* 50: CAN Activity					*/
 
     .size   __cs3_interrupt_vector_cortex_m, . - __cs3_interrupt_vector_cortex_m
 
@@ -285,5 +287,7 @@ Default_Handler:
     IRQ     MCPWM_IRQHandler
     IRQ     QEI_IRQHandler
     IRQ     PLL1_IRQHandler
+    IRQ		USBActivity_IRQHandler
+    IRQ		CANActivity_IRQHandler
 
     .end

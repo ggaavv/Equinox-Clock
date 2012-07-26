@@ -78,6 +78,8 @@ typedef enum IRQn
   MCPWM_IRQn                    = 30,       /*!< Motor Control PWM Interrupt                      */
   QEI_IRQn                      = 31,       /*!< Quadrature Encoder Interface Interrupt           */
   PLL1_IRQn                     = 32,       /*!< PLL1 Lock (USB PLL) Interrupt                    */
+  USBActivity_IRQn				= 33,		/*!< USB Activity Interrupt 						  */
+  CANActivity_IRQn				= 34,		/*!< CAN Activity Interrupt 						  */
 } IRQn_Type;
 
 
@@ -126,7 +128,9 @@ typedef struct
   __IO uint32_t CCLKCFG;
   __IO uint32_t USBCLKCFG;
   __IO uint32_t CLKSRCSEL;
-       uint32_t RESERVED4[12];
+  __IO uint32_t	CANSLEEPCLR;
+  __IO uint32_t	CANWAKEFLAGS;
+       uint32_t RESERVED4[10];
   __IO uint32_t EXTINT;                 /* External Interrupts                */
        uint32_t RESERVED5;
   __IO uint32_t EXTMODE;
@@ -912,6 +916,13 @@ typedef struct
 /* Base addresses                                                             */
 #define LPC_FLASH_BASE        (0x00000000UL)
 #define LPC_RAM_BASE          (0x10000000UL)
+#ifdef __LPC17XX_REV00
+#define LPC_AHBRAM0_BASE      (0x20000000UL)
+#define LPC_AHBRAM1_BASE      (0x20004000UL)
+#else
+#define LPC_AHBRAM0_BASE      (0x2007C000UL)
+#define LPC_AHBRAM1_BASE      (0x20080000UL)
+#endif
 #define LPC_GPIO_BASE         (0x2009C000UL)
 #define LPC_APB0_BASE         (0x40000000UL)
 #define LPC_APB1_BASE         (0x40080000UL)
