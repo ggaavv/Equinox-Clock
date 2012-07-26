@@ -29,14 +29,50 @@
 #include "lpc17xx_i2c.h"
 
 /*---------------------*/
-#define TMP100_RES_9bits    0x00
-#define TMP100_RES_10bits   0x01
-#define TMP100_RES_11bits   0x02
-#define TMP100_RES_12bits   0x03
+#define TMP100_REG_TEMP		0x00	// Temperature Register (READ Only)
+#define TMP100_REG_CFG		0x01	// Configuration Register (READ/WRITE)
+#define TMP100_REG_T_LOW	0x02	// TLOW Register (READ/WRITE)
+#define TMP100_REG_T_HIGH	0x03	// THIGH Register (READ/WRITE)
 /*----------------------*/
 
-#define TMP100_ADDR 		0x90
+/*====TMP100_REG_CFG====*/
+/*-----Resolution-bits--*/
+#define TMP100_RES_9bits	0x00	// 40ms
+#define TMP100_RES_10bits	0x20	// 80ms
+#define TMP100_RES_11bits	0x40	// 160ms
+#define TMP100_RES_12bits	0x50	// 320ms
+#define TMP100_RES_BITS		0x50
+/*--------Faults--------*/
+#define TMP100_RES_0_F		0x00
+#define TMP100_RES_2_F		0x08
+#define TMP100_RES_4_F		0x10
+#define TMP100_RES_6_F		0x18
+#define TMP100_RES_ALL_F	0x18
+/*----------------------*/
 
+
+
+
+
+#define TMP100_ADDR 		0x48   // 7bit address
+
+/*
+ * tmp100.c
+ *
+ *  Created on: 1 Jul 2012
+ *      Author: gavin
+ */
+
+#include "tmp100.h"
+#include "lpc17xx_i2c.h"
+#include "comm.h"
+
+
+uint8_t tmp100_conf(unsigned char cfg);
+
+int tmp100_gettemp();
+
+void tmp100_tostr(unsigned int temp);//, char* tempstr)
 
 
 #endif /* TMP100_H_ */

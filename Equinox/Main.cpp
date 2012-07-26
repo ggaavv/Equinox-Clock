@@ -55,6 +55,8 @@ extern "C" {
 	#include "hsv2rgb.h"
 	#include "sys_timer.h"
 	#include "canlib.h"
+	#include "i2c.h"
+	#include "tmp100.h"
 }
 
 #define USER_FLASH_START 0x3000 // For USB bootloader
@@ -259,12 +261,16 @@ int main(void){
 //	WiFi_init();xprintf(OK "WiFi_init()");FFL_();
 	// CAN init
 	CAN_init();xprintf(OK "CAN_init()");FFL_();
+	I2C_init();
+	tmp100_conf(TMP100_RES_12bits);
 
 	// main loop
 	long timer1, steptimeout, count1, tcount=Getunix(), colorshift=0;
 	int hue, sat, val;
 	unsigned char red, green, blue;
 	for (;;){
+		delay_ms(500);
+		tmp100_gettemp();
 		// Wifi Loop
 //		WiFi_loop();
 

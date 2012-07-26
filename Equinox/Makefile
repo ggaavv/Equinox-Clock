@@ -193,6 +193,7 @@ SRC = \
 	$(APPLIBDIR)/R2C2/sermsg.c \
 	$(APPLIBDIR)/RTClib/sunrise.c \
 	$(APPLIBDIR)/I2C/i2c.c\
+	$(APPLIBDIR)/I2C/tmp100.c\
 	$(APPLIBDIR)/I2C/MCP4018.c \
 	$(APPLIBDIR)/R2C2/syscalls.c \
 	$(APPLIBDIR)/CANlib/canlib.c \
