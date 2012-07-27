@@ -43,6 +43,7 @@ Description:	Driver for the ZeroG Wireless G2100 series devices
 #include "pinout.h"
 #include "lpc17xx_ssp.h"
 #include "lpc17xx_exti.h"
+#include "comm.h"
 
 //#include "libmaple.h"
 //#include "spi.h"
@@ -545,8 +546,8 @@ void zg_drv_process()
       break;
    case DRV_STATE_GET_MAC:
       // get MAC address
-	  _DBG("[INFO]-// get MAC address");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-	  _DBG("[INFO]-if this is last printed wifi info, then the g2100 probably cannot be seen");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+	   xprintf(INFO "// get MAC address");FFL_();
+//	  _DBG("[INFO]-if this is last printed wifi info, then the g2100 probably cannot be seen");
 //	   uart_writestr("\n// get MAC address");
       zg_buf[0] = ZG_CMD_WT_FIFO_MGMT;
       zg_buf[1] = ZG_MAC_TYPE_MGMT_REQ;
@@ -566,7 +567,7 @@ void zg_drv_process()
          break;
       case ZG_SECURITY_TYPE_WEP:
          // Install all four WEP keys on G2100
-    	 _DBG("[INFO]-// Install all four WEP keys on G2100");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+    	  xprintf(INFO "// Install all four WEP keys on G2100");FFL_();
 //   	   uart_writestr("\n// Install all four WEP keys on G2100");
          zg_buf[0] = ZG_CMD_WT_FIFO_MGMT;
          zg_buf[1] = ZG_MAC_TYPE_MGMT_REQ;
@@ -583,7 +584,7 @@ void zg_drv_process()
       case ZG_SECURITY_TYPE_WPA2:
          // Initiate PSK calculation on G2100
 //    	  RTC_print_time();
-    	 _DBG("[INFO]-// Initiate PSK calculation on G2100");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+    	  xprintf(INFO "// Initiate PSK calculation on G2100");FFL_();
 //      	 uart_writestr("\n// Initiate PSK calculation on G2100");
          zg_buf[0] = ZG_CMD_WT_FIFO_MGMT;
          zg_buf[1] = ZG_MAC_TYPE_MGMT_REQ;
@@ -602,7 +603,7 @@ void zg_drv_process()
       break;
    case DRV_STATE_INSTALL_PSK:
       // Install the PSK key on G2100
-  	  _DBG("[INFO]-// Install the PSK key on G2100");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+ 	  xprintf(INFO "// Install the PSK key on G2100");FFL_();
 //  	   uart_writestr("\n// Install the PSK key on G2100");
       zg_buf[0] = ZG_CMD_WT_FIFO_MGMT;
       zg_buf[1] = ZG_MAC_TYPE_MGMT_REQ;
@@ -617,7 +618,7 @@ void zg_drv_process()
       break;
    case DRV_STATE_ENABLE_CONN_MANAGE:
       // enable connection manager
-	  _DBG("[INFO]-// enable connection manager");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+	  xprintf(INFO "// enable connection manager");FFL_();
 //  	   uart_writestr("\n// enable connection manager");
       zg_buf[0] = ZG_CMD_WT_FIFO_MGMT;
       zg_buf[1] = ZG_MAC_TYPE_MGMT_REQ;
@@ -644,7 +645,7 @@ void zg_drv_process()
       zg_connect_req_t* cmd = (zg_connect_req_t*)&zg_buf[3];
 
       // start connection to AP
-      _DBG("[INFO]-// start connection to AP");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+	  xprintf(INFO "// start connection to AP");FFL_();
 // 	   uart_writestr("\n// start connection to AP");
       zg_buf[0] = ZG_CMD_WT_FIFO_MGMT;
       zg_buf[1] = ZG_MAC_TYPE_MGMT_REQ;

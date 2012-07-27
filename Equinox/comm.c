@@ -149,6 +149,9 @@ int comm_test(void){
 }
 
 uint8_t comm_get(void){
+	LINE_READY = 0;
+	UART_LINE_LEN=0;
+	UART_LINE[0]='\0';
 #if 0
 	uint8_t tmp = 0;
 	UART_Receive(LPC_UART0, &tmp, 1, BLOCKING);
@@ -159,8 +162,6 @@ uint8_t comm_get(void){
 	while (len == 0){
 		len = UARTReceive(LPC_UART0, buffer, 1);
 	}
-	UART_LINE_LEN=0;
-	UART_LINE[0]='\0';
 	return buffer;
 #endif
 }

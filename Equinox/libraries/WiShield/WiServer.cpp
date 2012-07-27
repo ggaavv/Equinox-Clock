@@ -113,7 +113,7 @@ void Server::init(pageServingFunction function) {
 
 #ifdef DEBUG
 	verbose = true;
-	_DBG("[INFO]-WiServer init called");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+	xprintf(INFO "WiServer init called");FFL_();
 //	Serial.println("WiServer init called");
 #endif // DEBUG
 }
@@ -248,8 +248,7 @@ void send() {
 	len = len > (int)uip_conn->mss ? (int)uip_conn->mss : len;
 
 	if (verbose) {
-		_DBG("send_TX ");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-		_DBD(len);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+		xprintf(INFO "send_TX len=%d",len);FFL_();
 //		Serial.print("TX ");
 //		Serial.print(len);
 //		Serial.println(" bytes");
@@ -414,7 +413,7 @@ void server_task_impl() {
 	if (uip_connected()) {
 
 		if (verbose) {
-			_DBG("Server connected");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+			xprintf(INFO "Server connected");FFL_();
 		}
 
 		// Initialize the server request data
@@ -430,7 +429,7 @@ void server_task_impl() {
 		// Process the received packet and check if a valid GET request had been received
 		if (processPacket((char*)uip_appdata, uip_datalen()) && app->request) {
 			if (verbose) {
-				_DBG("Processing request for ");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+				xprintf(INFO "Processing request for");FFL_();
 //				Serial.print("Processing request for ");
 //				Serial.println((char*)app->request);
 			}
@@ -472,7 +471,7 @@ void server_task_impl() {
 		// Check if a URL was stored for this connection
 		if (app->request != NULL) {
 			if (verbose) {
-				_DBG("Server connection closed");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+				xprintf(INFO "Server connection closed");FFL_();
 //				Serial.println("Server connection closed");
 			}
 

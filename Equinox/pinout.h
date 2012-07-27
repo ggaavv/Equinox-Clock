@@ -31,7 +31,7 @@
 #ifndef _PINOUT_H
 #define _PINOUT_H
 
-#define DEV
+//#define DEV
 #ifdef DEV
 #define BOARD "DEV"
 #else
@@ -155,6 +155,7 @@
 #define WF_EINT_PIN			EINT0_PIN
 #define WF_EINT_BIT			EINT0_BIT
 #define EINT_IRQn			EINT0_IRQn
+#define WF_EXTI_EINT		EXTI_EINT3
 #define WF_CS_PORT			0
 #define WF_CS_PIN			6
 #define WF_CS_BIT			_BIT(WF_CS_PIN)

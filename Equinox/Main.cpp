@@ -66,7 +66,6 @@ extern "C" {
 /* External function prototypes ----------------------------------------------*/
 extern "C" char* get_heap_end(void);
 extern "C" char* get_stack_top(void);
-extern volatile int LINE_READY;
 extern volatile uint32_t LED_UPDATE_REQUIRED;
 extern volatile uint32_t LED_SEND;
 
@@ -74,8 +73,9 @@ volatile uint32_t TOG[4] = {0,0,0,0};
 extern volatile uint32_t USER_MILLIS;
 extern volatile uint32_t SEC_MILLIS;
 
-volatile char UART_LINE[50];
-volatile uint32_t UART_LINE_LEN;
+extern volatile int LINE_READY;
+extern volatile uint8_t UART_LINE[50];
+extern volatile uint32_t UART_LINE_LEN;
 
 /*
 void execute_bootloader(void){
@@ -163,6 +163,7 @@ int main(void){
 	// Initialize UART
 	comm_init();
 	comm_flush();
+	usb_flush();
 //	xprintf("\033[2J");//clear screen
 	xprintf("\n\n\n\n" BOARD " Board\n**BOOTED**");FFL_();
 #if 0
@@ -258,21 +259,18 @@ int main(void){
 
 #endif
 	// Wifi init
-//	WiFi_init();xprintf(OK "WiFi_init()");FFL_();
+	WiFi_init();xprintf(OK "WiFi_init()");FFL_();
 	// CAN init
 	CAN_init();xprintf(OK "CAN_init()");FFL_();
-	I2C_init();
-	tmp100_conf(TMP100_RES_12bits);
+	I2C_init();xprintf(OK "I2C_init()");FFL_();
 
 	// main loop
 	long timer1, steptimeout, count1, tcount=Getunix(), colorshift=0;
 	int hue, sat, val;
 	unsigned char red, green, blue;
 	for (;;){
-		delay_ms(500);
-		tmp100_gettemp();
 		// Wifi Loop
-//		WiFi_loop();
+	//	WiFi_loop();
 
 		//CAN Loop
 		CAN_loop();
@@ -288,7 +286,9 @@ int main(void){
 		if(tcount<=Getunix()){
 			tcount=DELAY+Getunix();
 //			xprintf(INFO "for (;;) %d",Getunix());FFL_();
-
+#ifndef DEV
+			tmp100_gettemp();
+#endif
 			time_t rawtime;
 			struct tm * timeinfo;
 			time( &rawtime );

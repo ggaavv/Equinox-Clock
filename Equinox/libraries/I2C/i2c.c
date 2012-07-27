@@ -39,6 +39,7 @@ void I2C_init() {
 
 	// Configure TMP100 - temperature sensor
 //	tmp100_set_reg();
+	tmp100_conf(TMP100_RES_12bits);
 
 	// Configure Digital Pot
 	// TODO

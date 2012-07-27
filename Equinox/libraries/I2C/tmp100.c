@@ -29,6 +29,7 @@ uint8_t tmp100_conf(unsigned char cfg){
 
 int tmp100_gettemp() {
 	float temperature;
+	int32_t int_temperature;
 	uint8_t Tx_Buf[2];
 	uint8_t Rx_Buf[2];
 	I2C_M_SETUP_Type transferMCfg;
@@ -40,23 +41,22 @@ int tmp100_gettemp() {
 	transferMCfg.rx_data = Rx_Buf;
 	transferMCfg.rx_length = 2;
 	transferMCfg.retransmissions_max = 3;
-	xprintf("I2C mater transfer status:%d/n",I2C_MasterTransferData(LPC_I2C1, &transferMCfg, I2C_TRANSFER_POLLING));
+	I2C_MasterTransferData(LPC_I2C1, &transferMCfg, I2C_TRANSFER_POLLING);
+//	xprintf("I2C mater transfer status:%d",I2C_MasterTransferData(LPC_I2C1, &transferMCfg, I2C_TRANSFER_POLLING));FFL_();
 
+//	temperature_count = ((Rx_Buf[0]&0x80)<<8)|((Rx_Buf[0]&0x7F)<<4)|(((Rx_Buf[1]&0xF0)>>4));
+//	temperature = temperature_count * 0.0625;
 
-	xprintf("%x" " (%s:%d)\n",Rx_Buf[0],_F_,_L_);
-	xprintf("%d" " (%s:%d)\n",Rx_Buf[0],_F_,_L_);
-	temperature = (int)Rx_Buf[0];
-	xprintf("%f" " (%s:%d)\n",temperature,_F_,_L_);
-
-	xprintf("%x" " (%s:%d)\n",Rx_Buf[1],_F_,_L_);
-	xprintf("%d" " (%s:%d)\n",Rx_Buf[1],_F_,_L_);
-	temperature += ((int)Rx_Buf[1]/16);
-	xprintf("%d" " (%s:%d)\n",(int)temperature,_F_,_L_);
+	xprintf("temperature-Hex=0x%x, Dec=%d",Rx_Buf[0],Rx_Buf[0]);FFL_();
+	xprintf("temperature-Hex=0x%x, Dec=%d",Rx_Buf[1],Rx_Buf[1]);FFL_();
+	temperature = (int)Rx_Buf[0] + Rx_Buf[1]>>4;
+	int_temperature = (int)temperature - 5;
+	xprintf("temperature-Hex=0x%x, Dec=%d",int_temperature,int_temperature);FFL_();
 
 	unsigned int rec_temp;
 	rec_temp = (int)Rx_Buf[0];
 	rec_temp = rec_temp | (Rx_Buf[1] << 8);
-	xprintf("%d" " (%s:%d)\n",rec_temp,_F_,_L_);
+//	printf("%d",rec_temp);FFL_();
 
 	tmp100_tostr(rec_temp);
 
@@ -65,7 +65,7 @@ int tmp100_gettemp() {
 
 void tmp100_tostr(unsigned int temp){//, char* tempstr)
 	unsigned int dec;
-	dec = ((temp >> 4) & 0x000F)*625;
+//	dec = ((temp >> 4) & 0x000F)*625;
 	xprintf("%d.%04d \n",temp>>8,dec);
 //	sprintf(tempstr,"%d.%04d",temp>>8,dec);
 }

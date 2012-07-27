@@ -73,7 +73,7 @@ void WiFi_init(){
 
 	// Configuring Ext Int
 	EXTI_InitTypeDef EXTICfg;
-	EXTICfg.EXTI_Line 		= EXTI_EINT3;
+	EXTICfg.EXTI_Line 		= WF_EXTI_EINT;
 	EXTICfg.EXTI_Mode 		= EXTI_MODE_EDGE_SENSITIVE;
 	EXTICfg.EXTI_polarity 	= EXTI_POLARITY_LOW_ACTIVE_OR_FALLING_EDGE;
 	EXTI_Config(&EXTICfg);

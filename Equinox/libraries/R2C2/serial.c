@@ -31,6 +31,10 @@
 #include "serial_fifo.h"
 #include "usb.h"
 
+extern volatile int LINE_READY;
+extern volatile uint8_t UART_LINE[50];
+extern volatile uint32_t UART_LINE_LEN;
+
 void serial_init()
 {
     USBSerial_Init();        
@@ -48,6 +52,9 @@ int serial_rxchars()
 uint8_t serial_popchar()
 {
   uint8_t c = 0;
+	LINE_READY = 0;
+	UART_LINE_LEN=0;
+	UART_LINE[0]='\0';
 
   fifo_get(&rxfifo, &c);
 

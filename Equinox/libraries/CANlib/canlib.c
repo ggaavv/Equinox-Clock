@@ -54,6 +54,7 @@
 #include "comm.h"
 #include "sys_timer.h"
 #include <string.h>
+#include "lpc17xx_pinsel.h"
 
 /** CAN variable definition **/
 CAN_MSG_Type TXMsg, RXMsg; // messages for test Bypass mode
@@ -73,7 +74,29 @@ uint32_t CANRxCount, CANTxCount = 0;
 **---------------------------------------------------------------------------
 */
 void CAN_init (void){
+
+	PINSEL_CFG_Type PinCfg;
 	ram_timestamp_status = 0;
+
+	/* Pin configuration
+	 * CAN1: select P0.0 as RD1. P0.1 as TD1
+	 * CAN2: select P2.7 as RD2, P2.8 as RD2
+	 */
+	PinCfg.Funcnum = 1;
+	PinCfg.OpenDrain = 0;
+	PinCfg.Pinmode = 0;
+//can1
+//	PinCfg.Portnum = 0;
+//	PinCfg.Pinnum = 0;
+//	PINSEL_ConfigPin(&PinCfg);
+//	PinCfg.Pinnum = 1;
+//	PINSEL_ConfigPin(&PinCfg);
+
+	PinCfg.Portnum = 2;
+	PinCfg.Pinnum = 7;
+	PINSEL_ConfigPin(&PinCfg);
+	PinCfg.Pinnum = 8;
+	PINSEL_ConfigPin(&PinCfg);
 
 	/* Initialize CAN2 peripheral
 	* Note: Self-test mode doesn't require pin selection
