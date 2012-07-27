@@ -15,6 +15,7 @@ extern "C" {
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include "comm.h"
 
 const char DOCTYPE[] = "<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/DTD/html4-strict.dtd\">\n";
 const char meta[] = "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\">\n";
@@ -322,7 +323,7 @@ bool home_page(char* URL){
 	}
 
 	// URL not found
-	xprintf(ERR "strcmp(URL, ?) URL not found" " (%s:%d)\n",_F_,_L_);
+	xprintf(ERR "strcmp(URL, ?) URL not found");FFL_();
 	return false;
 };
 

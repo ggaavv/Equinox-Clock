@@ -190,7 +190,7 @@ class Server: public Print
 		/**
 		 * The server task method (must be called in the main loop to run the WiServer)
 		 */
-		void server_task();
+		void server_task(pageServingFunction function);
 
 		/**
 		 * Writes a single byte to the current connection buffer

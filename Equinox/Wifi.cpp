@@ -13,6 +13,7 @@ extern "C" {
 	#include "lpc17xx_ssp.h"
 	#include "lpc17xx_exti.h"
 	#include "g2100.h"
+	#include "comm.h"
 	#include "sys_timer.h"
 	void stack_init(void);
 	void stack_process(void);
@@ -23,15 +24,17 @@ void WiFi_init(){
 
 	// Configuring GPIO
 	GPIO_SetDir(WF_CS_PORT, WF_CS_BIT, 1);
-	GPIO_SetValue(WF_CS_PORT, WF_CS_BIT);
-
 	GPIO_SetDir(WF_RESET_PORT, WF_RESET_BIT, 1);
+	GPIO_SetDir(WF_HIBERNATE_PORT, WF_HIBERNATE_BIT, 1);
+
+	GPIO_SetValue(WF_CS_PORT, WF_CS_BIT);//Active low
+	GPIO_ClearValue(WF_HIBERNATE_PORT, WF_HIBERNATE_BIT);//Active high
+
+	//reset wifi
 	GPIO_ClearValue(WF_RESET_PORT, WF_RESET_BIT);
 	delay_ms(100);
-	GPIO_SetValue(WF_RESET_PORT, WF_RESET_BIT);
-
-	GPIO_SetDir(WF_HIBERNATE_PORT, WF_HIBERNATE_BIT, 1);
-	GPIO_ClearValue(WF_HIBERNATE_PORT, WF_HIBERNATE_BIT);
+	GPIO_SetValue(WF_RESET_PORT, WF_RESET_BIT);//Active low
+	delay_ms(500);
 
 	// Initialize SPI pin connect
 	PINSEL_CFG_Type PinCfg;
@@ -63,7 +66,7 @@ void WiFi_init(){
 	PinCfg.Pinnum    = WF_MOSI_PIN;
 	PinCfg.Portnum   = WF_MOSI_PORT;
 	PINSEL_ConfigPin(&PinCfg);
-	/* EINT0 */
+	/* EINT */
 	PinCfg.Funcnum   = PINSEL_FUNC_1;
 	PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
 	PinCfg.Pinmode   = PINSEL_PINMODE_PULLUP;
@@ -93,8 +96,6 @@ void WiFi_init(){
 
 	/* Enable SSP peripheral */
 	SSP_Cmd(WF_SPI_CHN, ENABLE);
-
-//	zg_init();//_DBG("[OK]-zg_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 
 //	while(zg_get_conn_state() != 1) {
 //		_DBG("BEFORE\n while(zg_get_conn_state() != 1) {");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
@@ -126,7 +127,7 @@ void WiFi_loop(){
 //	_DBG("WiFi_loop()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 //	stack_process();
 //	zg_drv_process();
-	WiServer.server_task();
+	WiServer.server_task(home_page);
 }
 
 // This is the webpage that is served up by the webserver

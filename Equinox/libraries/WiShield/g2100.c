@@ -37,8 +37,7 @@ Description:	Driver for the ZeroG Wireless G2100 series devices
 #include "config.h"
 #include "g2100.h"
 #include "global-conf.h"
-#include "debug_frmwrk.h"
-
+//#include "debug_frmwrk.h"
 #include "wifi_config.h"
 #include "pinout.h"
 #include "lpc17xx_ssp.h"
@@ -130,7 +129,7 @@ void spi_transfer(volatile U8* buf, U16 len, U8 toggle_cs)
 //   }
 //   uart_writestr("\n");
 
-   SSP_ReadWrite (LPC_SSP0, &xferConfig, SSP_TRANSFER_POLLING);
+   SSP_ReadWrite (WF_SPI_CHN, &xferConfig, SSP_TRANSFER_POLLING);
 
 //   uart_writestr("Rx");
 //   for (i = 0; i < len; i++) {
@@ -223,18 +222,18 @@ void zg_interrupt_reg(U8 mask, U8 state)
 }
 
 //void zg_isr()
-// void EINT0_IRQHandler (void) // TODO: set to eint0 when finnished debugging
-void EINT2_IRQHandler (void)
-{
-	EXTI_ClearEXTIFlag(EXTI_EINT2);
-	intr_occured = 1;
-}
-
-void EINT3_IRQHandler (void)
-{
+#if DEV
+void EINT3_IRQHandler (void){
 	EXTI_ClearEXTIFlag(EXTI_EINT3);
 	intr_occured = 1;
 }
+#else
+void EINT1_IRQHandler (void){
+	EXTI_ClearEXTIFlag(EXTI_EINT1);
+	intr_occured = 1;
+//	xprintf(".");
+}
+#endif
 
 void zg_process_isr()
 {
@@ -440,13 +439,13 @@ void zg_drv_process()
       cnf_pending = 1;
    }
 
-//   _DBG("zg_drv_process() after // TX frame");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//   xprintf("zg_drv_process() after // TX frame");FFL_();
 
    // process interrupt
    if (intr_occured) {
       zg_process_isr();
    }
-//   _DBG("zg_drv_process() after // process interrupt");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//   xprintf("zg_drv_process() after // process interrupt");FFL_();
 
 //   uart_writestr("\n");
 //   uart_send_32_Hex(intr_valid);
@@ -546,8 +545,8 @@ void zg_drv_process()
       break;
    case DRV_STATE_GET_MAC:
       // get MAC address
-	   xprintf(INFO "// get MAC address");FFL_();
-//	  _DBG("[INFO]-if this is last printed wifi info, then the g2100 probably cannot be seen");
+	  xprintf(INFO "// get MAC address");FFL_();
+	  xprintf("[INFO]-if this is last printed wifi info, then the g2100 probably cannot be seen");FFL_();
 //	   uart_writestr("\n// get MAC address");
       zg_buf[0] = ZG_CMD_WT_FIFO_MGMT;
       zg_buf[1] = ZG_MAC_TYPE_MGMT_REQ;
@@ -682,7 +681,7 @@ void zg_drv_process()
    case DRV_STATE_IDLE:
       break;
    }
-//   _DBG("[END]-zg_drv_process()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//   xprintf("[END]-zg_drv_process()");FFL_();
 }
 
 // END

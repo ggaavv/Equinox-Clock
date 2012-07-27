@@ -151,6 +151,11 @@ int main(void){
 	in case the user application uses interrupts */
 	SCB->VTOR = (USER_FLASH_START & 0x1FFFFF80);
 
+	// Initialize the timer for millis()
+	SYSTICK_InternalInit(1); // from NXP - 1ms interval
+	SYSTICK_IntCmd(ENABLE);
+	SYSTICK_Cmd(ENABLE);//xprintf(OK "SYSTICK_Cmd()");FFL_();
+
 	//Debug functions output to com1/8n1/115200
 //	debug_frmwrk_init();//_DBG("[OK]-debug_frmwrk_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\n");
 
@@ -159,13 +164,13 @@ int main(void){
 //	uart_writestr("[OK]-uart_Start");
 	serial_writestr("[OK]-usb serial_Start\n");
 
-
 	// Initialize UART
 	comm_init();
 	comm_flush();
 	usb_flush();
 //	xprintf("\033[2J");//clear screen
 	xprintf("\n\n\n\n" BOARD " Board\n**BOOTED**");FFL_();
+
 #if 0
 //	getc(); //working
 //	getchar(); //working
@@ -227,26 +232,22 @@ int main(void){
 	xprintf("%b",xgetc());//works
 #endif
 
-//    while (getchar() != '\n');
-
-	//eraseScreen
-//	_DBG(0x1B);//_DBG(ESCAPE);
-//	_DBG('[');//_DBG(BRACE);
-//	_DBG('1');
-//	_DBG('J');
-
-	// Initialize the timer for millis()
-	SYSTICK_InternalInit(1); // from NXP - 1ms interval
-	SYSTICK_IntCmd(ENABLE);
-	SYSTICK_Cmd(ENABLE);//xprintf(OK "SYSTICK_Cmd()");FFL_();
-
-
 	// Init RTC module
     RTC_time_Init();xprintf(OK "RTC_time_Init()");FFL_();
+
+	// CAN init
+	CAN_init();xprintf(OK "CAN_init()");FFL_();
+
+	//I2C init
+	I2C_init();xprintf(OK "I2C_init()");FFL_();
+
+	// Wifi init
+	WiFi_init();xprintf(OK "WiFi_init()");FFL_();
 
     // Init LED module
     LED_init();xprintf(OK "LED_init()");FFL_();
     LED_test();xprintf(OK "LED_test()");FFL_();
+
 #if 0
     time_t rawtime;
     struct tm * timeinfo;
@@ -258,11 +259,7 @@ int main(void){
 //    printf ("%ld hours since January 1, 1970", asctime (time (NULL)));///3600);
 
 #endif
-	// Wifi init
-	WiFi_init();xprintf(OK "WiFi_init()");FFL_();
-	// CAN init
-	CAN_init();xprintf(OK "CAN_init()");FFL_();
-	I2C_init();xprintf(OK "I2C_init()");FFL_();
+
 
 	// main loop
 	long timer1, steptimeout, count1, tcount=Getunix(), colorshift=0;
@@ -270,12 +267,11 @@ int main(void){
 	unsigned char red, green, blue;
 	for (;;){
 		// Wifi Loop
-	//	WiFi_loop();
+		WiFi_loop();
 
 		//CAN Loop
 		CAN_loop();
 
-//		delay_ms(1000);
 //		RTC_print_time();
 //		LED_loop();
 

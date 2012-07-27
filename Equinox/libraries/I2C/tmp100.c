@@ -23,7 +23,8 @@ uint8_t tmp100_conf(unsigned char cfg){
 	transferMCfg.rx_data = Rx_Buf;
 	transferMCfg.rx_length = 1;
 	transferMCfg.retransmissions_max = 3;
-	xprintf("%d",I2C_MasterTransferData(LPC_I2C1, &transferMCfg, I2C_TRANSFER_POLLING));
+	I2C_MasterTransferData(LPC_I2C1, &transferMCfg, I2C_TRANSFER_POLLING);
+//	xprintf("%d",I2C_MasterTransferData(LPC_I2C1, &transferMCfg, I2C_TRANSFER_POLLING));
 	return Rx_Buf[0];
 }
 
@@ -47,6 +48,9 @@ int tmp100_gettemp() {
 //	temperature_count = ((Rx_Buf[0]&0x80)<<8)|((Rx_Buf[0]&0x7F)<<4)|(((Rx_Buf[1]&0xF0)>>4));
 //	temperature = temperature_count * 0.0625;
 
+	xprintf("%d degC",Rx_Buf[0]);FFL_();
+
+#if 0
 	xprintf("temperature-Hex=0x%x, Dec=%d",Rx_Buf[0],Rx_Buf[0]);FFL_();
 	xprintf("temperature-Hex=0x%x, Dec=%d",Rx_Buf[1],Rx_Buf[1]);FFL_();
 	temperature = (int)Rx_Buf[0] + Rx_Buf[1]>>4;
@@ -59,6 +63,7 @@ int tmp100_gettemp() {
 //	printf("%d",rec_temp);FFL_();
 
 	tmp100_tostr(rec_temp);
+#endif
 
 	return temperature;
 }

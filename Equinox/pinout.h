@@ -42,6 +42,9 @@
 #define EINT0_PORT		2
 #define EINT0_PIN		10
 #define EINT0_BIT		_BIT(EINT0_PIN)
+#define EINT1_PORT		2
+#define EINT1_PIN		11
+#define EINT1_BIT		_BIT(EINT1_PIN)
 #define EINT2_PORT		2
 #define EINT2_PIN		12
 #define EINT2_BIT		_BIT(EINT2_PIN)
@@ -128,6 +131,7 @@
 #define WF_EINT_PIN			EINT3_PIN
 #define WF_EINT_BIT			EINT3_BIT
 #define EINT_IRQn			EINT3_IRQn
+#define WF_EXTI_EINT		EXTI_EINT3
 #define WF_CS_PORT			0
 #define WF_CS_PIN			16
 #define WF_CS_BIT			_BIT(WF_CS_PIN)
@@ -151,11 +155,11 @@
 #else
 //For Equinox clock board
 #define WF_SPI_CHN			LPC_SSP1
-#define WF_EINT_PORT		EINT0_PORT
-#define WF_EINT_PIN			EINT0_PIN
-#define WF_EINT_BIT			EINT0_BIT
-#define EINT_IRQn			EINT0_IRQn
-#define WF_EXTI_EINT		EXTI_EINT3
+#define WF_EINT_PORT		EINT1_PORT
+#define WF_EINT_PIN			EINT1_PIN
+#define WF_EINT_BIT			EINT1_BIT
+#define EINT_IRQn			EINT1_IRQn
+#define WF_EXTI_EINT		EXTI_EINT1
 #define WF_CS_PORT			0
 #define WF_CS_PIN			6
 #define WF_CS_BIT			_BIT(WF_CS_PIN)

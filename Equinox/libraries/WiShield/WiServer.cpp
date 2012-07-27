@@ -93,8 +93,8 @@ bool verbose = false;
 void Server::init(pageServingFunction function) {
 
 	// WiShield init
-	zg_init();
-
+	zg_init();xprintf(OK "zg_init()");FFL_();
+#if 0
 	while(zg_get_conn_state() != 1) {
 		zg_drv_process();
 	}
@@ -110,7 +110,7 @@ void Server::init(pageServingFunction function) {
 		// Listen for server requests on port 80
 		uip_listen(HTONS(80));
 	}
-
+#endif
 #ifdef DEBUG
 	verbose = true;
 	xprintf(INFO "WiServer init called");FFL_();
@@ -238,7 +238,7 @@ void Server::write(uint8_t b) {
  * Sends the real data in the current connection's virtual buffer
  */
 void send() {
-//	_DBG("send()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+	FFL();
 
 	uip_tcp_appstate_t *app = &(uip_conn->appstate);
 
@@ -255,10 +255,7 @@ void send() {
 	}
 
 #ifdef DEBUG
-	_DBD(app->ackedCount);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-	_DBG(" - ");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-	_DBD(app->ackedCount + len - 1);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-	_DBG(" of ");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+	xprintf("%d - %d of %d",app->ackedCount,app->ackedCount + len - 1,(int)app->cursor);FFL_();
 //	Serial.print(app->ackedCount);
 //	Serial.print(" - ");
 //	Serial.print(app->ackedCount + len - 1);
@@ -283,7 +280,7 @@ void send() {
  * URL has been saved and an empty line is found.
  */
 boolean processLine(char* data, int len) {
-//	_DBG(data);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//	xprintf("data=%s",data);FFL_();
 
 	// Check for a valid GET line
 	if ((uip_conn->appstate.request == NULL) && (strncmp(data, "GET /", 4) == 0)) {
@@ -317,7 +314,7 @@ boolean processLine(char* data, int len) {
  * with each line of data found.
  */
 boolean processPacket(char* data, int len) {
-//	_DBG(data);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//	xprintf("data=%s",data);FFL_();
 
 	// Address after the last byte of data
 	char* end = data + len;
@@ -354,7 +351,7 @@ boolean processPacket(char* data, int len) {
  * Attempts to send the requested page for the current connection
  */
 void sendPage() {
-//	_DBG("sendPage()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+	FFL_();
 
 	// Reset the virtual buffer cursor
 	uip_conn->appstate.cursor = 0;
@@ -372,7 +369,7 @@ void sendPage() {
 		WiServer.println_P(httpNotFound);
 		WiServer.println();
 #ifdef DEBUG
-		_DBG("URL Not Found");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+		xprintf("URL Not Found");FFL_();
 // 		Serial.println("URL Not Found");
 #endif // DEBUG
 	}
@@ -405,7 +402,7 @@ boolean Server::clientIsLocal() {
  * Handles high-level server communications
  */
 void server_task_impl() {
-//	_DBG("server_task_impl()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//	xprintf("server_task_impl()");FFL_();
 
 	// Get the connection's app state
 	uip_tcp_appstate_t *app = &(uip_conn->appstate);
@@ -421,8 +418,7 @@ void server_task_impl() {
 		app->request = NULL;
 	}
 
-//	_DBG("uip_newdata()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-//	_DBD(uip_newdata());_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//	xprintf("uip_newdata() - %d",uip_newdata());FFL_();
 
 	if (uip_newdata()) {
  		setRXPin(HIGH);
@@ -437,8 +433,7 @@ void server_task_impl() {
 		}
 	}
 
-//	_DBG("uip_acked()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-//	_DBD(uip_acked());_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//	xprintf("uip_acked() - %d",uip_acked());FFL_();
 
 	// Did we get an ack for the last packet?
 	if (uip_acked()) {
@@ -457,8 +452,7 @@ void server_task_impl() {
 		}
 	}
 
-//	_DBG("uip_rexmit()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-//	_DBD(uip_rexmit());_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//	xprintf("uip_rexmit() - %d",uip_rexmit());FFL_();
 
 	// Check if we need to retransmit
 	if (uip_rexmit()) {
@@ -603,7 +597,7 @@ void client_task_impl() {
 	if (uip_connected()) {
 
 		if (verbose) {
-			_DBG("Connected to ");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+			xprintf("Connected to ");FFL_();
 //			Serial.print("Connected to ");
 //			Serial.println(req->hostName);
 		}
@@ -633,10 +627,7 @@ void client_task_impl() {
  		setRXPin(HIGH);
 
 		if (verbose) {
-			_DBG("RX ");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-			_DBG(uip_datalen());_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-			_DBG(" bytes from ");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-//			Serial.print("RX ");
+			xprintf("RX %d bytes from %s",uip_datalen(),req->hostName);FFL_();
 //			Serial.print(uip_datalen());
 //			Serial.print(" bytes from ");
 //			Serial.println(req->hostName);
@@ -652,8 +643,7 @@ void client_task_impl() {
 	if (uip_aborted() || uip_timedout() || uip_closed()) {
 		if (req != NULL) {
 			if (verbose) {
-				_DBG("Ended connection with ");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-				_DBG(req->hostName);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+				xprintf("Ended connection with %s",req->hostName);FFL_();
 //				Serial.print("Ended connection with ");
 //				Serial.println(req->hostName);
 			}
@@ -713,8 +703,7 @@ char* Server::base64encode(char* data) {
  * This function is called by uip whenever a stack event occurs
  */
 void server_app_task() {
-//	_DBG("server_app_task()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-//	_DBD(uip_conn->lport);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+//	xprintf("server_app_task() - %d",uip_conn->lport);FFL_();
 
 	// Clear the activity pins
 	setTXPin(LOW);
@@ -739,8 +728,58 @@ void server_app_task() {
 /*
  * Called by the sketch's main loop
  */
-void Server::server_task() {
+void Server::server_task(pageServingFunction function) {
 
+	uint32_t first_run=0;
+
+	if(zg_get_conn_state() != 1) {
+		zg_drv_process();
+		first_run=1;
+	}
+	if(first_run){
+		// Start the stack
+		stack_init();
+
+		// Store the callback function for serving pages
+		// and start listening for connections on port 80 if
+		// the function is non-null
+		callbackFunc = function;
+		if (callbackFunc) {
+			// Listen for server requests on port 80
+			uip_listen(HTONS(80));
+		}
+	}
+	else{
+		// Run the stack state machine
+		stack_process();
+
+		// Run the driver
+		zg_drv_process();
+
+#ifdef ENABLE_CLIENT_MODE
+		// Check if there is a pending client request
+		if (queue) {
+			// Attempt to connect to the server
+			struct uip_conn *conn = uip_connect(&(queue->ipAddr), queue->port);
+
+			if (conn != NULL) {
+#ifdef DEBUG
+				xprintf("Got connection for ",queue->hostName);FFL();
+//				Serial.print("Got connection for ");
+//				Serial.println(queue->hostName);
+#endif // DEBUG
+
+				// Attach the request object to its connection
+				conn->appstate.request = queue;
+				// Move the head of the queue to the next request in the queue
+				queue = queue->next;
+				// Clear the next pointer of the connected request
+				((GETrequest*)conn->appstate.request)->next = NULL;
+			}
+		}
+#endif // ENABLE_CLIENT_MODE
+	}
+#if 0 //old
 	// Run the stack state machine
 	stack_process();
 
@@ -755,8 +794,7 @@ void Server::server_task() {
 
 		if (conn != NULL) {
 #ifdef DEBUG
-			_DBG("Got connection for ");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-			_DBG(queue->hostName);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+			xprintf("Got connection for ",queue->hostName);FFL();
 //			Serial.print("Got connection for ");
 //			Serial.println(queue->hostName);
 #endif // DEBUG
@@ -770,6 +808,7 @@ void Server::server_task() {
 		}
 	}
 #endif // ENABLE_CLIENT_MODE
+#endif
 }
 
 // Single instance of the server
