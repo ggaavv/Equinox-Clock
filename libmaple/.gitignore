@@ -1,9 +1,0 @@
-build/
-docs/build/
-main.cpp
-libmaple.layout
-tags
-TAGS
-*~
-*.swp
-docs/doxygen/
