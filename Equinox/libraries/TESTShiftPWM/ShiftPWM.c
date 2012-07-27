@@ -48,6 +48,8 @@ const uint32_t BITORDER[] = { 0,1,2,3,4,5,6,7,7,6,5,4,3,2,1,0 };
 
 #define START_TIME 4096 //largest time inteval??
 //#define START_TIME 2000 //largest time inteval??
+
+
 //#define START_TIME 32 //smallest time inteval 33us
 //#define START_TIME 32/2 //fastest possible
 //#define START_TIME 32*1000 //for uart
@@ -151,7 +153,7 @@ const uint32_t BITTIME[] = {
 #define REGS 1 //12
 #define RGBS 5 //60
 #define LEDS RGBS*3
-#define BITS 8
+#define BITS MAX_BAM_BITS
 #else
 #define REGS 12
 #define RGBS 60
@@ -414,7 +416,7 @@ void LED_init(){
 	SSP_ConfigStruct.CPOL = SSP_CPOL_LO;
 //	SSP_ConfigStruct.ClockRate = 500000;
 //	SSP_ConfigStruct.ClockRate = 10000000;
-	SSP_ConfigStruct.ClockRate = 30000000; /* TLC5927 max freq = 30Mhz */
+	SSP_ConfigStruct.ClockRate = 25000000; /* TLC5927 max freq = 30Mhz */
 	SSP_ConfigStruct.FrameFormat = SSP_FRAME_SPI;
 	SSP_ConfigStruct.Databit = SSP_DATABIT_16;
 	SSP_ConfigStruct.Mode = SSP_MASTER_MODE;
@@ -526,14 +528,29 @@ void LED_init(){
 
 
 void LED_test(){
-//#if 1 //led test
+#if 0 //led test
 	for(uint32_t led=0; led<LEDS;led++){
 		SetLED(led,1);
 		calulateLEDMIBAMBits();
 		delay_ms(200);
 		SetLED(led,0);
 	}
-//#endif
+
+#endif
+#if 1
+	for(uint32_t led=0;led<LEDS;led++){ // loop over all LED's
+		for(int32_t b=0;b<=0x7f;b++){
+			SetLED(led,b);
+			calulateLEDMIBAMBits();
+			delay_ms(2);
+		}
+		for(int32_t b=0x7f;b>=0;b--){
+			SetLED(led,b);
+			calulateLEDMIBAMBits();
+			delay_ms(2);
+		}
+	}
+#endif
 }
 
 void SetRGB(int32_t group, uint8_t v0, uint8_t v1, uint8_t v2){
@@ -553,12 +570,12 @@ void SetRGB(int32_t group, uint8_t v0, uint8_t v1, uint8_t v2){
 	if(group==-6)
 		group = 54;
 */
-	LED_RAW[group*3]=v0;
-	LED_RAW[group*3+1]=v1;
-	LED_RAW[group*3+2]=v2;
+	LED_RAW[group*3]=v0 & 0x7F;
+	LED_RAW[group*3+1]=v1 & 0x7F;
+	LED_RAW[group*3+2]=v2 & 0x7F;
 }
 void SetLED(int32_t led, uint8_t v0){
-	LED_RAW[led]=v0;
+	LED_RAW[led]=v0 & 0x7F;
 }
 
 void resetLeds(void){

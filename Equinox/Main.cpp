@@ -111,6 +111,7 @@ void EINT0_IRQHandler (void)
  **********************************************************************/
 int main(void){
 	char buffer[100];
+	uint32_t tto=2000;
 
 #ifdef DEV
 	GPIO_SetDir(LED_1_PORT, LED_1_BIT, 1);
@@ -325,23 +326,43 @@ int main(void){
 		}
 #endif
 #if 0
-		for(uint32_t led=0;led<15;led++){ // loop over all LED's
-			for(int32_t b=0;b<0xff;b++){
-				SetLED(led,b);
-//				while(!LED_SEND);
-				calulateLEDMIBAMBits();
-				delay_ms(3);
-			}
-			for(int32_t b=0xff;b>0;b--){
-				SetLED(led,b);
-//				while(!LED_SEND);
-				calulateLEDMIBAMBits();
-				delay_ms(3);
-			}
-			SetLED(led,0);
+		if(timeUpdate()) {
 			resetLeds();
+	//	colourToRGBled(time_now.hour12()*5,RED1,RED2,RED3,false,0);
+	//	colourToRGBled(time_now.minute(),GREEN1,GREEN2,GREEN3,false,0);
+	//	colourToRGBled(time_now.second(),BLUE1,BLUE2,BLUE3,false,0);
+
+	/* good
+			SetRGB(time_now.second()-4,0,0,1);
+			SetRGB(time_now.second()-3,0,0,2);
+			SetRGB(time_now.second()-2,0,0,4);
+			SetRGB(time_now.second()-1,0,0,100);
+			SetRGB(time_now.second()-0,0,0,255);
+
+			SetRGB(time_now.minute()-2,3,0,5);
+			SetRGB(time_now.minute()-1,10,0,25);
+			SetRGB(time_now.minute()-0,20,0,180);
+
+			SetRGB(time_now.hour12()*5+(time_now.minute()/12),85,0,130);
+	*/
+
+			SetRGB(time_now.second()-0,0,0,1);
+	//		SetRGB(time_now.second()-3,0,0,2);
+	//		SetRGB(time_now.second()-2,0,0,4);
+	//		SetRGB(time_now.second()-1,0,0,100);
+	//		SetRGB(time_now.second()-0,0,0,255);
+
+			SetRGB(time_now.minute()-1,1,0,1);
+			SetRGB(time_now.minute()-0,1,0,1);
+	//		SetRGB(time_now.minute()-0,20,0,180);
+
+			SetRGB(time_now.hour12()*5+(time_now.minute()/12),1,1,1);
+
+
+	//		delay(100);
 		}
 #endif
+
 /*
 		if (timer1 < sys_millis()){
 			timer1 = sys_millis() + 100;
