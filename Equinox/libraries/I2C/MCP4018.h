@@ -28,14 +28,10 @@
 
 #include "lpc17xx_i2c.h"
 
-/*---------------------*/
-//#define TMP100_RES_9bits    0x00
-//#define TMP100_RES_10bits   0x01
-//#define TMP100_RES_11bits   0x02
-//#define TMP100_RES_12bits   0x03
-/*----------------------*/
+#define MCP4018_ADDR 		0x2f
 
-#define MCP4018_ADDR 		0x5e
+#define MCP4018_W 		0x3//?
+#define MCP4018_R 		0x2//?
 
 #define MCP4018_OHM 		50000
 #define MCP4018_MAX 		0x7f

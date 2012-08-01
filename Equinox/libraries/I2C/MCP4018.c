@@ -41,7 +41,7 @@ void MCP4018_setconf(unsigned char conf)
 	transferMCfg.retransmissions_max = 3;
 	I2C_MasterTransferData(LPC_I2C1, &transferMCfg, I2C_TRANSFER_POLLING);
 }
-
+/*
 int MCP4018_gettemp()
 {
 	unsigned char rec_char;
@@ -78,3 +78,4 @@ void MCP4018_tostr(unsigned int temp, char* tempstr)
 	dec = ((temp >> 4) & 0x000F)*625;
 	sprintf(tempstr,"%d.%04d",temp>>8,dec);
 }
+*/

@@ -60,6 +60,21 @@
 CAN_MSG_Type TXMsg, RXMsg; // messages for test Bypass mode
 uint32_t CANRxCount, CANTxCount = 0;
 
+//unsigned char ScreenLitData[12];
+//unsigned char ScreenAsciiData[34];
+//unsigned char ScreenSendPackets[5][8];
+unsigned char PrevScreenText[10];
+unsigned char Source;
+volatile unsigned char ReturnScreen;
+volatile unsigned int ScreenTimeoutCounter;
+volatile unsigned int OffTimeout;
+volatile unsigned char ScreenTempData[36];
+volatile unsigned char RecieveComplete;
+volatile unsigned char RX_In_progress;
+volatile unsigned char ButtomPressed;
+volatile unsigned char source_change;
+volatile unsigned char ButtonTempData[2];
+
 /*
 **---------------------------------------------------------------------------
 **
@@ -673,7 +688,7 @@ uint8_t ascii2byte (uint8_t * val){
 // Main loop
 void CAN_loop(void){
 	uint8_t i;			// for loop counter
-#if 1
+#if 0
 	if (CHECKBIT(CAN_flags, MSG_WAITING)){
     	// check frame format
 		if (RXMsg.format==STD_ID_FORMAT){
@@ -725,6 +740,45 @@ void CAN_loop(void){
 	}
 #else
 	if (CHECKBIT(CAN_flags, MSG_WAITING)){
+
+		unsigned char rec_121, RxScreenPacketNo;
+//		CAN_rx_msg.Last_id = CAN_rx_msg.id;
+
+		switch(RXMsg.id){
+			case 0x121: // Screen data
+				rec_121 = (RXMsg.dataA[0] & 0x0F);
+				RxScreenPacketNo = rec_121*7;
+				ScreenTempData[0+RxScreenPacketNo] = RXMsg.dataA[1];
+				ScreenTempData[1+RxScreenPacketNo] = RXMsg.dataA[2];
+				ScreenTempData[2+RxScreenPacketNo] = RXMsg.dataA[3];
+				ScreenTempData[3+RxScreenPacketNo] = RXMsg.dataB[0];
+				ScreenTempData[4+RxScreenPacketNo] = RXMsg.dataB[1];
+				ScreenTempData[5+RxScreenPacketNo] = RXMsg.dataB[2];
+				ScreenTempData[6+RxScreenPacketNo] = RXMsg.dataB[3];
+//				if (rec_121==0){
+//					RX_In_progress = 1;
+//				}
+				if ( ((rec_121 == 3)||(rec_121==4)) && (ScreenTempData[6+RxScreenPacketNo] == 0x81)){
+					//RX_In_progress = 0;
+					RecieveComplete++;
+				}
+			case 0x521: // Acknowledged screen data
+//				Screen_tx.NoAck++;
+				break;
+			case 0x0A9: // Button Pressed
+				ButtonTempData[0] = RXMsg.dataA[2];
+				ButtonTempData[1] = RXMsg.dataA[3];
+				ButtomPressed++;
+				break;
+			//Power off timeout
+			case 0x3CF:
+			case 0x3DF:
+				OffTimeout=0xFF;
+				break;
+			default:
+				return;
+		}
+
 		switch(RXMsg.id){
 /*
 stereo
