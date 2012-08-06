@@ -51,6 +51,7 @@
 //#include "config.h"
 //#include "main.h"
 #include "canlib.h"
+#include "renault_stereo.h"
 #include "comm.h"
 #include "sys_timer.h"
 #include <string.h>
@@ -74,6 +75,8 @@ volatile unsigned char RX_In_progress;
 volatile unsigned char ButtomPressed;
 volatile unsigned char source_change;
 volatile unsigned char ButtonTempData[2];
+
+extern unsigned char source_selected;
 
 /*
 **---------------------------------------------------------------------------
@@ -914,6 +917,232 @@ Send sreen data
 */
 		CLEARBIT(CAN_flags, MSG_WAITING);
 	}
+#ifndef IPOD_ENABLE
+	unsigned char 	ScreenText[10],
+					IBCopy = 0,
+					CompleteLength = 0,
+					ScreenTextStart = 0,
+					last_key=0x00;
+
+	if(ReturnScreen&&(!ButtomPressed)&&(!RecieveComplete)){
+		InitScreen(0x121, "", 0, RETURN_STRING);
+//		xprintf("init2");
+	}
+	if(RecieveComplete&&(!ButtomPressed)){
+		for (IBCopy = 0; IBCopy <= 7*5; IBCopy++){
+			//if 0x01 indicates this is the start of the screen ascii
+			if (ScreenTempData[IBCopy] == 0x01){
+				ScreenTextStart = IBCopy+1;
+				//copy screen text into buffer
+				for(uint32_t t=0; t<4; t++){
+					ScreenText[t] = ScreenTempData[ScreenTextStart+t];
+					ScreenText[t+1] = NULL;
+				}
+				break;
+			}
+		}
+		for (IBCopy = 0; IBCopy <= 7*5; IBCopy++){
+			//if 0x0081 indicates this is the end of transmission
+			if ((ScreenTempData[IBCopy] == 0x00)&&(ScreenTempData[IBCopy+1]==0x81)){
+				CompleteLength = IBCopy;
+				break;
+			}
+		}
+
+		//Check for Aux
+		if( strncmp(ScreenText,"AUX",3) == 0){
+			if((Source==REMOTE_AUX)||(Source==REMOTE_TRAFFIC)||(Source==REMOTE_PAUSE)){
+				InitScreen( 0x121, "", 0, RETURN_STRING);
+//				xprintf("init1");
+			}
+			else {
+				if (last_key=='-')
+					source_selected = number_of_sources;
+				else if (last_key=='+'){
+					source_selected = 1;
+				}
+				// first use
+				else {
+					//_delay_ms(20);
+					source_selected = 1;
+				}
+				source_change = 1;
+			}
+			Source = REMOTE_AUX;
+				//ipod_control(BUTTON_PLAY_ONLY);
+//				ipod_control(BUTTON_PLAY_PAUSE);
+		}
+///*
+		else if( strncmp(ScreenText,"CD ",3) == 0){
+			Source = REMOTE_CD;
+//			ipod_control(BUTTON_STOP_ONLY);
+		}
+		else if( strncmp(ScreenText,"FM ",3) == 0){
+			Source = REMOTE_RADIO;
+//			ipod_control(BUTTON_STOP_ONLY);
+		}
+		else if( strncmp(ScreenText,"MW ",3) == 0){
+			Source = REMOTE_RADIO;
+//			ipod_control(BUTTON_STOP_ONLY);
+		}
+//*/
+		else if( strncmp(ScreenText,"TRA",3) == 0){
+			Source = REMOTE_TRAFFIC;
+//			ipod_control(BUTTON_STOP_PAUSE);
+		}
+		else if( strncmp(ScreenText," PA",3) == 0){
+			Source = REMOTE_PAUSE;
+//			ipod_control(BUTTON_STOP_PAUSE);
+		}
+		else{
+			//Source = RADIO;
+			//xprintf("R fd");
+			Source = REMOTE_RADIO;
+//			ipod_control(BUTTON_STOP_ONLY);
+		}
+		renault_debug_print();
+		RecieveComplete = 0;
+	}
+	if(ButtomPressed){
+		// Remote pressed
+		xprintf("Key Seen\r\n");
+		switch(ButtonTempData[0]){
+			case 0x00:
+				switch(ButtonTempData[1]){
+					case 0x01: //Source Right t0A9803890001A2A2A2A2
+						xprintf("Source Next\r\n");
+						if (Source==REMOTE_AUX)
+							source_change ='+';
+						last_key='+';
+						break;
+					case 0x02: //Source Left t0A9803890002A2A2A2A2
+						xprintf("Source Prev\r\n");
+						if (Source==REMOTE_AUX)
+							source_change='-';
+						last_key='-';
+						break;
+					case 0x03: //vol up t0A9803890003A2A2A2A2
+						xprintf("Volume Up\r\n");
+						break;
+					case 0x04: //vol down t0A9803890004A2A2A2A2
+						xprintf("Volume Down\r\n");
+						break;
+					case 0x05: //pause t0A9805890005A2A2A2A2
+//						xprintf("Pause\r\n");
+						//if (Source==REMOTE_PAUSE){
+						//	ipod_control(BUTTON_PLAY_PAUSE);
+						//	Source=REMOTE_AUX;
+						//}
+						//usart_puts_1(IPOD_PLAY_PAUSE);
+						break;
+					case 0x00: // t0A9803890000A2A2A2A2
+					case 0x0A: // t0A980389000AA2A2A2A2 Enter (IPOD PLAY/PAUSE)
+//						xprintf("Play Pause\r\n");
+						if (Source == REMOTE_AUX){
+							//usart_byte2ascii(IpodStatus);
+							if((source_selected==IPOD)||(source_selected==PC)){
+//								ipod_button(IPOD_PLAY_PAUSE);
+								xprintf("PLAY/PAUSE\r\n");
+								InitScreen( 0x121, "Play/Pau", 0, TEMP_STRING);
+								delay_ms(500);
+								InitScreen( 0x121, "ay/Pause", 0, TEMP_STRING);
+								delay_ms(100);
+								//ipod_control(BUTTON_PLAYPAUSE_TOGGLE);
+							}
+							if(source_selected==KEYBOARD){
+								//usart_putc(current_key_keyboard);
+							}
+							else {
+							}
+						}
+						break;
+					default:
+						break;
+				}
+				break;
+			case 0x01:
+				switch(ButtonTempData[1]){
+					case 0x01: //Track next t0A9803890101A2A2A2A2
+						xprintf("Track Next\r\n");
+						//usart_puts_1(IPOD_NEXT);
+						if (Source == REMOTE_AUX){
+							if(source_selected==IPOD){
+								InitScreen( 0x121, "Track +", 0, TEMP_STRING);
+								ipod_control(BUTTON_NEXT);
+							}
+							else if(source_selected==KEYBOARD){
+								keyboard_key('+');
+							}
+							else{
+								InitScreen(0x121, "Track +", 0, TEMP_STRING);
+							}
+						}
+						break;
+					case 0x41: //Track back t0A9803890141A2A2A2A2
+						xprintf("Track Prev\r\n");
+						//usart_puts_1(IPOD_PREV);
+						if (Source == REMOTE_AUX){
+							if(source_selected==IPOD){
+								ipod_control(BUTTON_PREV);
+								InitScreen(0x121, "Track -", 0, TEMP_STRING);
+							}
+							else if(source_selected==KEYBOARD){
+								keyboard_key('-');
+							}
+							else{
+								InitScreen(0x121, "Track -", 0, TEMP_STRING);
+							}
+						}
+						break;
+					default:
+						break;
+				}
+				break;
+			default:
+				break;
+		}
+		ButtomPressed--;
+	}
+#endif
+#ifndef nothing
+	if(((source_change==1)||(source_change=='+')||(source_change=='-'))&&(Source==REMOTE_AUX)){
+		if(source_change=='+'){
+			source_selected++;
+			if(source_selected==(number_of_sources+1)){
+				source_selected=0;
+				source_change=0;
+			}
+			else
+				send_source_change('-');
+		}
+		else if(source_change=='-'){
+			source_selected--;
+			if(source_selected==0){
+				source_change=0;
+			}
+			else
+				send_source_change('+');
+		}
+		else{
+		}
+		if(source_change){
+			switch(source_selected){
+				case IPOD:
+					InitScreen(0x121, "PHONE", 0, NEW_STRING);
+					break;
+				case PC:
+					InitScreen(0x121, "PC", 0, NEW_STRING);
+					break;
+				case KEYBOARD:
+					InitScreen(0x121, "KB", 0, NEW_STRING);
+					break;
+				default:
+					break;
+			}
+		}
+		source_change = 0;
+	}
+#endif
 #endif
 }
 
@@ -925,8 +1154,8 @@ void CAN_IRQHandler(){
 	//check receive buffer status
 	if((IntStatus>>0)&0x01){
 		CAN_ReceiveMsg(LPC_CAN2,&RXMsg);
-		xprintf("Received buffer:\r");
-		PrintMessage(&RXMsg);
+//		xprintf("Received buffer:\r");
+//		PrintMessage(&RXMsg);
 		SETBIT(CAN_flags, MSG_WAITING);
 	}
 }

@@ -106,7 +106,8 @@ unsigned char source_selected;
 #define CD 1
 #define IPOD 2
 #define PC 3
-#define number_of_sources 4 // number of sources + 1
+#define KEYBOARD 4
+#define number_of_sources 3 // number of sources + 1
 
 //*** Global variables ***
 volatile struct {                   // use a bit field as flag store
@@ -118,9 +119,6 @@ unsigned char source_change :			1 ; // source changed
 unsigned char recieved_521 :			1 ; // ok from 521 recieved (screen)
 unsigned char recieved_49A :			1 ; // ok from 49A recieved (remote)
 } flags;                            // declare as flag byte
-
-
-
 
 
 void CAN_init (void);

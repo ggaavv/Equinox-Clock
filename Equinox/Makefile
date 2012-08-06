@@ -197,6 +197,7 @@ SRC = \
 	$(APPLIBDIR)/I2C/MCP4018.c \
 	$(APPLIBDIR)/R2C2/syscalls.c \
 	$(APPLIBDIR)/CANlib/canlib.c \
+	$(APPLIBDIR)/CANlib/renault_stereo.c \
 	statup_delay.c \
 	syscalls.c \
 	comm.c \
