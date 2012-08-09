@@ -28,7 +28,7 @@
 
 #include "lpc17xx_i2c.h"
 
-#define MCP4018_ADDR 		0x5e
+#define MCP4018_ADDR 		0x2f
 
 #define MCP4018_OHM 		50000
 #define MCP4018_MAX 		0x7f
