@@ -263,7 +263,7 @@ unsigned char InitScreen ( unsigned int SendId,
 				a++;
 			*(ScreenText+a) = *(temp_string+b);
 		}
-		ReturnScreen = 0;k
+		ReturnScreen = 0;
 	}
 	else if(Command == TEMP_STRING){
 //		xprintf("Temp String ");

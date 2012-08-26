@@ -74,6 +74,10 @@ __IO FlagStatus TxIntStat;
 void exec_cmd(char *cmd){
 	comm_flush();
 	usb_flush();
+	if(stricmp(cmd,"a")==0){
+		xprintf(INFO "test can send");FFL_();
+		exec_usart_cmd("t12381122334455667788");
+	}
 	if(stricmp(cmd,"bl")==0){
 		xprintf(INFO "resetting to bootloader in 5 seconds");FFL_();
 		delay_ms(1000);

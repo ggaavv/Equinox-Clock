@@ -222,7 +222,7 @@ void zg_interrupt_reg(U8 mask, U8 state)
 }
 
 //void zg_isr()
-#if DEV
+#ifdef DEV
 void EINT3_IRQHandler (void){
 	EXTI_ClearEXTIFlag(EXTI_EINT3);
 	intr_occured = 1;

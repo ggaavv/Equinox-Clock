@@ -98,7 +98,8 @@ void CAN_init (void){
 
 	/* Pin configuration
 	 * CAN1: select P0.0 as RD1. P0.1 as TD1
-	 * CAN2: select P2.7 as RD2, P2.8 as RD2
+	 * CAN2: select P2.7 as RD2, P2.8 as RD2??
+	 * CAN2: select P0.4 as RD2, P0.5 as RD2
 	 */
 	PinCfg.Funcnum = 1;
 	PinCfg.OpenDrain = 0;
@@ -110,10 +111,10 @@ void CAN_init (void){
 //	PinCfg.Pinnum = 1;
 //	PINSEL_ConfigPin(&PinCfg);
 
-	PinCfg.Portnum = 2;
-	PinCfg.Pinnum = 7;
+	PinCfg.Portnum = 0;
+	PinCfg.Pinnum = 4;
 	PINSEL_ConfigPin(&PinCfg);
-	PinCfg.Pinnum = 8;
+	PinCfg.Pinnum = 5;
 	PINSEL_ConfigPin(&PinCfg);
 
 	/* Initialize CAN2 peripheral
@@ -122,12 +123,12 @@ void CAN_init (void){
 	CAN_Init(LPC_CAN2, 500000);
 
 	//Enable self-test mode
-	CAN_ModeConfig(LPC_CAN2, CAN_SELFTEST_MODE, ENABLE);
+	//CAN_ModeConfig(LPC_CAN2, CAN_SELFTEST_MODE, ENABLE);
 	//CAN_ModeConfig(LPC_CAN2, CAN_LISTENONLY_MODE, ENABLE);
 
 	//Enable Interrupt
 	CAN_IRQCmd(LPC_CAN2, CANINT_RIE, ENABLE);
-	CAN_IRQCmd(LPC_CAN2, CANINT_TIE1, ENABLE);
+	//CAN_IRQCmd(LPC_CAN2, CANINT_TIE1, ENABLE);
 
 	//Enable CAN Interrupt
 	NVIC_EnableIRQ(CAN_IRQn);
@@ -404,7 +405,7 @@ uint8_t exec_usart_cmd (uint8_t * cmd_buf){
             // check if CAN controller is in reset mode or busy
             if (!CANBUS_ON()||!TX_BUSY()){
 #ifdef VERBOSE
-            	xprintf("ERR-Bus is not on or tx_busy.\n");FFL_();
+            	xprintf("ERR-Bus is not on or tx_busy.");FFL_();
 #endif
             	return ERROR;
 			}
@@ -436,7 +437,7 @@ uint8_t exec_usart_cmd (uint8_t * cmd_buf){
             // check number of data bytes supplied against data lenght byte
             if (TXMsg.len != ((cmd_len - 5) / 2)){
 #ifdef VERBOSE
-            	xprintf("ERR-Wrong length compared with actual TXMsg.len, is %d.\r",TXMsg.len);FFL_();
+            	xprintf("ERR-Wrong length compared with actual TXMsg.len, is %d.",TXMsg.len);FFL_();
 #endif
             	return ERROR;
 			}
@@ -445,7 +446,7 @@ uint8_t exec_usart_cmd (uint8_t * cmd_buf){
             //if (CAN_tx_msg.len > 8)
             if (TXMsg.len > 8){
 #ifdef VERBOSE
-            	xprintf("ERR-Length of TXMsg.len is too long, is %d.\r",TXMsg.len);FFL_();
+            	xprintf("ERR-Length of TXMsg.len is too long, is %d.",TXMsg.len);FFL_();
 #endif
                 return ERROR;	// check valid length
 			}
@@ -469,12 +470,16 @@ uint8_t exec_usart_cmd (uint8_t * cmd_buf){
                 }
 
             }
-            CAN_SetCommand(LPC_CAN2, CAN_CMR_SRR); //Self Reception request
+            //CAN_SetCommand(LPC_CAN2, CAN_CMR_SRR); //Self Reception request
             // if transmit buffer was empty send message
-            if (CAN_SendMsg(LPC_CAN2, &TXMsg)==SUCCESS)
+            if (CAN_SendMsg(LPC_CAN2, &TXMsg)==SUCCESS){
+            	xprintf(INFO "Send ok.");FFL_();
             	return CR;
-            else
+            }
+            else{
+            	xprintf(ERR "Send fail.");FFL_();
             	return ERROR;
+            }
 
             // send 29bit ID message
         case SEND_R29BIT_ID:
@@ -599,7 +604,7 @@ uint8_t exec_usart_cmd (uint8_t * cmd_buf){
 			if (cmd_len != 3)
 #ifdef USART_HELP_LENGTH
 			{
-				xprintf("ERR-Wrong command length should be 3 but is %d.\r",cmd_len);
+				xprintf("ERR-Wrong command length should be 3 but is %d.",cmd_len);
             	return ERROR;
             }
 #else
@@ -649,7 +654,7 @@ uint8_t exec_usart_cmd (uint8_t * cmd_buf){
             // end with error on unknown commands
         default:
 #ifdef VERBOSE
-        	xprintf("ERR-Unrecognised command - %s\r",*cmd_buf_pntr);FFL_();
+        	xprintf("ERR-Unrecognised command - %s",*cmd_buf_pntr);FFL_();
 #endif
             return ERROR;
     }				// end switch
@@ -1071,7 +1076,7 @@ Send sreen data
 								ipod_control(BUTTON_NEXT);
 							}
 							else if(source_selected==KEYBOARD){
-								keyboard_key('+');
+//								keyboard_key('+');
 							}
 							else{
 								InitScreen(0x121, "Track +", 0, TEMP_STRING);
@@ -1147,21 +1152,21 @@ Send sreen data
 }
 
 void CAN_IRQHandler(){
-	uint8_t IntStatus;
+	uint8_t InterruptStatus;
 //	uint32_t data1;
 	/* Get CAN status */
-	IntStatus = CAN_GetCTRLStatus(LPC_CAN2, CANCTRL_STS);
+	InterruptStatus = CAN_GetCTRLStatus(LPC_CAN2, CANCTRL_STS);
 	//check receive buffer status
-	if((IntStatus>>0)&0x01){
+	xprintf("Received buffer:\r");
+	if((InterruptStatus>>0)&0x01){
 		CAN_ReceiveMsg(LPC_CAN2,&RXMsg);
-//		xprintf("Received buffer:\r");
-//		PrintMessage(&RXMsg);
-		SETBIT(CAN_flags, MSG_WAITING);
+		PrintMessage(&RXMsg);
+//		SETBIT(CAN_flags, MSG_WAITING);
 	}
 }
 
 void PrintMessage(CAN_MSG_Type* CAN_Msg){
-	xprintf("Message ID:     %8x\r",CAN_Msg->id);
+	xprintf("Message ID:     %8x\r",(unsigned int)CAN_Msg->id);
 	xprintf("Message length: %8x BYTES\r",CAN_Msg->len);
 	xprintf("Message type:   %s\r",CAN_Msg->type==DATA_FRAME ? "DATA FRAME\r" : "REMOTE FRAME\r");
 	xprintf("Message format: %s\r",CAN_Msg->format==STD_ID_FORMAT ? "STANDARD ID FRAME FORMAT\r" : "EXTENDED ID FRAME FORMAT\r");
