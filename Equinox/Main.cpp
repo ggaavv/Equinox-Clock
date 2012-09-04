@@ -236,18 +236,22 @@ int main(void){
 	// Init RTC module
     RTC_time_Init();xprintf(OK "RTC_time_Init()");FFL_();
 
+#ifdef DEV
 	// CAN init
 	CAN_init();xprintf(OK "CAN_init()");FFL_();
+#endif
 
 	//I2C init
 	I2C_init();xprintf(OK "I2C_init()");FFL_();
 
+#ifndef DEV
 	// Wifi init
 	WiFi_init();xprintf(OK "WiFi_init()");FFL_();
 
     // Init LED module
     LED_init();xprintf(OK "LED_init()");FFL_();
     LED_test();xprintf(OK "LED_test()");FFL_();
+#endif
 
 #if 0
     time_t rawtime;
@@ -267,17 +271,22 @@ int main(void){
 	int hue, sat, val;
 	unsigned char red, green, blue;
 	for (;;){
+
+#ifndef DEV
 		// Wifi Loop
 		WiFi_loop();
+#endif
 
+#ifdef DEV
 		//CAN Loop
 		CAN_loop();
+#endif
 
 //		RTC_print_time();
 //		LED_loop();
 
 		/* Power save - Do every 5000ms */
-		#define DELAY 10
+		#define DELAY 20
 //		_DBD16(tcount);
 #if 1
 		if(tcount<=Getunix()){
@@ -302,7 +311,7 @@ int main(void){
 			LINE_READY=0;
 		}
 #endif
-#if 1
+#ifndef DEV
 		#define LEDDELAY 10
 		if(USER_MILLIS>=10){
 //		if(LED_UPDATE_REQUIRED){

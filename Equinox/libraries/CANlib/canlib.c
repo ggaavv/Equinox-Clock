@@ -61,22 +61,10 @@
 CAN_MSG_Type TXMsg, RXMsg; // messages for test Bypass mode
 uint32_t CANRxCount, CANTxCount = 0;
 
-//unsigned char ScreenLitData[12];
-//unsigned char ScreenAsciiData[34];
-//unsigned char ScreenSendPackets[5][8];
-unsigned char PrevScreenText[10];
-unsigned char Source;
-volatile unsigned char ReturnScreen;
-volatile unsigned int ScreenTimeoutCounter;
-volatile unsigned int OffTimeout;
-volatile unsigned char ScreenTempData[36];
-volatile unsigned char RecieveComplete;
-volatile unsigned char RX_In_progress;
-volatile unsigned char ButtomPressed;
-volatile unsigned char source_change;
-volatile unsigned char ButtonTempData[2];
 
-extern unsigned char source_selected;
+volatile uint16_t CAN_flags;	// diverse CAN flags
+volatile uint8_t CAN_MSG_RXED;
+
 
 /*
 **---------------------------------------------------------------------------
@@ -101,7 +89,7 @@ void CAN_init (void){
 	 * CAN2: select P2.7 as RD2, P2.8 as RD2??
 	 * CAN2: select P0.4 as RD2, P0.5 as RD2
 	 */
-	PinCfg.Funcnum = 1;
+	PinCfg.Funcnum = 2;
 	PinCfg.OpenDrain = 0;
 	PinCfg.Pinmode = 0;
 //can1
@@ -136,6 +124,7 @@ void CAN_init (void){
 
     // read status of time stamp setting
 //    ram_timestamp_status = eeprom_read_byte (&ee_timestamp_status);
+	Screen_init();
 }
 
 
@@ -163,7 +152,7 @@ uint8_t exec_usart_cmd (uint8_t * cmd_buf){
     while (*cmd_buf_pntr) {
         if (!isxdigit (*cmd_buf_pntr)){
 #ifdef VERBOSE
-        	xprintf("Not a valid asci char (exec_usart_cmd1).%x\r",*cmd_buf_pntr);
+        	xprintf("Not a valid asci char (exec_usart_cmd1).%x\n",*cmd_buf_pntr);
 #endif
             return ERROR;
 		}
@@ -238,7 +227,7 @@ uint8_t exec_usart_cmd (uint8_t * cmd_buf){
             // check valid cmd length and if CAN was initialized before
             if (cmd_len != 9){
 #ifdef VERBOSE
-            	xprintf("ERR-Wrong command length should be 9 but is %d.\r",cmd_len);FFL_();
+            	xprintf("ERR-Wrong command length should be 9 but is %d.\n",cmd_len);FFL_();
 #endif
             	return ERROR;	// check valid cmd length
             }
@@ -372,7 +361,7 @@ uint8_t exec_usart_cmd (uint8_t * cmd_buf){
         case SEND_R11BIT_ID:
 #if 0
             // check if CAN controller is in reset mode or busy
-            if (!CHECKBIT (CAN_flags, BUS_ON) || CHECKBIT (CAN_flags, TX_BUSY))
+            if (!CHECKBIT (CAN_flags, BUS_ON) || CHECKBIT (CAN_flags, TX_IDLE))
                 return ERROR;
             // check valid cmd length (only 5 bytes for RTR)
             if (cmd_len != 5)
@@ -403,12 +392,18 @@ uint8_t exec_usart_cmd (uint8_t * cmd_buf){
         case SEND_11BIT_ID:
 #if 1
             // check if CAN controller is in reset mode or busy
-            if (!CANBUS_ON()||!TX_BUSY()){
+        	if (!CANBUS_ON()){
 #ifdef VERBOSE
-            	xprintf("ERR-Bus is not on or tx_busy.");FFL_();
+        		xprintf(ERR "CANTX not On\r\n");FFL();
 #endif
-            	return ERROR;
-			}
+        		return ERROR;
+        	}
+        	if (!TX_IDLE()){
+#ifdef VERBOSE
+        		xprintf(ERR "CANTX Busy\r\n");FFL();
+#endif
+        		return ERROR;
+        	}
 #endif
 
             if ((cmd_len < 5) || (cmd_len > 21)){
@@ -472,20 +467,16 @@ uint8_t exec_usart_cmd (uint8_t * cmd_buf){
             }
             //CAN_SetCommand(LPC_CAN2, CAN_CMR_SRR); //Self Reception request
             // if transmit buffer was empty send message
-            if (CAN_SendMsg(LPC_CAN2, &TXMsg)==SUCCESS){
-            	xprintf(INFO "Send ok.");FFL_();
+            if (CAN_SendMsg(LPC_CAN2, &TXMsg)==SUCCESS)
             	return CR;
-            }
-            else{
-            	xprintf(ERR "Send fail.");FFL_();
+            else
             	return ERROR;
-            }
 
             // send 29bit ID message
         case SEND_R29BIT_ID:
 #if 0
             // check if CAN controller is in reset mode or busy
-            if (!CHECKBIT (CAN_flags, BUS_ON) || CHECKBIT (CAN_flags, TX_BUSY))
+            if (!CHECKBIT (CAN_flags, BUS_ON) || CHECKBIT (CAN_flags, TX_IDLE))
                 return ERROR;
 
             if (cmd_len != 10)
@@ -521,7 +512,7 @@ uint8_t exec_usart_cmd (uint8_t * cmd_buf){
         case SEND_29BIT_ID:
 #if 0
             // check if CAN controller is in reset mode or busy
-            if (!CHECKBIT (CAN_flags, BUS_ON) || CHECKBIT (CAN_flags, TX_BUSY))
+            if (!CHECKBIT (CAN_flags, BUS_ON) || CHECKBIT (CAN_flags, TX_IDLE))
                 return ERROR;
 
             if ((cmd_len < 10) || (cmd_len > 26))
@@ -695,8 +686,8 @@ uint8_t ascii2byte (uint8_t * val){
 
 // Main loop
 void CAN_loop(void){
-	uint8_t i;			// for loop counter
 #if 0
+	uint8_t i;			// for loop counter
 	if (CHECKBIT(CAN_flags, MSG_WAITING)){
     	// check frame format
 		if (RXMsg.format==STD_ID_FORMAT){
@@ -732,10 +723,10 @@ void CAN_loop(void){
 			// send data only if no remote frame request
 			// send data bytes
 			for (i = 0; i < RXMsg.len; i++){
-				if(RXMsg.len<4)
+				if(i<4)
 					xprintf("%x",RXMsg.dataA[i]);
-				else//RXMsg.len>4)
-					xprintf("%x",RXMsg.dataB[i]);
+				else//i>4)
+					xprintf("%x",RXMsg.dataB[i-4]);
 			}
 		}
 		// send time stamp if required
@@ -743,411 +734,11 @@ void CAN_loop(void){
 			xprintf("%x",sys_millis());
 
 		// send end tag
-		comm_put(CR);
+		xprintf("\r\n");
 		CLEARBIT(CAN_flags, MSG_WAITING);
 	}
 #else
-	if (CHECKBIT(CAN_flags, MSG_WAITING)){
-
-		unsigned char rec_121, RxScreenPacketNo;
-//		CAN_rx_msg.Last_id = CAN_rx_msg.id;
-
-		switch(RXMsg.id){
-			case 0x121: // Screen data
-				rec_121 = (RXMsg.dataA[0] & 0x0F);
-				RxScreenPacketNo = rec_121*7;
-				ScreenTempData[0+RxScreenPacketNo] = RXMsg.dataA[1];
-				ScreenTempData[1+RxScreenPacketNo] = RXMsg.dataA[2];
-				ScreenTempData[2+RxScreenPacketNo] = RXMsg.dataA[3];
-				ScreenTempData[3+RxScreenPacketNo] = RXMsg.dataB[0];
-				ScreenTempData[4+RxScreenPacketNo] = RXMsg.dataB[1];
-				ScreenTempData[5+RxScreenPacketNo] = RXMsg.dataB[2];
-				ScreenTempData[6+RxScreenPacketNo] = RXMsg.dataB[3];
-//				if (rec_121==0){
-//					RX_In_progress = 1;
-//				}
-				if ( ((rec_121 == 3)||(rec_121==4)) && (ScreenTempData[6+RxScreenPacketNo] == 0x81)){
-					//RX_In_progress = 0;
-					RecieveComplete++;
-				}
-			case 0x521: // Acknowledged screen data
-//				Screen_tx.NoAck++;
-				break;
-			case 0x0A9: // Button Pressed
-				ButtonTempData[0] = RXMsg.dataA[2];
-				ButtonTempData[1] = RXMsg.dataA[3];
-				ButtomPressed++;
-				break;
-			//Power off timeout
-			case 0x3CF:
-			case 0x3DF:
-				OffTimeout=0xFF;
-				break;
-			default:
-				return;
-		}
-
-		switch(RXMsg.id){
-/*
-stereo
-0x0A9 0389(00)(01)(A2)A2A2A2 Source Right
-0x0A9 0389(00)(02)(A2)A2A2A2 Source Left
-0x0A9 0389(00)(03)(A2)A2A2A2 Volume up
-0x0A9 0389(00)(04)(A2)A2A2A2 Volume down
-0x0A9 0389(00)(05)(A2)A2A2A2 Pause
-0x0A9 0389(00)(0A)(22)A2A2A2 Enter
-0x0A9 0389(01)(41)(A2)A2A2A2 Track back
-0x0A9 0389(01)(01)(A2)A2A2A2 Track next
-0x4A9 appears to be ok sig
-
-0x121 seems to be screen data
-0x521 seems to be ok sig
-
-0x3CF seems to be contantly polling
-0x3DF seems to be ok sig
-
-0x1C1 seems to be polling
-0x5C1 seems to be ok sig
-
-0x5B1 seems to be polling
-0x1B1 seems to be ok sig
-
-Send sreen data
-0x4A9 7481818181818181
-0x121 1019766001545220
-0x521 300100A2A2A2A2A2
-0x121 2130362043441043
-0x521 300100A2A2A2A2A2
-0x121 2244202020545220
-0x521 300100A2A2A2A2A2
-0x121 2330362020008181
-0x521 74A2A2A2A2A2A2A2
-*/
-			case 0x5B1: // Ping recieved
-			//case 0x1B1: // Ping recieved
-				//exec_usart_cmd("t3DF87900818181818181");
-				//exec_usart_cmd("t3CF86900A2A2A2A2A2A2");
-				break;
-			case 0x5C1: // Ping recieved
-			//case 0x1C1: // Ping recieved
-				//exec_usart_cmd("t3DF87900818181818181");
-				//exec_usart_cmd("t3CF86900A2A2A2A2A2A2");
-				break;
-			case 0x521: // Ok recieved for screen data
-				flags.recieved_521 = true;
-				// send next screen data.
-				break;
-			case 0x3CF: // Ping recieved
-			//case 0x3DF: // Ping recieved
-				//exec_usart_cmd("t3DF87900818181818181");
-				//exec_usart_cmd("t3CF86900A2A2A2A2A2A2");
-				break;
-			case 0x09A: // Remote pressed
-				switch(RXMsg.dataA[2]){
-					case 0x00:
-						switch(RXMsg.dataA[3]){
-							case 0x05:
-								xprintf("cp");
-								//pause
-								break;
-							case 0x03:
-								xprintf("cv+");
-								//vol up
-								break;
-							case 0x04:
-								xprintf("cv-\r");
-								//vol down
-								break;
-							case 0x01:
-								xprintf("cs+\r");
-								//Sou Right
-								break;
-							case 0x02:
-								xprintf("cs-\r");
-								flags.source_change = 1;
-								//Sou Left
-								break;
-							case 0x0A:
-								xprintf("ce\r");
-								flags.source_change = 1;
-								//Enter
-								break;
-						}
-						break;
-					case 0x01:
-						switch(RXMsg.dataA[3]){
-							case 0x41:
-								xprintf("ct-\r");
-								//Track back
-								break;
-							case 0x01:
-								xprintf("ct+\r");
-								//Track next
-								break;
-						}
-						break;
-				}
-				//exec_usart_cmd("t49Aetc");
-				break;
-			case 0x49A: // Ok from remote recieved
-				flags.recieved_49A = true;
-				break;
-			default:
-				xprintf("ID not found.\r");
-				break;
-		}
-		if(flags.source_change){
-			source_selected++;
-			if(source_selected == number_of_sources)
-				source_selected = 1;
-			switch(source_selected){
-				case CD:
-					xprintf("CD\r");
-					break;
-				case IPOD:
-					xprintf("IPOD\r");
-					break;
-				case PC:
-					xprintf("PC\r");
-					break;
-			}
-			xprintf(" selected.\r");
-			flags.source_change = 0;
-		}
-/*
-		comm_put(CAN_rx_msg.len);
-		for (i = 0; i < CAN_rx_msg.len; i++)
-			usart_byte2ascii (CAN_rx_msg.data_bytes[i]);
-		comm_put(CR);
-*/
-		CLEARBIT(CAN_flags, MSG_WAITING);
-	}
-#ifndef IPOD_ENABLE
-	unsigned char 	ScreenText[10],
-					IBCopy = 0,
-					CompleteLength = 0,
-					ScreenTextStart = 0,
-					last_key=0x00;
-
-	if(ReturnScreen&&(!ButtomPressed)&&(!RecieveComplete)){
-		InitScreen(0x121, "", 0, RETURN_STRING);
-//		xprintf("init2");
-	}
-	if(RecieveComplete&&(!ButtomPressed)){
-		for (IBCopy = 0; IBCopy <= 7*5; IBCopy++){
-			//if 0x01 indicates this is the start of the screen ascii
-			if (ScreenTempData[IBCopy] == 0x01){
-				ScreenTextStart = IBCopy+1;
-				//copy screen text into buffer
-				for(uint32_t t=0; t<4; t++){
-					ScreenText[t] = ScreenTempData[ScreenTextStart+t];
-					ScreenText[t+1] = NULL;
-				}
-				break;
-			}
-		}
-		for (IBCopy = 0; IBCopy <= 7*5; IBCopy++){
-			//if 0x0081 indicates this is the end of transmission
-			if ((ScreenTempData[IBCopy] == 0x00)&&(ScreenTempData[IBCopy+1]==0x81)){
-				CompleteLength = IBCopy;
-				break;
-			}
-		}
-
-		//Check for Aux
-		if( strncmp(ScreenText,"AUX",3) == 0){
-			if((Source==REMOTE_AUX)||(Source==REMOTE_TRAFFIC)||(Source==REMOTE_PAUSE)){
-				InitScreen( 0x121, "", 0, RETURN_STRING);
-//				xprintf("init1");
-			}
-			else {
-				if (last_key=='-')
-					source_selected = number_of_sources;
-				else if (last_key=='+'){
-					source_selected = 1;
-				}
-				// first use
-				else {
-					//_delay_ms(20);
-					source_selected = 1;
-				}
-				source_change = 1;
-			}
-			Source = REMOTE_AUX;
-				//ipod_control(BUTTON_PLAY_ONLY);
-//				ipod_control(BUTTON_PLAY_PAUSE);
-		}
-///*
-		else if( strncmp(ScreenText,"CD ",3) == 0){
-			Source = REMOTE_CD;
-//			ipod_control(BUTTON_STOP_ONLY);
-		}
-		else if( strncmp(ScreenText,"FM ",3) == 0){
-			Source = REMOTE_RADIO;
-//			ipod_control(BUTTON_STOP_ONLY);
-		}
-		else if( strncmp(ScreenText,"MW ",3) == 0){
-			Source = REMOTE_RADIO;
-//			ipod_control(BUTTON_STOP_ONLY);
-		}
-//*/
-		else if( strncmp(ScreenText,"TRA",3) == 0){
-			Source = REMOTE_TRAFFIC;
-//			ipod_control(BUTTON_STOP_PAUSE);
-		}
-		else if( strncmp(ScreenText," PA",3) == 0){
-			Source = REMOTE_PAUSE;
-//			ipod_control(BUTTON_STOP_PAUSE);
-		}
-		else{
-			//Source = RADIO;
-			//xprintf("R fd");
-			Source = REMOTE_RADIO;
-//			ipod_control(BUTTON_STOP_ONLY);
-		}
-		renault_debug_print();
-		RecieveComplete = 0;
-	}
-	if(ButtomPressed){
-		// Remote pressed
-		xprintf("Key Seen\r\n");
-		switch(ButtonTempData[0]){
-			case 0x00:
-				switch(ButtonTempData[1]){
-					case 0x01: //Source Right t0A9803890001A2A2A2A2
-						xprintf("Source Next\r\n");
-						if (Source==REMOTE_AUX)
-							source_change ='+';
-						last_key='+';
-						break;
-					case 0x02: //Source Left t0A9803890002A2A2A2A2
-						xprintf("Source Prev\r\n");
-						if (Source==REMOTE_AUX)
-							source_change='-';
-						last_key='-';
-						break;
-					case 0x03: //vol up t0A9803890003A2A2A2A2
-						xprintf("Volume Up\r\n");
-						break;
-					case 0x04: //vol down t0A9803890004A2A2A2A2
-						xprintf("Volume Down\r\n");
-						break;
-					case 0x05: //pause t0A9805890005A2A2A2A2
-//						xprintf("Pause\r\n");
-						//if (Source==REMOTE_PAUSE){
-						//	ipod_control(BUTTON_PLAY_PAUSE);
-						//	Source=REMOTE_AUX;
-						//}
-						//usart_puts_1(IPOD_PLAY_PAUSE);
-						break;
-					case 0x00: // t0A9803890000A2A2A2A2
-					case 0x0A: // t0A980389000AA2A2A2A2 Enter (IPOD PLAY/PAUSE)
-//						xprintf("Play Pause\r\n");
-						if (Source == REMOTE_AUX){
-							//usart_byte2ascii(IpodStatus);
-							if((source_selected==IPOD)||(source_selected==PC)){
-//								ipod_button(IPOD_PLAY_PAUSE);
-								xprintf("PLAY/PAUSE\r\n");
-								InitScreen( 0x121, "Play/Pau", 0, TEMP_STRING);
-								delay_ms(500);
-								InitScreen( 0x121, "ay/Pause", 0, TEMP_STRING);
-								delay_ms(100);
-								//ipod_control(BUTTON_PLAYPAUSE_TOGGLE);
-							}
-							if(source_selected==KEYBOARD){
-								//usart_putc(current_key_keyboard);
-							}
-							else {
-							}
-						}
-						break;
-					default:
-						break;
-				}
-				break;
-			case 0x01:
-				switch(ButtonTempData[1]){
-					case 0x01: //Track next t0A9803890101A2A2A2A2
-						xprintf("Track Next\r\n");
-						//usart_puts_1(IPOD_NEXT);
-						if (Source == REMOTE_AUX){
-							if(source_selected==IPOD){
-								InitScreen( 0x121, "Track +", 0, TEMP_STRING);
-								ipod_control(BUTTON_NEXT);
-							}
-							else if(source_selected==KEYBOARD){
-//								keyboard_key('+');
-							}
-							else{
-								InitScreen(0x121, "Track +", 0, TEMP_STRING);
-							}
-						}
-						break;
-					case 0x41: //Track back t0A9803890141A2A2A2A2
-						xprintf("Track Prev\r\n");
-						//usart_puts_1(IPOD_PREV);
-						if (Source == REMOTE_AUX){
-							if(source_selected==IPOD){
-								ipod_control(BUTTON_PREV);
-								InitScreen(0x121, "Track -", 0, TEMP_STRING);
-							}
-							else if(source_selected==KEYBOARD){
-								keyboard_key('-');
-							}
-							else{
-								InitScreen(0x121, "Track -", 0, TEMP_STRING);
-							}
-						}
-						break;
-					default:
-						break;
-				}
-				break;
-			default:
-				break;
-		}
-		ButtomPressed--;
-	}
-#endif
-#ifndef nothing
-	if(((source_change==1)||(source_change=='+')||(source_change=='-'))&&(Source==REMOTE_AUX)){
-		if(source_change=='+'){
-			source_selected++;
-			if(source_selected==(number_of_sources+1)){
-				source_selected=0;
-				source_change=0;
-			}
-			else
-				send_source_change('-');
-		}
-		else if(source_change=='-'){
-			source_selected--;
-			if(source_selected==0){
-				source_change=0;
-			}
-			else
-				send_source_change('+');
-		}
-		else{
-		}
-		if(source_change){
-			switch(source_selected){
-				case IPOD:
-					InitScreen(0x121, "PHONE", 0, NEW_STRING);
-					break;
-				case PC:
-					InitScreen(0x121, "PC", 0, NEW_STRING);
-					break;
-				case KEYBOARD:
-					InitScreen(0x121, "KB", 0, NEW_STRING);
-					break;
-				default:
-					break;
-			}
-		}
-		source_change = 0;
-	}
-#endif
+	Screen_loop();
 #endif
 }
 
@@ -1157,19 +748,21 @@ void CAN_IRQHandler(){
 	/* Get CAN status */
 	InterruptStatus = CAN_GetCTRLStatus(LPC_CAN2, CANCTRL_STS);
 	//check receive buffer status
-	xprintf("Received buffer:\r");
+//	xprintf("Received buffer:\r");
 	if((InterruptStatus>>0)&0x01){
 		CAN_ReceiveMsg(LPC_CAN2,&RXMsg);
-		PrintMessage(&RXMsg);
+		SETBIT(CAN_flags, MSG_WAITING);
+//		PrintMessage(&RXMsg);
 //		SETBIT(CAN_flags, MSG_WAITING);
 	}
+	Screen_Interrupt();
 }
 
 void PrintMessage(CAN_MSG_Type* CAN_Msg){
-	xprintf("Message ID:     %8x\r",(unsigned int)CAN_Msg->id);
-	xprintf("Message length: %8x BYTES\r",CAN_Msg->len);
-	xprintf("Message type:   %s\r",CAN_Msg->type==DATA_FRAME ? "DATA FRAME\r" : "REMOTE FRAME\r");
-	xprintf("Message format: %s\r",CAN_Msg->format==STD_ID_FORMAT ? "STANDARD ID FRAME FORMAT\r" : "EXTENDED ID FRAME FORMAT\r");
-	xprintf("Message dataA:  %8x\r",(CAN_Msg->dataA[0])|(CAN_Msg->dataA[1]<<8)|(CAN_Msg->dataA[2]<<16)|(CAN_Msg->dataA[3]<<24));
-	xprintf("Message dataB:  %8x\r",(CAN_Msg->dataB[0])|(CAN_Msg->dataB[1]<<8)|(CAN_Msg->dataB[2]<<16)|(CAN_Msg->dataB[3]<<24));
+	xprintf("Message ID:     %8x\r\n",(unsigned int)CAN_Msg->id);
+	xprintf("Message length: %8x BYTES\r\n",CAN_Msg->len);
+	xprintf("Message type:   %s\r\n",CAN_Msg->type==DATA_FRAME ? "DATA FRAME\r" : "REMOTE FRAME\r");
+	xprintf("Message format: %s\r\n",CAN_Msg->format==STD_ID_FORMAT ? "STANDARD ID FRAME FORMAT\r" : "EXTENDED ID FRAME FORMAT\r");
+	xprintf("Message dataA:  %8x\r\n",(CAN_Msg->dataA[0])|(CAN_Msg->dataA[1]<<8)|(CAN_Msg->dataA[2]<<16)|(CAN_Msg->dataA[3]<<24));
+	xprintf("Message dataB:  %8x\r\n",(CAN_Msg->dataB[0])|(CAN_Msg->dataB[1]<<8)|(CAN_Msg->dataB[2]<<16)|(CAN_Msg->dataB[3]<<24));
 }

@@ -78,11 +78,15 @@
 #define MSG_WAITING       0x0002	// set if Rx message is waiting
 
 //register bits
-#define BUS_ON_REG            (1<<4)	// set if CAN controller is in oper mode
-#define TX_BUSY_REG           (1<<5)	// set if transmit is in progress
+#define TX_COMPLETE_BIT       (1<<3)    // set if tx complete
+#define BUS_ON_BIT            (1<<4)	// cleared if CAN controller is in oper mode
+#define TX_BUSY_BIT           (1<<5)	// set if transmit is in progress
 
-#define CANBUS_ON() (!(CAN_GetCTRLStatus(LPC_CAN2, CANCTRL_GLOBAL_STS)&(BUS_ON_REG))) //0 for Bus-On
-#define TX_BUSY() (!(CAN_GetCTRLStatus(LPC_CAN2, CANCTRL_GLOBAL_STS)&(TX_BUSY_REG))) //0 for idle
+#define CANBUS_ON() (!(CAN_GetCTRLStatus(LPC_CAN2, CANCTRL_GLOBAL_STS)&(BUS_ON_BIT)))
+#define TX_BUSY() ((CAN_GetCTRLStatus(LPC_CAN2, CANCTRL_GLOBAL_STS)&(TX_BUSY_BIT)))
+#define TX_IDLE() (!(CAN_GetCTRLStatus(LPC_CAN2, CANCTRL_GLOBAL_STS)&(TX_BUSY_BIT)))
+#define TX_COMPLETE() ((CAN_GetCTRLStatus(LPC_CAN2, CANCTRL_GLOBAL_STS)&(TX_COMPLETE_BIT)))
+
 
 
 /*
@@ -98,29 +102,6 @@
 */
 #define CMD_BUFFER_LENGTH  30
 
-volatile uint16_t CAN_flags;	// diverse CAN flags
-volatile uint8_t CAN_MSG_RXED;
-
-
-unsigned char source_selected;
-#define CD 1
-#define IPOD 2
-#define PC 3
-#define KEYBOARD 4
-#define number_of_sources 3 // number of sources + 1
-
-//*** Global variables ***
-volatile struct {                   // use a bit field as flag store
-unsigned char usart_recieve_complete :	1 ; // signals a send of completed packet
-unsigned char can_usart_recieve_complete:1;
-unsigned char release_key_required :	1 ; // used to release a key
-unsigned char pressed_key_required :	1 ; // used to press a key
-unsigned char source_change :			1 ; // source changed
-unsigned char recieved_521 :			1 ; // ok from 521 recieved (screen)
-unsigned char recieved_49A :			1 ; // ok from 49A recieved (remote)
-} flags;                            // declare as flag byte
-
-
 void CAN_init (void);
 uint8_t exec_usart_cmd (uint8_t * cmd_buf);
 uint8_t ascii2byte (uint8_t * val);
@@ -135,8 +116,6 @@ __attribute__ ((section (".eeprom")))
 */
 // copy of ee_time_stamp_status in SRAM to prevent unnecessary EEPROM access
      uint8_t ram_timestamp_status;
-
-
 
 
 

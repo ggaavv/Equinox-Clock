@@ -200,6 +200,7 @@ static const U8 abDescriptors[] = {
 static void BulkOut(U8 bEP, U8 bEPStatus)
 {
   int i, iLen;
+  uint8_t tmpc;
 
   if (_fifo_free(&rxfifo) < MAX_PACKET_SIZE)
   {
@@ -218,13 +219,14 @@ static void BulkOut(U8 bEP, U8 bEPStatus)
       ASSERT(FALSE);
       break;
     }
-	UART_LINE[UART_LINE_LEN++]=abBulkBuf[i];
-	if((abBulkBuf[i]=='\r')||(abBulkBuf[i]=='\n')){
+    tmpc = abBulkBuf[i];
+	UART_LINE[UART_LINE_LEN++]=tmpc;
+	if((tmpc=='\r')||(tmpc=='\n')){
 		LINE_READY = 1;
 		UART_LINE[UART_LINE_LEN-1]='\0';
 		UART_LINE_LEN=0;
 	}
-//	xprintf(INFO "abBulkBuf[i]=%c",abBulkBuf[i]);FFL_();
+//	xprintf(INFO "abBulkBuf[i]=%c,tmpc=%c,UART_LINE=%s",abBulkBuf[i],tmpc,UART_LINE);FFL_();
   }
 }
 

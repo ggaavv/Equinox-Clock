@@ -370,7 +370,7 @@ uint8_t exec_usart_cmd (uint8_t * cmd_buf)
             // send 11bit ID message
         case SEND_R11BIT_ID:
             // check if CAN controller is in reset mode or busy
-            if (!CHECKBIT (CAN_flags, BUS_ON) || CHECKBIT (CAN_flags, TX_BUSY))
+            if (!CHECKBIT (CAN_flags, BUS_ON) || CHECKBIT (CAN_flags, TX_IDLE))
                 return ERROR;
             // check valid cmd length (only 5 bytes for RTR)
             if (cmd_len != 5)
@@ -394,7 +394,7 @@ uint8_t exec_usart_cmd (uint8_t * cmd_buf)
 
         case SEND_11BIT_ID:
             // check if CAN controller is in reset mode or busy
-            if (!CHECKBIT (CAN_flags, BUS_ON) || CHECKBIT (CAN_flags, TX_BUSY))
+            if (!CHECKBIT (CAN_flags, BUS_ON) || CHECKBIT (CAN_flags, TX_IDLE))
 #ifdef USART_HELP_BUS
             {
             	usart_puts("ERR-Bus is not on or tx_busy.\n");
@@ -472,7 +472,7 @@ uint8_t exec_usart_cmd (uint8_t * cmd_buf)
             // send 29bit ID message
         case SEND_R29BIT_ID:
             // check if CAN controller is in reset mode or busy
-            if (!CHECKBIT (CAN_flags, BUS_ON) || CHECKBIT (CAN_flags, TX_BUSY))
+            if (!CHECKBIT (CAN_flags, BUS_ON) || CHECKBIT (CAN_flags, TX_IDLE))
                 return ERROR;
 
             if (cmd_len != 10)
@@ -505,7 +505,7 @@ uint8_t exec_usart_cmd (uint8_t * cmd_buf)
 
         case SEND_29BIT_ID:
             // check if CAN controller is in reset mode or busy
-            if (!CHECKBIT (CAN_flags, BUS_ON) || CHECKBIT (CAN_flags, TX_BUSY))
+            if (!CHECKBIT (CAN_flags, BUS_ON) || CHECKBIT (CAN_flags, TX_IDLE))
                 return ERROR;
 
             if ((cmd_len < 10) || (cmd_len > 26))

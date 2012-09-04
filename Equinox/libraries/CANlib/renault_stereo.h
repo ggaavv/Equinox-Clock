@@ -57,9 +57,7 @@
 #define TEMP_STRING 0x54
 #define RETURN_STRING 0x58
 
-#define BUTTON_TIMEOUT_HIGH 30
-#define BUTTON_TIMEOUT_LOW  100	// milliseconds to indicate CAN traffic or Error
-#define BUTTON_TIMEOUT_TCNT_VALUE (255-(unsigned char)((unsigned long)(BUTTON_TIMEOUT_LOW*1000L) / (1000000L / (float)((unsigned long)MCU_XTAL / 1024L))))
+#define BUTTON_TIMEOUT 500
 
 //                                            | 0x10                                           | 0x21                                      | 0x22                                      | 0x23                                        | 0x24                                          |
 //unsigned char DefaultScreenString[4][8] =  { {0x10, 0x19, 0x76, 0x60, 0x01,  ' ',  'I',  'P'}, {0x21, 'O', 'D', ' ', ' ', ' ', 0x10, ' '}, {0x22, ' ',  ' ', 'I', 'P', 'O', 'D', ' '}, {0x23, ' ', ' ', ' ', ' ', 0x00, 0x81, 0x81 }};
@@ -91,12 +89,12 @@ struct {
     uint32_t ID;		    // Frame ID
 } Screen_tx;			      //
 
+
 //unsigned char ScreenLitData[12];
 //unsigned char ScreenAsciiData[34];
 //unsigned char ScreenSendPackets[5][8];
 unsigned char PrevScreenText[10];
 unsigned char Source;
-volatile unsigned char ReturnScreen;
 volatile unsigned int ScreenTimeoutCounter;
 volatile unsigned int OffTimeout;
 volatile unsigned char ScreenTempData[36];
@@ -106,17 +104,26 @@ volatile unsigned char ButtomPressed;
 volatile unsigned char source_change;
 volatile unsigned char ButtonTempData[2];
 
+unsigned char source_selected;
+#define CD 1
+#define IPOD 2
+#define PC 3
+#define KEYBOARD 4
+#define number_of_sources 3 // number of sources + 1
+
 // Functions prototypes
 void ScreenTimeout_init ( void);
 void ipod_button(char *key);
 void ipod_control(unsigned char key);
-ISR(TIMER2_OVF_vect);
+void Screen_init ( void );
+unsigned char SendToScreen ( unsigned int SendId,
+			char * String,
+			unsigned char ScreenIcons,
+			unsigned char Command);
 unsigned char SendScreen ( void );
-unsigned char InitScreen ( unsigned int SendId, 
-									char * String, 
-									unsigned char ScreenIcons, 
-									unsigned char tempstring);
 uint8_t send_source_change(char dir);
+void Screen_loop( void );
+void Screen_Interrupt( void );
 void renault_debug_print( void );
 
 

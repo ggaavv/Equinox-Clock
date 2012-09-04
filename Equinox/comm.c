@@ -18,6 +18,7 @@
 #include "ShiftPWM.h"
 #include "lpc17xx_wdt.h"
 #include "lpc17xx_rtc.h"
+#include "renault_stereo.h"
 
 
 #define USER_FLASH_START 0x3000 // For USB bootloader
@@ -74,20 +75,21 @@ __IO FlagStatus TxIntStat;
 void exec_cmd(char *cmd){
 	comm_flush();
 	usb_flush();
+//	xprintf(INFO "Executing %s", cmd);FFL_();
 	if(stricmp(cmd,"a")==0){
 		xprintf(INFO "test can send");FFL_();
 		exec_usart_cmd("t12381122334455667788");
 	}
-	if(stricmp(cmd,"bl")==0){
-		xprintf(INFO "resetting to bootloader in 5 seconds");FFL_();
+	else if(stricmp(cmd,"bl")==0){
+		xprintf(INFO "reset to bootloader in 5 ");
 		delay_ms(1000);
-		xprintf(INFO "resetting to bootloader in 4 seconds");FFL_();
+		xprintf("4 ");
 		delay_ms(1000);
-		xprintf(INFO "resetting to bootloader in 3 seconds");FFL_();
+		xprintf("3 ");
 		delay_ms(1000);
-		xprintf(INFO "resetting to bootloader in 2 seconds");FFL_();
+		xprintf("2 ");
 		delay_ms(1000);
-		xprintf(INFO "resetting to bootloader in 1 seconds");FFL_();
+		xprintf("1 ");FFL_();
 		delay_ms(1000);
 
 		SCB->VTOR = (BOOTLOADER_START & 0x1FFFFF80);
@@ -96,7 +98,10 @@ void exec_cmd(char *cmd){
 		WDT_Start(1);
 		NVIC_EnableIRQ(WDT_IRQn);
 	}
-	if(stricmp(cmd,"ct")==0){
+	else if(stricmp(cmd,"bt")==0){
+		xprintf("TASKER:PAUSE\r\n");
+	}
+	else if(stricmp(cmd,"ct")==0){
 		xprintf(INFO "sending t0A9803890004A2A2A2A2 (v+)");FFL_();
 		if(exec_usart_cmd("t0A9803890004A2A2A2A2")==CR)
 			xprintf(INFO "sending successful");
@@ -112,36 +117,47 @@ void exec_cmd(char *cmd){
 		xprintf(INFO "q");FFL_();
 	}
 	else if(stricmp(cmd,"rs")==0){
-		xprintf(INFO "reseting in 5 seconds");FFL_();
+		xprintf(INFO "reset in 5 ");
 		delay_ms(1000);
-		xprintf(INFO "reseting in 4 seconds");FFL_();
+		xprintf("4 ");
 		delay_ms(1000);
-		xprintf(INFO "reseting in 3 seconds");FFL_();
+		xprintf("3 ");
 		delay_ms(1000);
-		xprintf(INFO "reseting in 2 seconds");FFL_();
+		xprintf("2 ");
 		delay_ms(1000);
-		xprintf(INFO "reseting in 1 seconds");FFL_();
+		xprintf("1 ");FFL_();
 		delay_ms(1000);
 		WDT_Init(WDT_CLKSRC_IRC, WDT_MODE_RESET);
 		WDT_Start(1);
 		while(1);//lockup, wdt will reset board
 		//WDT_ClrTimeOutFlag();
 	}
+	else if(stricmp(cmd,"s")==0){
+		SendToScreen(0x121, "TEST", 0, NEW_STRING);
+		xprintf(INFO "send \"TEST\" to screen");FFL_();
+	}
+	else if(stricmp(cmd,"s")==0){
+		SendToScreen(0x121, "TEST", 0, NEW_STRING);
+		xprintf(INFO "send \"TEST\" to screen");FFL_();
+	}
 	else if(stricmp(cmd,"")==0){
 		xprintf(INFO "\n"
+				"a-test can send\n"
 				"bl-Resets to bootloader\n"
 				"ct-CAN test\n"
 				"lt-LED test"
 				"rs-Resets board\n"
+				"s-send \"TEST\" to screen\n"
 				"t-send CAN message with 11bit ID\n"
+				"bt-tasker test\n"
 				//COMMANDS
 				);FFL_();
 	}
 	else{
 		if(exec_usart_cmd(cmd)==CR)
-			xprintf(INFO "successful");
+			xprintf("\r\n" INFO "successful");
 		else
-			xprintf(INFO "not successful");
+			xprintf("\r\n" INFO "failed");
 		FFL_();
 //		xprintf(INFO "Command not found (cmd=%s)",cmd);FFL_();
 	}

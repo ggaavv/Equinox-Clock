@@ -52,9 +52,9 @@ int serial_rxchars()
 uint8_t serial_popchar()
 {
   uint8_t c = 0;
-	LINE_READY = 0;
-	UART_LINE_LEN=0;
-	UART_LINE[0]='\0';
+//	LINE_READY = 0;
+//	UART_LINE_LEN=0;
+//	UART_LINE[0]='\0';
 
   fifo_get(&rxfifo, &c);
 
