@@ -44,6 +44,7 @@ extern "C" {
 	#include "lpc17xx_nvic.h"
 	#include "lpc17xx_systick.h"
 	#include "lpc17xx_rtc.h"
+	#include "lpc17xx_wdt.h"
 	#include "debug_frmwrk.h"
 	#include "sys_timer.h"
 	#include "serial.h"
@@ -160,6 +161,10 @@ int main(void){
 	//Debug functions output to com1/8n1/115200
 //	debug_frmwrk_init();//_DBG("[OK]-debug_frmwrk_init()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\n");
 
+	//Start Watchdog timer 30 sec
+//	WDT_Init (WDT_CLKSRC_RTC, WDT_MODE_RESET);
+//	WDT_Start(30000000);
+
 	// Initialize USB<->Serial
 	serial_init();xprintf(OK "serial_init()");FFL_();
 //	uart_writestr("[OK]-uart_Start");
@@ -271,6 +276,8 @@ int main(void){
 	int hue, sat, val;
 	unsigned char red, green, blue;
 	for (;;){
+		//Reset Watchdog timer (30sec)
+//		WDT_UpdateTimeOut(30);
 
 #ifndef DEV
 		// Wifi Loop

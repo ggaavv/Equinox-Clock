@@ -9,6 +9,7 @@
 #include "comm.h"
 #include "canlib.h"
 
+
 #include "lpc17xx_uart.h"
 #include "lpc17xx_pinsel.h"
 #include "lpc17xx_gpio.h"
@@ -111,29 +112,25 @@ void exec_cmd(char *cmd){
 		FFL_();
 	}
 	else if ( stricmp(cmd,"ps") == 0){
+		//Reset Watchdog timer (1min)
+//		WDT_UpdateTimeOut(60);
+
 		uint32_t pot = 0;
+		char t;
 		//get 3 decimal chars
-		xprintf(INFO "enter number between 0 and 127\r\n");FFL();
+		xprintf(INFO "enter number between 0 and 127");FFL_();
+
 		while(1){
-			for(uint32_t i=0,t;i<3;i++){
-				while(1){
-					t = xgetc();
-					if((t>0x2F)&&(t<0x3A)){
-						xprintf("%c",t);
-						pot += t-0x30;
-						break;
-					}
-					else{
-						xprintf(ERR "decimal please\r\n");FFL();
-					}
-				}
+			LINE_READY=0;
+			while(!LINE_READY){
 			}
+			pot = atoi (UART_LINE);
 			if(pot<=0x7f)
 				break;
 			else
-				xprintf(ERR "less than 128 please\r\n");FFL();
+				xprintf(ERR "less than 128 please");FFL_();
 		}
-		xprintf(INFO "setting pot to %x",pot);FFL();
+		xprintf(INFO "setting pot to 0x%x",pot);FFL_();
 		setPot();
 	}
 	else if(stricmp(cmd,"lt")==0){
@@ -160,12 +157,12 @@ void exec_cmd(char *cmd){
 		//WDT_ClrTimeOutFlag();
 	}
 	else if(stricmp(cmd,"s")==0){
-		SendToScreen(0x121, "TEST", 0, NEW_STRING);
 		xprintf(INFO "send \"TEST\" to screen");FFL_();
+		SendToScreen(0x121, "TEST", 0, NEW_STRING);
 	}
 	else if(stricmp(cmd,"s")==0){
-		SendToScreen(0x121, "TEST", 0, NEW_STRING);
 		xprintf(INFO "send \"TEST\" to screen");FFL_();
+		SendToScreen(0x121, "TEST", 0, NEW_STRING);
 	}
 	else if(stricmp(cmd,"")==0){
 		xprintf(INFO "\n"

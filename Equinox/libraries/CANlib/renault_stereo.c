@@ -274,6 +274,7 @@ void Screen_init ( void ){
 	ScreenTextStart = 0;
 	last_key = 0;
 	Source = 0;
+	SourceTemp = 0;
 	ScreenTimeoutCounter = 0;
 	OffTimeout = 0;
 	RecieveComplete = 0;
@@ -306,7 +307,7 @@ unsigned char SendToScreen ( unsigned int SendId,
  									unsigned char ScreenIcons,
  									unsigned char Command){
 
-	if ((SourceTemp!=REMOTE_PAUSE)&&(SourceTemp!=REMOTE_TRAFFIC)){
+	if ((SourceTemp==REMOTE_PAUSE)||(SourceTemp==REMOTE_TRAFFIC)){
 		DISPLAY_TIMEOUT = -1;
 		return ERROR;
 	}
@@ -321,8 +322,8 @@ unsigned char SendToScreen ( unsigned int SendId,
  	strlcpy(temp_string, String, 9);
  	strlcat(temp_string, Spaces, 9);
 
- 	xprintf(INFO "Screen Was - %s\r\n",String);FFL();
- 	xprintf(INFO "Now Sending - %s\r\n",temp_string);FFL();
+ 	xprintf(INFO "Screen Was - %s",String);FFL_();
+ 	xprintf(INFO "Now Sending - %s",temp_string);FFL_();
 
  	//
  	// Copy relevant string to screen buffer
@@ -421,7 +422,7 @@ unsigned char SendScreen ( void ){
 			if(RXMsg.id=0x521);
 				break;
 			if(Timeout==1){
-				xprintf(ERR "RXMsg.id=0x521 Not seen");FFL();
+				xprintf(ERR "RXMsg.id=0x521 Not seen");_FFL();
 				//continue on timeout (non blocking)
 				break;
 				//return ERROR;
@@ -687,7 +688,7 @@ void Screen_loop( void ){
 					case 0x01: //Track next t0A9803890101A2A2A2A2
 						xprintf("Track Next\r\n");
 						//usart_puts_1(IPOD_NEXT);
-						if ((Source == REMOTE_AUX)&&(SourceTemp!=REMOTE_PAUSE)&&(SourceTemp!=REMOTE_TRAFFIC)){
+						if ((Source == REMOTE_AUX)&&((SourceTemp!=REMOTE_PAUSE)||(SourceTemp!=REMOTE_TRAFFIC))){
 							xprintf("TASKER:NEXT\r\n");
 #if 0
 							if(source_selected==PHONE){
@@ -708,7 +709,7 @@ void Screen_loop( void ){
 					case 0x41: //Track back t0A9803890141A2A2A2A2
 						xprintf("Track Prev\r\n");
 						//usart_puts_1(IPOD_PREV);
-						if ((Source == REMOTE_AUX)&&(SourceTemp!=REMOTE_PAUSE)&&(SourceTemp!=REMOTE_TRAFFIC)){
+						if ((Source == REMOTE_AUX)&&((SourceTemp!=REMOTE_PAUSE)||(SourceTemp!=REMOTE_TRAFFIC))){
 							xprintf("TASKER:PREV\r\n");
 #if 0
 							if(source_selected==PHONE){
@@ -952,7 +953,7 @@ void renault_debug_print( void ) {
 		xprintf("Screen Txt Start - %x\r\n",ScreenTextStart);
 	}
 	if(SendDebugHex){
-//		xprintf("0x");
+		xprintf("0x");
 		for(IBCopy = StartOfMessage; IBCopy < ScreenTextStart-1; IBCopy++){
 			//usart_byte2ascii(ScreenTempData[IBCopy]);
 			xprintf("%x",ScreenTempData[IBCopy]);

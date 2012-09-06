@@ -103,7 +103,7 @@
 #define CMD_BUFFER_LENGTH  30
 
 void CAN_init (void);
-void CheckForCANErr(void);
+uint32_t CheckForCANErr(void);
 uint32_t WaitForID(uint32_t id, uint32_t timeout);
 uint8_t exec_usart_cmd (uint8_t * cmd_buf);
 uint8_t ascii2byte (uint8_t * val);

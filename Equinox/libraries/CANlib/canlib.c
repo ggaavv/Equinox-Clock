@@ -128,13 +128,13 @@ void CAN_init (void){
 }
 
 // check if CAN controller is in reset mode or busy
-void CheckForCANErr(void){
+uint32_t CheckForCANErr(void){
 	if (!CANBUS_ON()){
-		xprintf(ERR "CANTX not On\r\n");FFL();
+		xprintf(ERR "CANTX not On");FFL_();
 		return ERROR;
 	}
 	if (!TX_IDLE()){
-		xprintf(ERR "CANTX Busy\r\n");FFL();
+		xprintf(ERR "CANTX Busy");FFL_();
 		return ERROR;
 	}
 	return CR;
@@ -143,13 +143,17 @@ void CheckForCANErr(void){
 uint32_t WaitForID(uint32_t id, uint32_t timeout){
 	//continue on timeout (non blocking)
 	if(timeout!=0){
-		for(;;timeout--){
-			if(RXMsg.id==id);
+		while(1){
+			if(RXMsg.id==id){
+				RXMsg.id = 0;
 				return CR;
+			}
 			if(timeout==0){
-				xprintf(ERR "RXMsg.id=%x Not seen",id);FFL();
+				xprintf(ERR "RXMsg.id=%x Not seen",id);FFL_();
 				return ERROR;
 			}
+			delay_ms(1);
+			timeout--;
 		}
 	}
 	//blocking wait
@@ -426,13 +430,13 @@ uint8_t exec_usart_cmd (uint8_t * cmd_buf){
             // check if CAN controller is in reset mode or busy
         	if (!CANBUS_ON()){
 #ifdef VERBOSE
-        		xprintf(ERR "CANTX not On\r\n");FFL();
+        		xprintf(ERR "CANTX not On");FFL_();
 #endif
         		return ERROR;
         	}
         	if (!TX_IDLE()){
 #ifdef VERBOSE
-        		xprintf(ERR "CANTX Busy\r\n");FFL();
+        		xprintf(ERR "CANTX Busy");FFL_();
 #endif
         		return ERROR;
         	}
