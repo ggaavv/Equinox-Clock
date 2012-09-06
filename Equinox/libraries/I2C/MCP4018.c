@@ -8,7 +8,25 @@
 #include "MCP4018.h"
 #include "lpc17xx_i2c.h"
 
+void setPot(uint32_t pot){
 
+	//max value
+	if( pot > 0x7f)
+		pot = 0x7f;
+
+	uint8_t Tx_Buf[3];
+	I2C_M_SETUP_Type transferMCfg;
+	transferMCfg.sl_addr7bit = MCP4018_ADDR;
+
+	Tx_Buf[0] = pot; // Write configuration reg to point register;
+	Tx_Buf[1] = 0;
+	transferMCfg.tx_data = Tx_Buf;
+	transferMCfg.tx_length = 1;
+	transferMCfg.rx_data = NULL;
+	transferMCfg.rx_length = 0;
+	transferMCfg.retransmissions_max = 3;
+	I2C_MasterTransferData(LPC_I2C1, &transferMCfg, I2C_TRANSFER_POLLING);
+}
 
 void MCP4018_set_reg(unsigned char tmpres)
 {

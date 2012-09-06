@@ -22,11 +22,12 @@
 //#define KEYBOARD 3
 #define number_of_sources 3
 
-#define SendScreenTxtStart 1
+#define SendScreenTxtStart 0
 #define SendDebugHex 1
 #define SendScreenAsciiData 1
 #define SendScreenTempData 1
 
+#define REMOTE_VOLUME 0xA1
 #define REMOTE_RADIO 0xA2
 #define REMOTE_AUX 0xA3
 #define REMOTE_TRAFFIC 0xA4
@@ -95,6 +96,7 @@ struct {
 //unsigned char ScreenSendPackets[5][8];
 unsigned char PrevScreenText[10];
 unsigned char Source;
+unsigned char SourceTemp;
 volatile unsigned int ScreenTimeoutCounter;
 volatile unsigned int OffTimeout;
 volatile unsigned char ScreenTempData[36];
@@ -105,8 +107,8 @@ volatile unsigned char source_change;
 volatile unsigned char ButtonTempData[2];
 
 unsigned char source_selected;
-#define CD 1
-#define IPOD 2
+#define PHONE 1
+#define CD 2
 #define PC 3
 #define KEYBOARD 4
 #define number_of_sources 3 // number of sources + 1

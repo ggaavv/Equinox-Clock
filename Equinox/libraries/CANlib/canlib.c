@@ -127,6 +127,38 @@ void CAN_init (void){
 	Screen_init();
 }
 
+// check if CAN controller is in reset mode or busy
+void CheckForCANErr(void){
+	if (!CANBUS_ON()){
+		xprintf(ERR "CANTX not On\r\n");FFL();
+		return ERROR;
+	}
+	if (!TX_IDLE()){
+		xprintf(ERR "CANTX Busy\r\n");FFL();
+		return ERROR;
+	}
+	return CR;
+}
+
+uint32_t WaitForID(uint32_t id, uint32_t timeout){
+	//continue on timeout (non blocking)
+	if(timeout!=0){
+		for(;;timeout--){
+			if(RXMsg.id==id);
+				return CR;
+			if(timeout==0){
+				xprintf(ERR "RXMsg.id=%x Not seen",id);FFL();
+				return ERROR;
+			}
+		}
+	}
+	//blocking wait
+	else{
+		while(RXMsg.id!=id)
+			;//wait (blocking)
+		return CR;
+	}
+}
 
 /*
 **---------------------------------------------------------------------------
@@ -645,7 +677,7 @@ uint8_t exec_usart_cmd (uint8_t * cmd_buf){
             // end with error on unknown commands
         default:
 #ifdef VERBOSE
-        	xprintf("ERR-Unrecognised command - %s",*cmd_buf_pntr);FFL_();
+        	xprintf(ERR "Unrecognised command");FFL_();
 #endif
             return ERROR;
     }				// end switch

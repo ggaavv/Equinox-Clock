@@ -318,7 +318,7 @@ SIGNAL (INT0_vect)
      */
     if ((temp_int_reg & _BV (TI_Bit)) == _BV (TI_Bit)) {
         // clear busy flag after successfull transmit
-        CLEARBIT (CAN_flags, TX_BUSY);
+        CLEARBIT (CAN_flags, TX_IDLE);
     }
 
 
@@ -409,7 +409,7 @@ SIGNAL (INT0_vect)
         // indicate bus error
         SETBIT (CAN_flags, BUS_ERROR);
         // clear busy flag on error, transmission aborted
-        CLEARBIT (CAN_flags, TX_BUSY);
+        CLEARBIT (CAN_flags, TX_IDLE);
     }
 
     /*

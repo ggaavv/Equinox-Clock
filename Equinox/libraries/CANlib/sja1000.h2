@@ -100,7 +100,7 @@ void write_CAN_reg (uint8_t reg, uint8_t data_byte);
 #define CAN_INIT          0x0001	// set if CAN controller is initalized
 #define MSG_WAITING       0x0002	// set if Rx message is waiting
 #define BUS_ON            0x0004	// set if CAN controller is in oper mode
-#define TX_BUSY           0x0008	// set if transmit is in progress
+#define TX_IDLE           0x0008	// set if transmit is in progress
 
 #define ERROR_WARNING     0x0400	// set if error warning was detected
 #define DATA_OVERRUN      0x0800	// set if data overrun was detected

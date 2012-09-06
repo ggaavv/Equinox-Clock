@@ -19,6 +19,7 @@
 #include "lpc17xx_wdt.h"
 #include "lpc17xx_rtc.h"
 #include "renault_stereo.h"
+#include "MCP4018.h"
 
 
 #define USER_FLASH_START 0x3000 // For USB bootloader
@@ -109,6 +110,32 @@ void exec_cmd(char *cmd){
 			xprintf(INFO "sending not successful");
 		FFL_();
 	}
+	else if ( stricmp(cmd,"ps") == 0){
+		uint32_t pot = 0;
+		//get 3 decimal chars
+		xprintf(INFO "enter number between 0 and 127\r\n");FFL();
+		while(1){
+			for(uint32_t i=0,t;i<3;i++){
+				while(1){
+					t = xgetc();
+					if((t>0x2F)&&(t<0x3A)){
+						xprintf("%c",t);
+						pot += t-0x30;
+						break;
+					}
+					else{
+						xprintf(ERR "decimal please\r\n");FFL();
+					}
+				}
+			}
+			if(pot<=0x7f)
+				break;
+			else
+				xprintf(ERR "less than 128 please\r\n");FFL();
+		}
+		xprintf(INFO "setting pot to %x",pot);FFL();
+		setPot();
+	}
 	else if(stricmp(cmd,"lt")==0){
 		xprintf(INFO "tests running");FFL_();
 		LED_test();
@@ -146,6 +173,7 @@ void exec_cmd(char *cmd){
 				"bl-Resets to bootloader\n"
 				"ct-CAN test\n"
 				"lt-LED test"
+				"ps-Pot set"
 				"rs-Resets board\n"
 				"s-send \"TEST\" to screen\n"
 				"t-send CAN message with 11bit ID\n"
