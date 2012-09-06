@@ -44,7 +44,7 @@ extern "C" {
 	#include "lpc17xx_nvic.h"
 	#include "lpc17xx_systick.h"
 	#include "lpc17xx_rtc.h"
-	#include "lpc17xx_wdt.h"
+//	#include "lpc17xx_wdt.h"
 	#include "debug_frmwrk.h"
 	#include "sys_timer.h"
 	#include "serial.h"
