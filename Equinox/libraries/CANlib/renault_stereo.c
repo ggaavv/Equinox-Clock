@@ -282,7 +282,7 @@ void Screen_init ( void ){
 	ButtomPressed = 0;
 	source_change = 0;
 	ScreenTimeout_init();
-
+	SendToScreen(0x121, "PHONE", 0, NEW_STRING);
 }
 /*
  **---------------------------------------------------------------------------
@@ -665,7 +665,7 @@ void Screen_loop( void ){
 //								ipod_button(IPOD_PLAY_PAUSE);
 								xprintf("ENTER\r\n");
 								xprintf("TASKER:PLAY/PAUSE\r\n");
-								SendToScreen( 0x121, "Pla/Paus", 0, TEMP_STRING);
+								SendToScreen( 0x121, "=/>", 0, TEMP_STRING);
 								//SendToScreen( 0x121, "Play/Pau", 0, TEMP_STRING);
 								//delay_ms(500);
 								//SendToScreen( 0x121, "ay/Pause", 0, TEMP_STRING);
@@ -690,6 +690,7 @@ void Screen_loop( void ){
 						//usart_puts_1(IPOD_NEXT);
 						if ((Source == REMOTE_AUX)&&((SourceTemp!=REMOTE_PAUSE)||(SourceTemp!=REMOTE_TRAFFIC))){
 							xprintf("TASKER:NEXT\r\n");
+							SendToScreen( 0x121, "Track +", 0, TEMP_STRING);
 #if 0
 							if(source_selected==PHONE){
 								xprintf("TASKER:NEXT\r\n");
@@ -711,6 +712,7 @@ void Screen_loop( void ){
 						//usart_puts_1(IPOD_PREV);
 						if ((Source == REMOTE_AUX)&&((SourceTemp!=REMOTE_PAUSE)||(SourceTemp!=REMOTE_TRAFFIC))){
 							xprintf("TASKER:PREV\r\n");
+							SendToScreen(0x121, "Track -", 0, TEMP_STRING);
 #if 0
 							if(source_selected==PHONE){
 								xprintf("TASKER:PREV\r\n");

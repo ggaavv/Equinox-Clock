@@ -20,7 +20,7 @@ void SysTick_Handler(void){
 	millis_ticks++;
 	USER_MILLIS++;
 
-	if(!DISPLAY_TIMEOUT){
+	if(DISPLAY_TIMEOUT>0){
 		DISPLAY_TIMEOUT--;
 	}
 

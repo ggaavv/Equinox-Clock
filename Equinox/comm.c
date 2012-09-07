@@ -78,7 +78,7 @@ void exec_cmd(char *cmd){
 	comm_flush();
 	usb_flush();
 //	xprintf(INFO "Executing %s", cmd);FFL_();
-	if(stricmp(cmd,"a")==0){
+	if(     stricmp(cmd,"a")==0){
 		xprintf(INFO "test can send");FFL_();
 		exec_usart_cmd("t12381122334455667788");
 	}
@@ -111,11 +111,52 @@ void exec_cmd(char *cmd){
 			xprintf(INFO "sending not successful");
 		FFL_();
 	}
-	else if ( stricmp(cmd,"ps") == 0){
+	else if(stricmp(cmd,"i2c")==0){
+		xprintf(INFO "scanning i2c");FFL_();
+		uint8_t Tx_Buf[3]={1,2,3};
+		uint8_t Rx_Buf[3]={1,2,3};
+		I2C_M_SETUP_Type transferMCfg;
+
+		for(uint8_t addr=0;addr<129;addr++){
+			transferMCfg.sl_addr7bit = addr;
+			transferMCfg.tx_data = Tx_Buf;
+			transferMCfg.tx_length = 1;
+			transferMCfg.rx_data = Rx_Buf;
+			transferMCfg.rx_length = 0;
+			transferMCfg.retransmissions_max = 1;
+			if(I2C_MasterTransferData(LPC_I2C1, &transferMCfg, I2C_TRANSFER_POLLING)==SUCCESS){
+				xprintf(INFO "I2C device found(w) @ 0x%x",addr);FFL_();
+			}
+			transferMCfg.tx_data = Tx_Buf;
+			transferMCfg.tx_length = 0;
+			transferMCfg.rx_data = Rx_Buf;
+			transferMCfg.rx_length = 1;
+			transferMCfg.retransmissions_max = 1;
+			if(I2C_MasterTransferData(LPC_I2C1, &transferMCfg, I2C_TRANSFER_POLLING)==SUCCESS){
+				xprintf(INFO "I2C device found(r) @ 0x%x",addr);FFL_();
+			}
+		}
+	}
+	else if(stricmp(cmd,"lt")==0){
+		xprintf(INFO "tests running");FFL_();
+		LED_test();
+	}
+	else if(stricmp(cmd,"p") == 0){
+		for(uint8_t pot = 0;pot<128;pot++){
+			xprintf(INFO "setting pot to 0x%x",pot);FFL_();
+			if(setPot(pot)==ERROR){
+				xprintf(ERR "Failed to set pot");FFL_();
+				break;
+			}
+			xprintf(INFO "(verify) pot=0x%x",readPot());FFL_();
+			delay_ms(150);
+		}
+	}
+	else if(stricmp(cmd,"ps") == 0){
 		//Reset Watchdog timer (1min)
 //		WDT_UpdateTimeOut(60);
 
-		uint32_t pot = 0;
+		uint8_t pot = 0;
 		char t;
 		//get 3 decimal chars
 		xprintf(INFO "enter number between 0 and 127");FFL_();
@@ -131,11 +172,9 @@ void exec_cmd(char *cmd){
 				xprintf(ERR "less than 128 please");FFL_();
 		}
 		xprintf(INFO "setting pot to 0x%x",pot);FFL_();
-		setPot();
-	}
-	else if(stricmp(cmd,"lt")==0){
-		xprintf(INFO "tests running");FFL_();
-		LED_test();
+		if(setPot(pot)==ERROR)
+			xprintf(ERR "Failed to set pot");FFL_();
+		xprintf(INFO "(verify) pot=0x%x",readPot());FFL_();
 	}
 	else if(stricmp(cmd,"q")==0){
 		xprintf(INFO "q");FFL_();
@@ -160,16 +199,14 @@ void exec_cmd(char *cmd){
 		xprintf(INFO "send \"TEST\" to screen");FFL_();
 		SendToScreen(0x121, "TEST", 0, NEW_STRING);
 	}
-	else if(stricmp(cmd,"s")==0){
-		xprintf(INFO "send \"TEST\" to screen");FFL_();
-		SendToScreen(0x121, "TEST", 0, NEW_STRING);
-	}
 	else if(stricmp(cmd,"")==0){
 		xprintf(INFO "\n"
 				"a-test can send\n"
 				"bl-Resets to bootloader\n"
 				"ct-CAN test\n"
+				"i2c-probei2c\n"
 				"lt-LED test\n"
+				"p-pot test\n"
 				"ps-Pot set\n"
 				"rs-Resets board\n"
 				"s-send \"TEST\" to screen\n"

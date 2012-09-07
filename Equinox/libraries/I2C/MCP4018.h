@@ -35,4 +35,6 @@
 #define MCP4018_MID 		0x3f
 #define MCP4018_MIN 		0x00
 
+Status setPot(uint8_t pot);
+
 #endif /* MCP4018_H_ */
