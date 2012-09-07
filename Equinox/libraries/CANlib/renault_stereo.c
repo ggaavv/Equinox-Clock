@@ -323,7 +323,7 @@ unsigned char SendToScreen ( unsigned int SendId,
  	strlcat(temp_string, Spaces, 9);
 
  	xprintf(INFO "Screen Was - %s",String);FFL_();
- 	xprintf(INFO "Now Sending - %s",temp_string);FFL_();
+ 	xprintf(INFO "Sending - %s",temp_string);FFL_();
 
  	//
  	// Copy relevant string to screen buffer
@@ -416,7 +416,7 @@ unsigned char SendScreen ( void ){
 		TXMsg.dataB[3] = *(ScreenText+(7+ScreenPacketNo));
 		// start normal transmission
 		CAN_SendMsg(LPC_CAN2, &TXMsg);
-		WaitForID(0x521, 5000);
+		WaitForID(0x521, 500);
 #if 0
 		for(Timeout=0xfff;Timeout>0x0;Timeout--){
 			if(RXMsg.id=0x521);
@@ -474,7 +474,7 @@ uint8_t send_source_change(char dir){
 	// start normal transmission
 //	CommandReg = _BV (TR_Bit);
 	CAN_SendMsg(LPC_CAN2, &TXMsg);
-	WaitForID(0x4A9, 5000);
+	WaitForID(0x4A9, 500);
 #if 0
 	for(Timeout=0xffff;Timeout>0x0;Timeout--){
 		if(wait_for_reply(0x4A9)==CR)
