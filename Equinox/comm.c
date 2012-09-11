@@ -77,7 +77,7 @@ __IO FlagStatus TxIntStat;
 void exec_cmd(char *cmd){
 	comm_flush();
 	usb_flush();
-//	xprintf(INFO "Executing %s", cmd);FFL_();
+	xprintf(INFO "Executing %s", cmd);FFL_();
 	if(     stricmp(cmd,"a")==0){
 		xprintf(INFO "test can send");FFL_();
 		exec_usart_cmd("t12381122334455667788");
@@ -136,12 +136,16 @@ void exec_cmd(char *cmd){
 				xprintf(INFO "I2C device found(r) @ 0x%x",addr);FFL_();
 			}
 		}
+		xprintf(INFO "end of i2c scan");FFL_();
 	}
 	else if(stricmp(cmd,"lt")==0){
-		xprintf(INFO "tests running");FFL_();
+		xprintf(INFO "led tests running");FFL_();
 		LED_test();
+		xprintf(INFO "led tests finished");FFL_();
 	}
 	else if(stricmp(cmd,"p") == 0){
+		SetRGB(1,0x7f,0x7f,0x7f);
+		calulateLEDMIBAMBits();
 		for(uint8_t pot = 0;pot<128;pot++){
 			xprintf(INFO "setting pot to 0x%x",pot);FFL_();
 			if(setPot(pot)==ERROR){
@@ -159,6 +163,9 @@ void exec_cmd(char *cmd){
 		uint8_t pot = 0;
 		char t;
 		//get 3 decimal chars
+
+		SetRGB(1,0x7f,0x7f,0x7f);
+		calulateLEDMIBAMBits();
 		xprintf(INFO "enter number between 0 and 127");FFL_();
 
 		while(1){
