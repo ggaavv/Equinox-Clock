@@ -58,7 +58,7 @@
 #define TEMP_STRING 0x54
 #define RETURN_STRING 0x58
 
-#define BUTTON_TIMEOUT 500
+#define BUTTON_TIMEOUT 1000
 
 //                                            | 0x10                                           | 0x21                                      | 0x22                                      | 0x23                                        | 0x24                                          |
 //unsigned char DefaultScreenString[4][8] =  { {0x10, 0x19, 0x76, 0x60, 0x01,  ' ',  'I',  'P'}, {0x21, 'O', 'D', ' ', ' ', ' ', 0x10, ' '}, {0x22, ' ',  ' ', 'I', 'P', 'O', 'D', ' '}, {0x23, ' ', ' ', ' ', ' ', 0x00, 0x81, 0x81 }};

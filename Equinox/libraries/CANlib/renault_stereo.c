@@ -35,7 +35,7 @@ unsigned char last_key;
 //unsigned char ScreenLitData[12];
 //unsigned char ScreenAsciiData[34];
 //unsigned char ScreenSendPackets[5][8];
-unsigned char PrevScreenText[10];
+unsigned char PrevScreenText[10]={'P','H','O','N','E'};
 unsigned char Source;
 volatile unsigned int ScreenTimeoutCounter;
 volatile unsigned int OffTimeout;
@@ -530,6 +530,7 @@ void Screen_loop( void ){
 		}
 
 		//Check for Aux
+		xprintf("ScreenText=|%s|\r\n");
 		if( strncmp(ScreenText,"AUX",3) == 0){
 			if(FirstScreen){
 				SendToScreen(0x121, "PHONE", 0, NEW_STRING);
@@ -951,7 +952,7 @@ send
 		case 0x0A9: // Button Pressed
 //			ButtonTempData[0] = RXMsg.dataA[2];
 //			ButtonTempData[1] = RXMsg.dataA[3];
-			ButtonTempFull = ( RXMsg.dataA[2] << 8 ) && RXMsg.dataA[3];
+			ButtonTempFull = ( RXMsg.dataA[2] << 8 ) || RXMsg.dataA[3];
 //			if(!(ButtonTempFull==0x000A))//enter button not pressed
 //				WaitingForScreen=1;
 			ButtomPressed=1;

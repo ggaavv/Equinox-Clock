@@ -722,7 +722,7 @@ uint8_t ascii2byte (uint8_t * val){
 
 // Main loop
 void CAN_loop(void){
-#if 0
+#if 1
 	uint8_t i;			// for loop counter
 	if (CHECKBIT(CAN_flags, MSG_WAITING)){
     	// check frame format
