@@ -722,7 +722,7 @@ uint8_t ascii2byte (uint8_t * val){
 
 // Main loop
 void CAN_loop(void){
-#if 1
+#if 0
 	uint8_t i;			// for loop counter
 	if (CHECKBIT(CAN_flags, MSG_WAITING)){
     	// check frame format
@@ -788,17 +788,69 @@ void CAN_IRQHandler(){
 	if((InterruptStatus>>0)&0x01){
 		CAN_ReceiveMsg(LPC_CAN2,&RXMsg);
 		SETBIT(CAN_flags, MSG_WAITING);
-//		PrintMessage(&RXMsg);
-//		SETBIT(CAN_flags, MSG_WAITING);
+		PrintMessage(&RXMsg);
 	}
 	Screen_Interrupt();
 }
 
 void PrintMessage(CAN_MSG_Type* CAN_Msg){
+#if 1
+	uint8_t i;			// for loop counter
+	if (CHECKBIT(CAN_flags, MSG_WAITING)){
+		// check frame format
+		if (RXMsg.format==STD_ID_FORMAT){
+			// Standart Frame
+			if(RXMsg.type==DATA_FRAME)
+				comm_put(SEND_11BIT_ID);// send command tag
+			else
+				comm_put(SEND_R11BIT_ID);
+			// send high byte of ID
+			if (((RXMsg.id >> 8) & 0x0F) < 10)
+				comm_put(((uint8_t) (RXMsg.id >> 8) & 0x0F) + 48);
+			else
+				comm_put(((uint8_t) (RXMsg.id >> 8) & 0x0F) + 55);
+			// send low byte of ID
+			xprintf("%x",(uint8_t) RXMsg.id & 0xFF);
+		}
+		else{
+			// Extented Frame
+			if (RXMsg.type==DATA_FRAME){
+				comm_put(SEND_29BIT_ID);
+			}		// send command tag
+			else
+				comm_put(SEND_R29BIT_ID);
+
+			xprintf("%x",(uint8_t) (RXMsg.id >> 24) & 0xFF);
+			xprintf("%x",(uint8_t) (RXMsg.id >> 16) & 0xFF);
+			xprintf("%x",(uint8_t) (RXMsg.id >> 8) & 0xFF);
+			xprintf("%x",(uint8_t) RXMsg.id & 0xFF);
+		}
+		// send data length code
+		comm_put(RXMsg.len + '0');
+		if (RXMsg.type==DATA_FRAME){
+			// send data only if no remote frame request
+			// send data bytes
+			for (i = 0; i < RXMsg.len; i++){
+				if(i<4)
+					xprintf("%x",RXMsg.dataA[i]);
+				else//i>4)
+					xprintf("%x",RXMsg.dataB[i-4]);
+			}
+		}
+		// send time stamp if required
+		if (ram_timestamp_status != 0)
+			xprintf("%x",sys_millis());
+	}
+	// send end tag
+	xprintf("\r\n");
+	CLEARBIT(CAN_flags, MSG_WAITING);
+#else
+
 	xprintf("Message ID:     %8x\r\n",(unsigned int)CAN_Msg->id);
 	xprintf("Message length: %8x BYTES\r\n",CAN_Msg->len);
 	xprintf("Message type:   %s\r\n",CAN_Msg->type==DATA_FRAME ? "DATA FRAME\r" : "REMOTE FRAME\r");
 	xprintf("Message format: %s\r\n",CAN_Msg->format==STD_ID_FORMAT ? "STANDARD ID FRAME FORMAT\r" : "EXTENDED ID FRAME FORMAT\r");
 	xprintf("Message dataA:  %8x\r\n",(CAN_Msg->dataA[0])|(CAN_Msg->dataA[1]<<8)|(CAN_Msg->dataA[2]<<16)|(CAN_Msg->dataA[3]<<24));
 	xprintf("Message dataB:  %8x\r\n",(CAN_Msg->dataB[0])|(CAN_Msg->dataB[1]<<8)|(CAN_Msg->dataB[2]<<16)|(CAN_Msg->dataB[3]<<24));
+#endif
 }
