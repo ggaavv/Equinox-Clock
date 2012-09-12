@@ -732,6 +732,9 @@ void CAN_loop(void){
 				comm_put(SEND_11BIT_ID);// send command tag
 			else
 				comm_put(SEND_R11BIT_ID);
+				
+			xprintf("%03x", RXMsg.id);
+#if 0			
 			// send high byte of ID
 			if (((RXMsg.id >> 8) & 0x0F) < 10)
 				comm_put(((uint8_t) (RXMsg.id >> 8) & 0x0F) + 48);
@@ -739,6 +742,7 @@ void CAN_loop(void){
 				comm_put(((uint8_t) (RXMsg.id >> 8) & 0x0F) + 55);
 			// send low byte of ID
 			xprintf("%x",(uint8_t) RXMsg.id & 0xFF);
+#endif
 		}
 		else{
 			// Extented Frame
@@ -748,10 +752,11 @@ void CAN_loop(void){
 			else
 				comm_put(SEND_R29BIT_ID);
 
-			xprintf("%x",(uint8_t) (RXMsg.id >> 24) & 0xFF);
-			xprintf("%x",(uint8_t) (RXMsg.id >> 16) & 0xFF);
-			xprintf("%x",(uint8_t) (RXMsg.id >> 8) & 0xFF);
-			xprintf("%x",(uint8_t) RXMsg.id & 0xFF);
+			xprintf("%03x", RXMsg.id);
+//			xprintf("%x",(uint8_t) (RXMsg.id >> 24) & 0xFF);
+//			xprintf("%x",(uint8_t) (RXMsg.id >> 16) & 0xFF);
+//			xprintf("%x",(uint8_t) (RXMsg.id >> 8) & 0xFF);
+//			xprintf("%x",(uint8_t) RXMsg.id & 0xFF);
 		}
 		// send data length code
 		comm_put(RXMsg.len + '0');
@@ -760,14 +765,14 @@ void CAN_loop(void){
 			// send data bytes
 			for (i = 0; i < RXMsg.len; i++){
 				if(i<4)
-					xprintf("%x",RXMsg.dataA[i]);
+					xprintf("%02x",RXMsg.dataA[i]);
 				else//i>4)
-					xprintf("%x",RXMsg.dataB[i-4]);
+					xprintf("%02x",RXMsg.dataB[i-4]);
 			}
 		}
 		// send time stamp if required
 		if (ram_timestamp_status != 0)
-			xprintf("%x",sys_millis());
+			xprintf("%08x",sys_millis());
 
 		// send end tag
 		xprintf("\r\n");
@@ -788,62 +793,68 @@ void CAN_IRQHandler(){
 	if((InterruptStatus>>0)&0x01){
 		CAN_ReceiveMsg(LPC_CAN2,&RXMsg);
 		SETBIT(CAN_flags, MSG_WAITING);
-		PrintMessage(&RXMsg);
+		Screen_Interrupt();
+//		PrintMessage(&RXMsg);
 	}
-	Screen_Interrupt();
+
 }
 
 void PrintMessage(CAN_MSG_Type* CAN_Msg){
 #if 1
+	switch(CAN_Msg->id){
+		case 0x521:
+		case 0x0A9:
+		case 0x4A9:
+		case 0x3CF:
+		case 0x3DF:
+		case 0x1C1:
+		case 0x5C1:
+		case 0x1B1:
+		case 0x5B1:
+			return;
+	}
+
 	uint8_t i;			// for loop counter
-	if (CHECKBIT(CAN_flags, MSG_WAITING)){
+//	if (CHECKBIT(CAN_flags, MSG_WAITING)){
 		// check frame format
-		if (RXMsg.format==STD_ID_FORMAT){
+		if (CAN_Msg->format==STD_ID_FORMAT){
 			// Standart Frame
-			if(RXMsg.type==DATA_FRAME)
+			if(CAN_Msg->type==DATA_FRAME)
 				comm_put(SEND_11BIT_ID);// send command tag
 			else
 				comm_put(SEND_R11BIT_ID);
-			// send high byte of ID
-			if (((RXMsg.id >> 8) & 0x0F) < 10)
-				comm_put(((uint8_t) (RXMsg.id >> 8) & 0x0F) + 48);
-			else
-				comm_put(((uint8_t) (RXMsg.id >> 8) & 0x0F) + 55);
-			// send low byte of ID
-			xprintf("%x",(uint8_t) RXMsg.id & 0xFF);
+			
+			xprintf("%03x", CAN_Msg->id);
 		}
 		else{
 			// Extented Frame
-			if (RXMsg.type==DATA_FRAME){
+			if (CAN_Msg->type==DATA_FRAME){
 				comm_put(SEND_29BIT_ID);
 			}		// send command tag
 			else
 				comm_put(SEND_R29BIT_ID);
 
-			xprintf("%x",(uint8_t) (RXMsg.id >> 24) & 0xFF);
-			xprintf("%x",(uint8_t) (RXMsg.id >> 16) & 0xFF);
-			xprintf("%x",(uint8_t) (RXMsg.id >> 8) & 0xFF);
-			xprintf("%x",(uint8_t) RXMsg.id & 0xFF);
+			xprintf("%03x", CAN_Msg->id);
 		}
 		// send data length code
-		comm_put(RXMsg.len + '0');
-		if (RXMsg.type==DATA_FRAME){
+		comm_put(CAN_Msg->len + '0');
+		if (CAN_Msg->type==DATA_FRAME){
 			// send data only if no remote frame request
 			// send data bytes
-			for (i = 0; i < RXMsg.len; i++){
+			for (i = 0; i < CAN_Msg->len; i++){
 				if(i<4)
-					xprintf("%x",RXMsg.dataA[i]);
+					xprintf("%02x",CAN_Msg->dataA[i]);
 				else//i>4)
-					xprintf("%x",RXMsg.dataB[i-4]);
+					xprintf("%02x",CAN_Msg->dataB[i-4]);
 			}
 		}
 		// send time stamp if required
 		if (ram_timestamp_status != 0)
-			xprintf("%x",sys_millis());
-	}
+			xprintf("%03x",sys_millis());
+//	}
 	// send end tag
 	xprintf("\r\n");
-	CLEARBIT(CAN_flags, MSG_WAITING);
+//	CLEARBIT(CAN_flags, MSG_WAITING);
 #else
 
 	xprintf("Message ID:     %8x\r\n",(unsigned int)CAN_Msg->id);

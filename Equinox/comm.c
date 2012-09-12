@@ -185,6 +185,7 @@ void exec_cmd(char *cmd){
 	}
 	else if(stricmp(cmd,"q")==0){
 		xprintf(INFO "q");FFL_();
+		Screen_init();
 	}
 	else if(stricmp(cmd,"rs")==0){
 		xprintf(INFO "reset in 5 ");
