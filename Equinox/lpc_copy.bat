@@ -3,7 +3,8 @@ set PROJECT_DIR="C:\Users\Jamie\Dropbox\workspace\Equinox-Clock\Equinox"
 ::set PROJECT_DIR="C:\Documents and Settings\Jamie\My Documents\Dropbox\workspace\Equinox-Clock\Equinox"
 
 cd %PROJECT_DIR%
-cs-make
+::cs-make
+make
 
 @ECHO off
 

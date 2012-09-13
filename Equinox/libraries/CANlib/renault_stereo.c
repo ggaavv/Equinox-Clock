@@ -1,5 +1,5 @@
+//**  Renault Stereo Interface
 /*************************************************************************
-**  Renault Stereo Interface
 **  by Jamie Clarke
 **
 **  Released under GNU GENERAL PUBLIC LICENSE
@@ -48,6 +48,8 @@ volatile unsigned char ButtonTempData[2];
 volatile unsigned char WaitingForScreen;
 volatile unsigned char FirstScreen;
 volatile uint32_t ButtonTempFull;
+volatile int32_t recieve_521_count;
+volatile int32_t random;
 
 
 //*** Global variables ***
@@ -281,6 +283,9 @@ void Screen_init ( void ){
 	ButtomPressed = 0;
 	source_change = 0;
 	WaitingForScreen = 0;
+	RecieveComplete=0;send_source_change('+');
+	delay_ms(100);
+	RecieveComplete=0;send_source_change('-');
 }
 /*
  **---------------------------------------------------------------------------
@@ -325,7 +330,7 @@ unsigned char SendToScreen ( unsigned int SendId,
  	//
  	if(Command == NEW_STRING){
  //		xprintf("New String ");
- 		xprintf(INFO "NS - %s",temp_string);//FFL_();
+ 		xprintf(INFO "NS - %s\r\n",temp_string);//FFL_();
  		for( a=0; a<8; a++){
  			*(PrevScreenText+a) = *(temp_string+a);
  		}
@@ -338,7 +343,7 @@ unsigned char SendToScreen ( unsigned int SendId,
  	}
  	else if(Command == TEMP_STRING){
  //		xprintf("Temp String ");
- 		xprintf(INFO "TS - %s",temp_string);//FFL_();
+ 		xprintf(INFO "TS - %s\r\n",temp_string);//FFL_();
  		for( a=Ascii3IconTextStart, b=0; b<8; a++, b++){
  			if(a==8)
  				a++;
@@ -349,7 +354,7 @@ unsigned char SendToScreen ( unsigned int SendId,
  	else if(Command == RETURN_STRING){
  //	else if(0){
  //		xprintf("Return String ");
- 		xprintf(INFO "RS - %s",PrevScreenText);//FFL_();
+ 		xprintf(INFO "RS - %s\r\n",PrevScreenText);//FFL_();
  		for( a=Ascii3IconTextStart, b=0; b<8; a++, b++){
  			if(a==8)
  				a++;
@@ -361,7 +366,6 @@ unsigned char SendToScreen ( unsigned int SendId,
  //		xprintf("ERROR");
  		DISPLAY_TIMEOUT = -1;
  	}
- //	xprintf("\r\n");
  /*
  	//
  	// If using extra icons use 5 packets
@@ -414,7 +418,8 @@ unsigned char SendScreen ( void ){
 //		CheckForCANErr();
 		CAN_SendMsg(LPC_CAN2, &TXMsg);
 //		delay_ms(1);
-		WaitForID(0x521, 1);
+		WaitFor521(100);
+//		WaitForID(0x521, 1);
 	}
 	return CR;
 }
@@ -457,7 +462,7 @@ uint8_t send_source_change(char dir){
 	TXMsg.dataB[3] = 0xA2;
 	// start normal transmission
 	CAN_SendMsg(LPC_CAN2, &TXMsg);
-	WaitForID(0x4A9, 1);
+//	WaitForID(0x4A9, 1);
 //	return ERROR;
 	return CR;
 }
@@ -503,6 +508,7 @@ void Screen_loop( void ){
 	if((DISPLAY_TIMEOUT==0)&&(!ButtomPressed)&&(!RecieveComplete))
 		SendToScreen(0x121, "", 0, RETURN_STRING);
 	if(RecieveComplete){
+#if 1 //test
 		for (IBCopy = 0; IBCopy <= 7*5; IBCopy++){
 			//0x01 indicates this is the start of the screen ascii
 			if (ScreenTempData[IBCopy] == 0x01){
@@ -597,6 +603,7 @@ void Screen_loop( void ){
 			}
 //			ipod_control(BUTTON_STOP_ONLY);
 		}
+#endif //test
 		screen_debug_print();
 		RecieveComplete = 0;
 	}
@@ -614,11 +621,12 @@ stereo
 0x4A9 appears to be ok sig
 */
 		// Remote pressed
-		xprintf("B(%04x) - ",ButtonTempFull);
+		xprintf("Button(%04x) - ",ButtonTempFull);
+#if 1 //test2
 		switch(ButtonTempFull){
 			case 0x0001:  //Source Right t0A9803890001A2A2A2A2
-//				xprintf("Source Next\r\n");
-				xprintf("S+\r\n");
+				xprintf("Source Next\r\n");
+//				xprintf("S+\r\n");
 #if 0
 				if ((Source==REMOTE_AUX)&&(SourceTemp!=REMOTE_TRAFFIC))
 					source_change ='+';
@@ -626,8 +634,8 @@ stereo
 #endif
 				break;
 			case 0x0002: //Source Left t0A9803890002A2A2A2A2
-//				xprintf("Source Prev\r\n");
-				xprintf("S-\r\n");
+				xprintf("Source Prev\r\n");
+//				xprintf("S-\r\n");
 #if 0
 				if ((Source==REMOTE_AUX)&&(SourceTemp!=REMOTE_TRAFFIC))
 					source_change='-';
@@ -635,12 +643,12 @@ stereo
 #endif
 				break;
 			case 0x0003: //vol up t0A9803890003A2A2A2A2
-//				xprintf("Volume Up\r\n");
-				xprintf("V+\r\n");
+				xprintf("Volume Up\r\n");
+//				xprintf("V+\r\n");
 				break;
 			case 0x0004: //vol down t0A9803890004A2A2A2A2
-//				xprintf("Volume Down\r\n");
-				xprintf("V-\r\n");
+				xprintf("Volume Down\r\n");
+//				xprintf("V-\r\n");
 				break;
 			case 0x0005: //pause t0A9805890005A2A2A2A2
 				xprintf("Pause\r\n");
@@ -654,14 +662,14 @@ stereo
 				break;
 			case 0x0000: // t0A9803890000A2A2A2A2
 			case 0x000A: // t0A980389000AA2A2A2A2 Enter (IPOD PLAY/PAUSE)
-				xprintf("CR\r\n");
+				xprintf("Enter\r\n");
 				if (Source == REMOTE_AUX){
 					//usart_byte2ascii(IpodStatus);
 //					if((source_selected==PHONE)||(source_selected==PC)){
 //						ipod_button(IPOD_PLAY_PAUSE);
 //						xprintf("TASKER:PLAY/PAUSE\r\n");
 						xprintf("TASKER:PAUSE\r\n");
-						SendToScreen( 0x121, "= or >", 0, TEMP_STRING);
+						SendToScreen( 0x121, "=/>", 0, TEMP_STRING);
 						//SendToScreen( 0x121, "Play/Pau", 0, TEMP_STRING);
 						//delay_ms(500);
 						//SendToScreen( 0x121, "ay/Pause", 0, TEMP_STRING);
@@ -676,7 +684,7 @@ stereo
 				}
 				break;
 			case 0x0101: //Track next t0A9803890101A2A2A2A2
-//				xprintf("Track Next\r\n");
+				xprintf("Track Next\r\n");
 				//usart_puts_1(IPOD_NEXT);
 				if ((Source == REMOTE_AUX)&&((SourceTemp!=REMOTE_PAUSE)||(SourceTemp!=REMOTE_TRAFFIC))){
 					xprintf("TASKER:NEXT\r\n");
@@ -698,7 +706,7 @@ stereo
 				}
 				break;
 			case 0x0141: //Track back t0A9803890141A2A2A2A2
-//				xprintf("Track Prev\r\n");
+				xprintf("Track Prev\r\n");
 				//usart_puts_1(IPOD_PREV);
 				if ((Source == REMOTE_AUX)&&((SourceTemp!=REMOTE_PAUSE)||(SourceTemp!=REMOTE_TRAFFIC))){
 					xprintf("TASKER:PREV\r\n");
@@ -723,6 +731,7 @@ stereo
 				xprintf("Unknown (0x%x) t0A980389****A2A2A2A2\r\n",ButtonTempFull);
 				break;
 		}
+#endif //test2
 		ButtomPressed=0;
 	}
 
@@ -829,17 +838,25 @@ send
 			ButtomPressed=1;
 			break;
 		case 0x121: // Screen data
-			rec_121 = (RXMsg.dataA[0] & 0x0F);
-			RxScreenPacketNo = rec_121*7;
-			ScreenTempData[RxScreenPacketNo++] = RXMsg.dataA[1];
-			ScreenTempData[RxScreenPacketNo++] = RXMsg.dataA[2];
-			ScreenTempData[RxScreenPacketNo++] = RXMsg.dataA[3];
-			ScreenTempData[RxScreenPacketNo++] = RXMsg.dataB[0];
-			ScreenTempData[RxScreenPacketNo++] = RXMsg.dataB[1];
-			ScreenTempData[RxScreenPacketNo++] = RXMsg.dataB[2];
-			ScreenTempData[RxScreenPacketNo++] = RXMsg.dataB[3];
-			if ( ((rec_121 == 3)||(rec_121==4)) && (ScreenTempData[6+RxScreenPacketNo] == 0x81))
-				RecieveComplete=1;
+			if(!RecieveComplete){
+				rec_121 = (RXMsg.dataA[0] & 0x0F);
+				RxScreenPacketNo = rec_121*7;
+				ScreenTempData[RxScreenPacketNo+1] = RXMsg.dataA[1];
+				ScreenTempData[RxScreenPacketNo+2] = RXMsg.dataA[2];
+				ScreenTempData[RxScreenPacketNo+3] = RXMsg.dataA[3];
+				ScreenTempData[RxScreenPacketNo+4] = RXMsg.dataB[0];
+				ScreenTempData[RxScreenPacketNo+5] = RXMsg.dataB[1];
+				ScreenTempData[RxScreenPacketNo+6] = RXMsg.dataB[2];
+				ScreenTempData[RxScreenPacketNo+7] = RXMsg.dataB[3];
+				if ( ((rec_121 == 3)||(rec_121==4)) && (ScreenTempData[RxScreenPacketNo+6] == 0x81)){
+					RecieveComplete=1;
+					recieve_521_count=-1;
+					ScreenTempData[6+RxScreenPacketNo]=0;
+				}
+			}
+			else{
+				xprintf(ERR "Screen overrun\r\n");
+			}
 		case 0x3CF: // Ping recieved
 		case 0x3DF: // Ping recieved
 			//exec_usart_cmd("t3DF87900818181818181");
@@ -851,6 +868,7 @@ send
 //			flags.recieved_4A9 = true;
 			break;
 		case 0x521: // Acknowledged screen data
+			recieve_521_count++;
 //			Screen_tx.NoAck++;
 //			flags.recieved_521 = true;
 			// send next screen data.
@@ -866,7 +884,7 @@ send
 			//exec_usart_cmd("t3CF86900A2A2A2A2A2A2");
 			break;
 		default:
-			xprintf("ID (%x) not found.\r\n",RXMsg.id);
+			xprintf("ID (0x%03x) not found.\r\n",RXMsg.id);
 			break;
 	}
 }
@@ -883,6 +901,7 @@ send
 */
 void screen_debug_print( void ) {
 	unsigned char  IBCopy = 0;
+	xprintf("%08i\n",sys_millis());
 	if(SendScreenTxtStart){
 		xprintf("Screen Txt Start - %x\n",ScreenTextStart);
 	}
@@ -894,7 +913,7 @@ void screen_debug_print( void ) {
 		}
 		xprintf("\n0d");
 		for(IBCopy = StartOfMessage; IBCopy <= ScreenTextStart; IBCopy++){
-			xprintf(" %8i",ScreenTempData[IBCopy]);
+			xprintf(" %8d",ScreenTempData[IBCopy]);
 		}
 		xprintf("\n0b");
 		for(IBCopy = StartOfMessage; IBCopy <= ScreenTextStart; IBCopy++){
@@ -903,7 +922,7 @@ void screen_debug_print( void ) {
 		xprintf("\n");
 	}
 	if(SendScreenAsciiData){
-		xprintf("Screen Ascii - \n");
+//		xprintf("Screen Ascii - \n");
 //		for ( IBCopy = ScreenTextStart; IBCopy <= ScreenTextStart ; IBCopy++){
 //			xprintf("        ");
 //		}
@@ -1035,5 +1054,33 @@ void keyboard_key (uint8_t dir){
 	xprintf("Keyboard %s\r\n",temp_QuickScreenText);
 
 	return;
+}
+
+
+uint32_t WaitFor521(uint32_t timeout){
+	//continue on timeout (non blocking)
+	if(timeout!=0){
+		while(1){
+			if(recieve_521_count==1){
+				recieve_521_count = 0;
+				return CR;
+			}
+			if(timeout==0){
+				xprintf(ERR "recieve_521_count=%d Not seen",recieve_521_count);FFL_();
+				return ERROR;
+			}
+			//delay_ms(1);
+			for(uint32_t t=0;t<0xffff;t++){
+				random=t;
+			}
+			timeout--;
+		}
+	}
+	//blocking wait
+	else{
+		while(recieve_521_count!=1)
+			;//wait (blocking)
+		return CR;
+	}
 }
 

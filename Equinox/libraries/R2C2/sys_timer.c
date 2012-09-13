@@ -6,7 +6,7 @@
 #define millis_per_sec 1000
 volatile uint32_t USER_MILLIS=0;
 volatile uint32_t SEC_MILLIS=0;
-volatile int32_t DISPLAY_TIMEOUT=0;
+volatile int32_t DISPLAY_TIMEOUT=-1;
 volatile uint32_t OFF_TIMEOUT;
 volatile uint32_t _60th_SEC_COUNT=0;
 volatile uint32_t UPDATES_PER_SEC=60;

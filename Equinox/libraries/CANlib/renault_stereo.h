@@ -126,7 +126,7 @@ uint8_t send_source_change(char dir);
 void Screen_loop( void );
 void Screen_Interrupt( void );
 void screen_debug_print( void );
-
+uint32_t WaitFor521(uint32_t timeout);
 
 
 #endif
