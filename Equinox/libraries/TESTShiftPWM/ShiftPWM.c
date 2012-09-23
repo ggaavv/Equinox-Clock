@@ -149,7 +149,7 @@ const uint32_t BITTIME[] = {
 		START_TIME*128 //Bit 7 time (MSB)
 };
 #endif
-#if 1
+#if 0
 #define REGS 1 //12
 #define RGBS 5 //60
 #define LEDS RGBS*3
@@ -373,14 +373,14 @@ void LED_init(){
 	/* LE1 */
 	PinCfg.Funcnum   = PINSEL_FUNC_0;
 	PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
-	PinCfg.Pinmode   = PINSEL_PINMODE_PULLUP;
+	PinCfg.Pinmode   = PINSEL_PINMODE_PULLDOWN;
 	PinCfg.Pinnum    = LED_LE_PIN;
 	PinCfg.Portnum   = LED_LE_PORT;
 	PINSEL_ConfigPin(&PinCfg);
 	/* SSEL1 */
 	PinCfg.Funcnum   = PINSEL_FUNC_0;
 	PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
-	PinCfg.Pinmode   = PINSEL_PINMODE_PULLUP;
+	PinCfg.Pinmode   = PINSEL_PINMODE_PULLDOWN;
 	PinCfg.Pinnum    = LED_OE_PIN;
 	PinCfg.Portnum   = LED_OE_PORT;
 	PINSEL_ConfigPin(&PinCfg);
@@ -425,6 +425,20 @@ void LED_init(){
 	/* Enable SSP peripheral */
 	SSP_Cmd(LED_SPI_CHN, ENABLE);
 
+	// Turn all LEDS off
+	xprintf(OK "// Turn all LEDS off");FFL_();
+	for (uint8_t i=0;i<REGS;i++){
+//		xprintf(OK "%d",i+1);FFL_();
+		SSP_SendData(LED_SPI_CHN, 0x0000);
+		while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+	};
+	GPIO_SetValue(LED_LE_PORT, LED_LE_BIT);
+	GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
+	GPIO_ClearValue(LED_OE_PORT, LED_OE_BIT);//LED's on. active low
+//	delay_ms(10000);
+	xprintf(OK "// All LEDS should be off");FFL_();
+
+#if 0 // If using interupts
 	TIM_TIMERCFG_Type TIM_ConfigStruct;
 	TIM_MATCHCFG_Type TIM_MatchConfigStruct;
 
@@ -457,7 +471,8 @@ void LED_init(){
 	NVIC_EnableIRQ(TIMER0_IRQn);
 	// To start timer 0
 	TIM_Cmd(LPC_TIM0,ENABLE);
-	FIO_ClearValue(LED_OE_PORT, LED_OE_BIT);//LED's on. active low
+#endif
+//	FIO_ClearValue(LED_OE_PORT, LED_OE_BIT);//LED's on. active low
 #if 0 //dma not used yet
 	GPDMA_Channel_CFG_Type GPDMACfg;
 
@@ -528,6 +543,111 @@ void LED_init(){
 
 
 void LED_test(){
+#if 0
+	while(1){
+		for (uint8_t l=0;l<REGS;l++){
+			for (uint8_t i=0;i<15;i++){
+				xprintf(OK "%d",l*REGS+i+1);FFL_();
+				GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
+				for (uint8_t j=0;j<(REGS-l);j++){
+					SSP_SendData(LED_SPI_CHN, 0x0000);
+					while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+				}
+				SSP_SendData(LED_SPI_CHN, 0x0001<<i);
+				while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+				for (uint8_t k=0;k<(0+l);k++){
+					SSP_SendData(LED_SPI_CHN, 0x0000);
+					while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+				}
+				GPIO_SetValue(LED_LE_PORT, LED_LE_BIT);
+				GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
+				GPIO_ClearValue(LED_OE_PORT, LED_OE_BIT);//LED's on. active low
+				delay_ms(2);
+			}
+		}
+	}
+#endif
+#if 0 //simple all colors
+	while(1){
+	for (uint8_t i=0;i<(16);i++){
+		xprintf(OK "%d",i+1);FFL_();
+		GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
+//		for (uint8_t j=0;j<11;j++){
+//			SSP_SendData(LED_SPI_CHN, 0x0000);
+//			while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+//		}
+//		SSP_SendData(LED_SPI_CHN, 0x0001<<i);
+		SSP_SendData(LED_SPI_CHN, 0x1249);
+		while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+//		for (uint8_t k=0;k<0;k++){
+//			SSP_SendData(LED_SPI_CHN, 0x0000);
+//			while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+//		}
+		GPIO_SetValue(LED_LE_PORT, LED_LE_BIT);
+		GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
+		GPIO_ClearValue(LED_OE_PORT, LED_OE_BIT);//LED's on. active low
+		delay_ms(150);
+	};
+	for (uint8_t i=0;i<(16);i++){
+		xprintf(OK "%d",i+1);FFL_();
+		GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
+//		for (uint8_t j=0;j<11;j++){
+//			SSP_SendData(LED_SPI_CHN, 0x0000);
+//			while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+//		}
+//		SSP_SendData(LED_SPI_CHN, 0x0001<<i);
+		SSP_SendData(LED_SPI_CHN, 0x2492);
+		while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+//		for (uint8_t k=0;k<0;k++){
+//			SSP_SendData(LED_SPI_CHN, 0x0000);
+//			while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+//		}
+		GPIO_SetValue(LED_LE_PORT, LED_LE_BIT);
+		GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
+		GPIO_ClearValue(LED_OE_PORT, LED_OE_BIT);//LED's on. active low
+		delay_ms(150);
+	};
+	for (uint8_t i=0;i<(16);i++){
+		xprintf(OK "%d",i+1);FFL_();
+		GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
+//		for (uint8_t j=0;j<11;j++){
+//			SSP_SendData(LED_SPI_CHN, 0x0000);
+//			while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+//		}
+//		SSP_SendData(LED_SPI_CHN, 0x0001<<i);
+		SSP_SendData(LED_SPI_CHN, 0x4924);
+		while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+//		for (uint8_t k=0;k<0;k++){
+//			SSP_SendData(LED_SPI_CHN, 0x0000);
+//			while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+//		}
+		GPIO_SetValue(LED_LE_PORT, LED_LE_BIT);
+		GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
+		GPIO_ClearValue(LED_OE_PORT, LED_OE_BIT);//LED's on. active low
+		delay_ms(150);
+	};
+	for (uint8_t i=0;i<(16);i++){
+		xprintf(OK "%d",i+1);FFL_();
+		GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
+//		for (uint8_t j=0;j<11;j++){
+//			SSP_SendData(LED_SPI_CHN, 0x0000);
+//			while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+//		}
+//		SSP_SendData(LED_SPI_CHN, 0x0001<<i);
+		SSP_SendData(LED_SPI_CHN, 0xffff);
+		while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+//		for (uint8_t k=0;k<0;k++){
+//			SSP_SendData(LED_SPI_CHN, 0x0000);
+//			while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+//		}
+		GPIO_SetValue(LED_LE_PORT, LED_LE_BIT);
+		GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
+		GPIO_ClearValue(LED_OE_PORT, LED_OE_BIT);//LED's on. active low
+		delay_ms(150);
+	};
+	}
+
+#endif
 #if 0 //led test
 	for(uint32_t led=0; led<LEDS;led++){
 		SetLED(led,1);
@@ -539,6 +659,10 @@ void LED_test(){
 #endif
 #if 1
 	for(uint32_t led=0;led<LEDS;led++){ // loop over all LED's
+		xprintf("LED no %d ",(led/3));
+		if ((led % 3)==0) xprintf("Red\n");
+		if ((led % 3)==1) xprintf("Green\n");
+		if ((led % 3)==2) xprintf("Blue\n");
 		for(int32_t b=0;b<=0x7f;b++){
 			SetLED(led,b);
 			calulateLEDMIBAMBits();
