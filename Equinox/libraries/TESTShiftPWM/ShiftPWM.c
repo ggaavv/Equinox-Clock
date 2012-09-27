@@ -508,7 +508,7 @@ void LED_init(){
 	TIM_Cmd(LPC_TIM0,ENABLE);
 #endif
 //	FIO_ClearValue(LED_OE_PORT, LED_OE_BIT);//LED's on. active low
-#if 0 //dma not used yet
+#if 1 //dma not used yet
 	GPDMA_Channel_CFG_Type GPDMACfg;
 
 	/* GPDMA Interrupt configuration section ------------------------------------------------- */
@@ -529,34 +529,25 @@ void LED_init(){
 	NVIC_SetPriority(DMA_IRQn, 0); // set according to main.c
 
 	GPDMA_LLI_Type LinkerList[REGS][BITS];
-	uint8_t reg, regs, bit;
-	for (regs=6,reg=0; 0<regs;regs--,reg++){
-		for (bit=0;bit>BITS;bit++){
-			LinkerList[regs][bit].SrcAddr = (uint32_t) &LED_PRECALC[reg][bit];	/**< Source Address */
-			LinkerList[regs][bit].DstAddr = 0;	/**< Destination address */
-			LinkerList[regs][bit].NextLLI = (uint32_t) &LED_PRECALC[reg][bit+1];	/**< Next LLI address, otherwise set to '0' */
-			LinkerList[regs][bit].Control = (uint32_t) &LED_PRECALC[reg][bit];	/**< GPDMA Control of this LLI */
-		}
-	}
-
+	uint8_t reg, bit;
 	/* Configure GPDMA channel 0 -------------------------------------------------------------*/
 	/* DMA Channel 0 */
 	GPDMACfg.ChannelNum = 0;
-	// Source memory
-	GPDMACfg.SrcMemAddr = (uint32_t) &dma_src;
-	// Destination memory - Not used
+	// Source memory - not used - will be sent in interrupt so independent bit Linker Lists can be chosen
+	GPDMACfg.SrcMemAddr = (uint32_t) &LinkerList[0][0];
+	// Destination memory - not used - only used when destination is memory
 	GPDMACfg.DstMemAddr = 0;
 	// Transfer size
-	GPDMACfg.TransferSize = sizeof(dma_src);
-	// Transfer width - not used
-	GPDMACfg.TransferWidth = 0;
+	GPDMACfg.TransferSize = sizeof(LinkerList[0][0]);
+	// Transfer width - 16 bits
+	GPDMACfg.TransferWidth = GPDMA_WIDTH_HALFWORD;
 	// Transfer type
 	GPDMACfg.TransferType = GPDMA_TRANSFERTYPE_M2P;
-	// Source connection - unused
+	// Source connection - not used
 	GPDMACfg.SrcConn = 0;
-	// Destination connection
-	GPDMACfg.DstConn = GPDMA_CONN_SSP0_Tx; //TODO this needs to be different
-	// Linker List Item - unused
+	// Destination connection - not used
+	GPDMACfg.DstConn = GPDMA_CONN_SSP0_Tx;
+	// Linker List Item - Pointer to linker list
 	GPDMACfg.DMALLI = (uint32_t) &LinkerList[0][0];
 	// Setup channel with given parameter
 	GPDMA_Setup(&GPDMACfg);
@@ -565,6 +556,41 @@ void LED_init(){
 	/* Reset Error counter */
 	Channel0_Err = 0;
 
+	// Linker list 32bit Control
+	uint32_t LinkerListControl = 0;
+	LinkerListControl = GPDMA_DMACCxControl_TransferSize((uint32_t)GPDMACfg.TransferSize) \
+						| GPDMA_DMACCxControl_SBSize((uint32_t)GPDMA_BSIZE_1) \
+						| GPDMA_DMACCxControl_DBSize((uint32_t)GPDMA_BSIZE_1) \
+						| GPDMA_DMACCxControl_SWidth((uint32_t)GPDMACfg.TransferWidth) \
+						| GPDMA_DMACCxControl_DWidth((uint32_t)GPDMACfg.TransferWidth) \
+						| GPDMA_DMACCxControl_SI;
+
+	for (bit=0;bit>BITS;bit++){
+		for (reg=5; 1<reg;reg--){
+			LinkerList[reg][bit].SrcAddr = (uint32_t) &LED_PRECALC[reg][bit];	/**< Source Address */
+			LinkerList[reg][bit].DstAddr = (uint32_t) &LPC_SSP0->DR;			/**< Destination address */
+			LinkerList[reg][bit].NextLLI = (uint32_t) &LED_PRECALC[reg-1][bit];	/**< Next LLI address, otherwise set to '0' */
+			LinkerList[reg][bit].Control = LinkerListControl;
+		}
+//		if (reg==0){
+		LinkerList[reg][bit].SrcAddr = (uint32_t) &LED_PRECALC[reg][bit];	/**< Source Address */
+		LinkerList[reg][bit].DstAddr = (uint32_t) &LPC_SSP0->DR;			/**< Destination address */
+		LinkerList[reg][bit].NextLLI = (uint32_t) &LED_PRECALC[reg+11][bit];/**< Next LLI address, otherwise set to '0' */
+		LinkerList[reg][bit].Control = LinkerListControl;
+//		}
+		for (reg=11; reg>6;reg--){
+			LinkerList[reg][bit].SrcAddr = (uint32_t) &LED_PRECALC[reg][bit];	/**< Source Address */
+			LinkerList[reg][bit].DstAddr = (uint32_t) &LPC_SSP0->DR;			/**< Destination address */
+			LinkerList[reg][bit].NextLLI = (uint32_t) &LED_PRECALC[reg-1][bit];	/**< Next LLI address, otherwise set to '0' */
+			LinkerList[reg][bit].Control = LinkerListControl;
+		}
+//		if (reg==7){
+		LinkerList[reg][bit].SrcAddr = (uint32_t) &LED_PRECALC[reg][bit];	/**< Source Address */
+		LinkerList[reg][bit].DstAddr = (uint32_t) &LPC_SSP0->DR;			/**< Destination address */
+		LinkerList[reg][bit].NextLLI = 0;									/**< Next LLI address, otherwise set to '0' */
+		LinkerList[reg][bit].Control = LinkerListControl;
+//		}
+	}
 
 
 //	_DBG_("Start transfer...");
