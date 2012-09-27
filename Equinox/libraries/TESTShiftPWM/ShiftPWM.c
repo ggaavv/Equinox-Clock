@@ -40,11 +40,11 @@
 #include "sys_timer.h"
 
 //#define MAX_BAM_BITS 16
-#define MAX_BAM_BITS 8
+#define MAX_BAM_BITS 8		// number of BITORDER bits to cycle through
 
-const uint32_t BITORDER[] = { 0,1,2,3,4,5,6,7,7,6,5,4,3,2,1,0 };
-//const uint32_t BITORDER[] = { 0,7,2,5,4,3,6,1,1,6,3,4,5,2,7,0 };
-//const uint32_t BITORDER[] = { 5,3,1,7,2,4,6,0,5,3,1,7,2,4,6 };
+const uint8_t BITORDER[] = { 0,1,2,3,4,5,6,7,7,6,5,4,3,2,1,0 };		// which of the 8 bits to send
+//const uint8_t BITORDER[] = { 0,7,2,5,4,3,6,1,1,6,3,4,5,2,7,0 };
+//const uint8_t BITORDER[] = { 5,3,1,7,2,4,6,0,5,3,1,7,2,4,6 };
 
 #define START_TIME 4096 //largest time inteval??
 //#define START_TIME 2000 //largest time inteval??
@@ -54,21 +54,21 @@ const uint32_t BITORDER[] = { 0,1,2,3,4,5,6,7,7,6,5,4,3,2,1,0 };
 //#define START_TIME 32/2 //fastest possible
 //#define START_TIME 32*1000 //for uart
 
-volatile uint32_t SENDSEQ;
-volatile uint32_t DELAY_TIME; //so RIT ms is not set to 0
-volatile uint32_t NEXT_DELAY_TIME; //so RIT ms is not set to 0
-volatile uint32_t SEND_BIT;
-volatile uint32_t NEXT_SEND_BIT;
-volatile uint32_t LED_SEND;
+volatile uint8_t SENDSEQ;
+volatile uint32_t DELAY_TIME; 		//so RIT ms is not set to 0
+volatile uint32_t NEXT_DELAY_TIME; 	//so RIT ms is not set to 0
+volatile uint8_t SEND_BIT;			// which of the 8 bits to send
+volatile uint8_t NEXT_SEND_BIT;
+//volatile uint32_t LED_SEND;
 
 /* For DMA controller */
 #define DMA_DATA_SIZE	65
 
 // Terminal Counter flag for Channel 0
-__IO uint32_t Channel0_TC;
+uint32_t Channel0_TC;
 
 // Error Counter flag for Channel 0
-__IO uint32_t Channel0_Err;
+uint32_t Channel0_Err;
 
 // DMA source variable
 uint8_t dma_src[DMA_DATA_SIZE];
@@ -158,26 +158,28 @@ const uint32_t BITTIME[] = {
 #define REGS 12
 #define RGBS 60
 #define LEDS RGBS*3
+#define LEDS16 REGS*16
 #define BITS 8
 #endif
 uint16_t SEQ_BIT[16];
 uint32_t SEQ_TIME[16];
 
-volatile uint32_t LED_RAW[LEDS];
-volatile uint32_t LED_PRECALC[REGS][BITS];
-volatile uint32_t LED_PRECALC1[REGS][BITS];
-volatile uint32_t LED_PRECALC2[REGS][BITS];
-volatile uint32_t BUFFER=1;
+volatile uint8_t LED_RAW[LEDS];				// 8bit brightness
+volatile uint16_t LED_PRECALC[REGS][BITS];	// 16bit value sent to LED drivers with high bit staying on for longest
+volatile uint16_t LED_PRECALC1[REGS][BITS];	// buffered as above
+volatile uint16_t LED_PRECALC2[REGS][BITS];	// buffered as above
+volatile uint8_t BUFFER=1;					// 1 if above precalcs are buffered
 
 //uint16_t BITINREG[LEDS];
 //uint16_t WHICHREG[LEDS];
 //uint32_t LAST_MS;
 //uint32_t TOTAL_MS;
 extern volatile uint32_t TOG[4];
-volatile uint32_t UPDATE_COUNT;
-volatile uint32_t LED_UPDATE_REQUIRED;
+//volatile uint32_t UPDATE_COUNT;
+//volatile uint32_t LED_UPDATE_REQUIRED;
 
 void TIMER0_IRQHandler(void){
+//	xprintf("0");
 	//if (TIM_GetIntStatus(LPC_TIM0,TIM_MR0_INT)==SET){
 	if ((LPC_TIM0->IR)& TIM_IR_CLR(TIM_MR0_INT)){
 //		FIO_SetValue(LED_OE_PORT, LED_OE_BIT);//LED's off. active low
@@ -222,7 +224,9 @@ void TIMER0_IRQHandler(void){
 		LPC_TIM0->MR0 = NEXT_DELAY_TIME;
 //		FIO_SetValue(LED_LE_PORT, LED_LE_BIT);
 
-		for(uint32_t reg=0; reg<REGS;reg++){
+		uint8_t reg;
+		for(reg=6; 0<reg;reg--){
+			xprintf("%d ",reg-1);
 #if 0
 			if(BUFFER==1)
 				SSP_SendData(LED_SPI_CHN, LED_PRECALC1[reg][SEND_BIT]);
@@ -230,12 +234,42 @@ void TIMER0_IRQHandler(void){
 				SSP_SendData(LED_SPI_CHN, LED_PRECALC2[reg][SEND_BIT]);
 			//SSP_SendData(LED_SPI_CHN, LED_PRECALC[reg][SEND_BIT]<<6);
 #endif
-			//SSP_SendData(LED_SPI_CHN, LED_PRECALC[reg][SEND_BIT]);
-			LED_SPI_CHN->DR = LED_PRECALC[reg][SEND_BIT];
-
 			//WaitForSend();//Wait if TX buffer full
-			while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+			//while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+			while(SSP_GetStatus(LED_SPI_CHN, SSP_STAT_BUSY)){
+				uint32_t w1;
+				w1+=1;
+//				xprintf("w1");
+			};
+			SSP_SendData(LED_SPI_CHN, LED_PRECALC[reg-1][SEND_BIT]);
+			xprintf("%4x ",(LED_PRECALC[reg-1][SEND_BIT]));
+//			LED_SPI_CHN->DR = LED_PRECALC[reg-1][SEND_BIT];
 		}
+//		xprintf("Regs2\n");
+		for(reg=12; reg>6;reg--){
+			xprintf("%d ",reg-1);
+#if 0
+			if(BUFFER==1)
+				SSP_SendData(LED_SPI_CHN, LED_PRECALC1[reg][SEND_BIT]);
+			else
+				SSP_SendData(LED_SPI_CHN, LED_PRECALC2[reg][SEND_BIT]);
+			//SSP_SendData(LED_SPI_CHN, LED_PRECALC[reg][SEND_BIT]<<6);
+#endif
+			//WaitForSend();//Wait if TX buffer full
+//			while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+			while(SSP_GetStatus(LED_SPI_CHN, SSP_STAT_BUSY)){
+				uint32_t w2;
+				w2+=1;
+//				xprintf("w2");
+			}
+			SSP_SendData(LED_SPI_CHN, LED_PRECALC[reg-1][SEND_BIT]);
+//			if (reg==7){
+				xprintf("%4x ",(LED_PRECALC[reg-1][SEND_BIT]));
+//			}
+//			LED_SPI_CHN->DR = LED_PRECALC[reg-1][SEND_BIT];
+
+		}
+		xprintf("\n");
 		//LatchIn();
 		LPC_GPIO0->FIOSET = LED_LE_BIT;
 		LPC_GPIO0->FIOCLR = LED_LE_BIT;
@@ -304,16 +338,16 @@ void DMA_IRQHandler (void)
 
 
 void LED_init(){
-	uint32_t tmp;
+	uint8_t tmp;
 
 	SENDSEQ=0;
 	DELAY_TIME=1; //so RIT ms is not set to 0
 	NEXT_DELAY_TIME=1; //so RIT ms is not set to 0
 	SEND_BIT=0;
 	NEXT_SEND_BIT=0;
-	UPDATE_COUNT=0;
-	LED_UPDATE_REQUIRED=0;
-	LED_SEND=0;
+//	UPDATE_COUNT=0;
+//	LED_UPDATE_REQUIRED=0;
+//	LED_SEND=0;
 
 	GPIO_SetDir(LED_OE_PORT, LED_OE_BIT, 1);
 	GPIO_SetValue(LED_OE_PORT, LED_OE_BIT);//turn off leds active low
@@ -330,23 +364,23 @@ void LED_init(){
 		SEQ_TIME[tmp] = BITTIME[BITORDER[tmp]];
 	}
 	//clear led bits
-	for(uint32_t a=0; a<LEDS; a++){
+	for(uint8_t a=0; a<LEDS; a++){
 		LED_RAW[a]=0;
 	}
 	//clear precalc bits
-	for(uint32_t a=0; a<REGS; a++){
-		for (uint32_t b=0;b<BITS;b++){
+	for(uint8_t a=0; a<REGS; a++){
+		for (uint8_t b=0;b<BITS;b++){
+			LED_PRECALC[a][b]=0;
+		}
+	}
+	for(uint8_t a=0; a<REGS; a++){
+		for (uint8_t b=0;b<BITS;b++){
 			LED_PRECALC1[a][b]=0;
 		}
 	}
-	for(uint32_t a=0; a<REGS; a++){
-		for (uint32_t b=0;b<BITS;b++){
+	for(uint8_t a=0; a<REGS; a++){
+		for (uint8_t b=0;b<BITS;b++){
 			LED_PRECALC2[a][b]=0;
-		}
-	}
-	for(uint32_t a=0; a<REGS; a++){
-		for (uint32_t b=0;b<BITS;b++){
-			LED_PRECALC[a][b]=0;
 		}
 	}
 	resetLeds();
@@ -354,14 +388,14 @@ void LED_init(){
 #if 0
 	//which bit in register
 	tmp = 0;
-	for(uint32_t a=0; a<LEDS; a++){
+	for(uint8_t a=0; a<LEDS; a++){
 		BITINREG[a]=tmp++;
 		if (tmp == 15)
 			tmp = 0;
 	}
 	//which register
 	tmp = 0;
-	for(uint32_t a=0; a<LEDS; a++,tmp++){
+	for(uint8_t a=0; a<LEDS; a++,tmp++){
 		WHICHREG[a]=tmp2;
 		if (tmp == 15)
 			tmp2++;
@@ -416,7 +450,8 @@ void LED_init(){
 	SSP_ConfigStruct.CPOL = SSP_CPOL_LO;
 //	SSP_ConfigStruct.ClockRate = 500000;
 //	SSP_ConfigStruct.ClockRate = 10000000;
-	SSP_ConfigStruct.ClockRate = 25000000; /* TLC5927 max freq = 30Mhz */
+//	SSP_ConfigStruct.ClockRate = 20000000;
+	SSP_ConfigStruct.ClockRate = 30000000; /* TLC5927 max freq = 30Mhz */
 	SSP_ConfigStruct.FrameFormat = SSP_FRAME_SPI;
 	SSP_ConfigStruct.Databit = SSP_DATABIT_16;
 	SSP_ConfigStruct.Mode = SSP_MASTER_MODE;
@@ -438,7 +473,7 @@ void LED_init(){
 //	delay_ms(10000);
 	xprintf(OK "// All LEDS should be off");FFL_();
 
-#if 0 // If using interupts
+#if 1 // If using interupts
 	TIM_TIMERCFG_Type TIM_ConfigStruct;
 	TIM_MATCHCFG_Type TIM_MatchConfigStruct;
 
@@ -482,7 +517,7 @@ void LED_init(){
 	NVIC_EnableIRQ(DMA_IRQn);
 
 	/* Initializing Buffer section ----------------------------------------------------------- */
-	Buffer_Init();
+//	Buffer_Init();
 
 	/* Initialize GPDMA controller */
 	GPDMA_Init();
@@ -493,6 +528,16 @@ void LED_init(){
 	NVIC_DisableIRQ (DMA_IRQn);
 	NVIC_SetPriority(DMA_IRQn, 0); // set according to main.c
 
+	GPDMA_LLI_Type LinkerList[REGS][BITS];
+	uint8_t reg, regs, bit;
+	for (regs=6,reg=0; 0<regs;regs--,reg++){
+		for (bit=0;bit>BITS;bit++){
+			LinkerList[regs][bit].SrcAddr = (uint32_t) &LED_PRECALC[reg][bit];	/**< Source Address */
+			LinkerList[regs][bit].DstAddr = 0;	/**< Destination address */
+			LinkerList[regs][bit].NextLLI = (uint32_t) &LED_PRECALC[reg][bit+1];	/**< Next LLI address, otherwise set to '0' */
+			LinkerList[regs][bit].Control = (uint32_t) &LED_PRECALC[reg][bit];	/**< GPDMA Control of this LLI */
+		}
+	}
 
 	/* Configure GPDMA channel 0 -------------------------------------------------------------*/
 	/* DMA Channel 0 */
@@ -512,7 +557,7 @@ void LED_init(){
 	// Destination connection
 	GPDMACfg.DstConn = GPDMA_CONN_SSP0_Tx; //TODO this needs to be different
 	// Linker List Item - unused
-	GPDMACfg.DMALLI = 0;
+	GPDMACfg.DMALLI = (uint32_t) &LinkerList[0][0];
 	// Setup channel with given parameter
 	GPDMA_Setup(&GPDMACfg);
 	/* Reset terminal counter */
@@ -520,10 +565,12 @@ void LED_init(){
 	/* Reset Error counter */
 	Channel0_Err = 0;
 
+
+
 //	_DBG_("Start transfer...");
 
     // Enable Tx DMA on SSP0
-	SSP_DMACmd (LED_SPI_CHN, SSP_DMA_TX, ENABLE);
+//	SSP_DMACmd (LED_SPI_CHN, SSP_DMA_TX, ENABLE);
 
 	// Enable GPDMA channel 0
 	GPDMA_ChannelCmd(0, ENABLE);
@@ -532,8 +579,8 @@ void LED_init(){
     NVIC_EnableIRQ (DMA_IRQn);
 
 	/* Wait for GPDMA processing complete */
-	while (((Channel0_TC == 0) && (Channel0_Err == 0)) \
-			|| ((Channel1_TC == 0) && (Channel1_Err ==0)));
+//	while (((Channel0_TC == 0) && (Channel0_Err == 0)) \
+//			|| ((Channel1_TC == 0) && (Channel1_Err ==0)));
 
 	/* Verify buffer */
 //	Buffer_Verify();
@@ -568,8 +615,8 @@ void LED_test(){
 	}
 #endif
 #if 0 //simple all colors
-	while(1){
-	for (uint8_t i=0;i<(16);i++){
+//	while(1){
+	for (uint8_t i=0;i<16;i++){
 		xprintf(OK "%d",i+1);FFL_();
 		GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
 //		for (uint8_t j=0;j<11;j++){
@@ -588,7 +635,7 @@ void LED_test(){
 		GPIO_ClearValue(LED_OE_PORT, LED_OE_BIT);//LED's on. active low
 		delay_ms(150);
 	};
-	for (uint8_t i=0;i<(16);i++){
+	for (uint8_t i=0;i<16;i++){
 		xprintf(OK "%d",i+1);FFL_();
 		GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
 //		for (uint8_t j=0;j<11;j++){
@@ -607,7 +654,7 @@ void LED_test(){
 		GPIO_ClearValue(LED_OE_PORT, LED_OE_BIT);//LED's on. active low
 		delay_ms(150);
 	};
-	for (uint8_t i=0;i<(16);i++){
+	for (uint8_t i=0;i<16;i++){
 		xprintf(OK "%d",i+1);FFL_();
 		GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
 //		for (uint8_t j=0;j<11;j++){
@@ -626,7 +673,7 @@ void LED_test(){
 		GPIO_ClearValue(LED_OE_PORT, LED_OE_BIT);//LED's on. active low
 		delay_ms(150);
 	};
-	for (uint8_t i=0;i<(16);i++){
+	for (uint8_t i=0;i<16;i++){
 		xprintf(OK "%d",i+1);FFL_();
 		GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
 //		for (uint8_t j=0;j<11;j++){
@@ -645,35 +692,38 @@ void LED_test(){
 		GPIO_ClearValue(LED_OE_PORT, LED_OE_BIT);//LED's on. active low
 		delay_ms(150);
 	};
-	}
+//	}
 
 #endif
-#if 0 //led test
-	for(uint32_t led=0; led<LEDS;led++){
-		SetLED(led,1);
+#if 1 //led test
+	while(1){
+	for(uint8_t led=0; led<LEDS;led++){
+		SetLED(led,0xff);
 		calulateLEDMIBAMBits();
-		delay_ms(200);
-		SetLED(led,0);
+		delay_ms(20);
+//		SetLED(led,0x00);
+	}
 	}
 
 #endif
-#if 1
-	for(uint32_t led=0;led<LEDS;led++){ // loop over all LED's
-		xprintf("LED no %d ",(led/3));
-		if ((led % 3)==0) xprintf("Red\n");
-		if ((led % 3)==1) xprintf("Green\n");
-		if ((led % 3)==2) xprintf("Blue\n");
-		for(int32_t b=0;b<=0x7f;b++){
+#if 0
+	while(1){
+	for(uint8_t led=0;led<LEDS;led++){ // loop over all LED's
+//		xprintf("LED no %d ",(led/3));
+//		if ((led % 3)==0) xprintf("Red\n");
+//		if ((led % 3)==1) xprintf("Green\n");
+//		if ((led % 3)==2) xprintf("Blue\n");
+		for(uint8_t b=0;b<=0x7f;b++){
 			SetLED(led,b);
 			calulateLEDMIBAMBits();
-			delay_ms(2);
+			delay_ms(100);
 		}
-		for(int32_t b=0x7f;b>=0;b--){
+		for(uint8_t b=0x80;b==0;--b){
 			SetLED(led,b);
 			calulateLEDMIBAMBits();
-			delay_ms(2);
+			delay_ms(100);
 		}
-	}
+	}}
 #endif
 }
 
@@ -698,13 +748,13 @@ void SetRGB(int32_t group, uint8_t v0, uint8_t v1, uint8_t v2){
 	LED_RAW[group*3+1]=v1 & 0x7F;
 	LED_RAW[group*3+2]=v2 & 0x7F;
 }
-void SetLED(int32_t led, uint8_t v0){
+void SetLED(uint8_t led, uint8_t v0){
 	LED_RAW[led]=v0 & 0x7F;
 }
 
 void resetLeds(void){
 	//clear led bits
-	for(uint32_t a=0; a<LEDS; a++){
+	for(uint8_t a=0; a<LEDS; a++){
 		LED_RAW[a]=0;
 	}
 	calulateLEDMIBAMBits();
@@ -712,12 +762,13 @@ void resetLeds(void){
 //LED_PRECALC[reg][bit] = (0x01<<bit) & LED_RAW[led];
 
 void calulateLEDMIBAMBits(){
-	uint32_t led,bitinreg;
-
-	for(uint32_t bit=0; bit<BITS; bit++){
+//	xprintf(INFO "calulateLEDMIBAMBits()");
+	uint8_t led,bitinreg;
+//	xprintf("bit reg LED_PRECALC[bit][reg]\n");
+	for(uint8_t bit=0; bit<BITS; bit++){
 //	uint32_t bit=7;
 		led=0;
-		for(uint32_t reg=0; reg<REGS; reg++){
+		for(uint8_t reg=0; reg<REGS; reg++){
 			bitinreg=0;
 /*
 			_DBG("[INFO]-LED_RAW[0]= ");_DBH(LED_RAW[0]);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
@@ -751,13 +802,17 @@ void calulateLEDMIBAMBits(){
 				_DBG("[INFO]-tmp=");_DBD(tmp);_DBG("-");_DBH16((LED_RAW[led++]<<tmp)&(1<<tmp));_DBG("\r\n");
 			}
 */
-			uint32_t tt[16],l;
-			for(uint32_t t=0;t<16;t++){
+			uint16_t tt[16],l;
+			for(uint8_t t=0;t<15;t++,led++){
 				l=LED_RAW[led]>>(bit);
 //				xprintf(INFO "l=%d 1<<bitinreg=%15b" " (%s:%d)\n",l,1<<bitinreg,_F_,_L_);
 				tt[t] = (l<<bitinreg)&(1<<bitinreg);
 				bitinreg++;
-				led++;
+//				if (bit==7){
+//					xprintf("bit:%d reg:%d LED_PRECALC[%d][%d]:%d\n",bit,reg,bit,reg,LED_PRECALC[reg][bit]);
+//				xprintf("bit reg LED_PRECALC[%d][%d]:%d\n",bit,reg,bit,reg,LED_PRECALC[reg][bit]);
+//				xprintf("%d   %d          %d\n",bit,reg,LED_PRECALC[reg][bit]);
+//				}
 			}
 #if 1
 			LED_PRECALC[reg][bit] =
@@ -776,6 +831,12 @@ void calulateLEDMIBAMBits(){
 				tt[12] |
 				tt[13] |
 				tt[14];
+
+//			if (led==91){//|led==1|led==2){
+//				xprintf("reg:%d brightness:%d\n",reg,LED_PRECALC[reg][bit]);
+//				xprintf("LED_RAW:%d\n",LED_RAW[led]);
+//			}
+
 #else
 			if(BUFFER==1){
 				LED_PRECALC1[reg][bit] =
