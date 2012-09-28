@@ -13,6 +13,9 @@ Status setPot(uint8_t pot){
 	//max value
 	if( pot > 0x7f)
 		pot = 0x7f;
+	//min value
+	if( pot < 0x01)
+		pot = 0x01;
 
 	uint8_t Tx_Buf[3];
 	I2C_M_SETUP_Type transferMCfg;
