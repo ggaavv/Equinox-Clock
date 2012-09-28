@@ -43,6 +43,8 @@
 
 //#define MAX_BAM_BITS 16
 #define MAX_BAM_BITS 8		// number of BITORDER bits to cycle through
+#define SSP_SPEED 30000000
+#define DelayLatchIn 300*(30000000/SSP_SPEED)	// delay before chip select is toggled
 
 const uint8_t BITORDER[] = { 0,1,2,3,4,5,6,7,7,6,5,4,3,2,1,0 };		// which of the 8 bits to send
 //const uint8_t BITORDER[] = { 0,7,2,5,4,3,6,1,1,6,3,4,5,2,7,0 };
@@ -50,7 +52,6 @@ const uint8_t BITORDER[] = { 0,1,2,3,4,5,6,7,7,6,5,4,3,2,1,0 };		// which of the
 
 #define START_TIME 4096 //largest time inteval??
 //#define START_TIME 2000 //largest time inteval??
-
 
 //#define START_TIME 32 //smallest time inteval 33us
 //#define START_TIME 32/2 //fastest possible
@@ -160,6 +161,8 @@ GPDMA_LLI_Type LinkerList[REGS][BITS];
 GPDMA_Channel_CFG_Type GPDMACfg;
 uint32_t Channel0_TC;	// Terminal Counter flag for Channel 0
 uint32_t Channel0_Err;	// Error Counter flag for Channel 0
+uint32_t Channel1_TC;	// Terminal Counter flag for Channel 1
+uint32_t Channel1_Err;	// Error Counter flag for Channel 1
 
 //uint16_t BITINREG[LEDS];
 //uint16_t WHICHREG[LEDS];
@@ -170,7 +173,7 @@ extern volatile uint32_t TOG[4];
 //volatile uint32_t LED_UPDATE_REQUIRED;
 
 void TIMER0_IRQHandler(void){
-//	xprintf("0");
+//	xprintf("TIMER0_IRQ");
 	//if (TIM_GetIntStatus(LPC_TIM0,TIM_MR0_INT)==SET){
 	if ((LPC_TIM0->IR)& TIM_IR_CLR(TIM_MR0_INT)){
 //		FIO_SetValue(LED_OE_PORT, LED_OE_BIT);//LED's off. active low
@@ -216,9 +219,10 @@ void TIMER0_IRQHandler(void){
 //		FIO_SetValue(LED_LE_PORT, LED_LE_BIT);
 
 #ifdef DMA
-		GPDMACfg.SrcMemAddr = (uint32_t) &LinkerList[0][SEND_BIT];
+		GPDMACfg.DMALLI = (uint32_t) &LinkerList[0][SEND_BIT];
 		GPDMA_Setup(&GPDMACfg);
 		GPDMA_ChannelCmd(0, ENABLE);
+//		GPDMA_ChannelCmd(1, ENABLE);
 #else
 		uint8_t reg;
 		for(reg=6; 0<reg;reg--){
@@ -265,11 +269,11 @@ void TIMER0_IRQHandler(void){
 //			LED_SPI_CHN->DR = LED_PRECALC[reg-1][SEND_BIT];
 
 		}
-#endif
 		xprintf("\n");
-		//LatchIn();
-		LPC_GPIO0->FIOSET = LED_LE_BIT;
-		LPC_GPIO0->FIOCLR = LED_LE_BIT;
+		LatchIn();
+//		LPC_GPIO0->FIOSET = LED_LE_BIT;
+//		LPC_GPIO0->FIOCLR = LED_LE_BIT;
+#endif
 
 //		FIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
 /*
@@ -287,9 +291,23 @@ void TIMER0_IRQHandler(void){
 	LPC_TIM0->IR |= TIM_IR_CLR(TIM_MR0_INT);
 }
 
+/*
+===========================================
+buffer size = 8
+proc clk	= 100,000,000 Mhz
+SSP speed	= 25,000,000 MB/s
+SSP speed /	16	= 1,562,500 16bit cyles per sec
+above / buffer size = 195,312.5
+
+transfer time for 16 bits * buffer size of 8
+============================================
+1sec / 25,000,000 = 0.000,000,04 = 40ns to transfer 1 bit
+40ns * 16bits * buffer 8 = 5.12us + 50% = 7.86
+*/
+
 inline void LatchIn(void){
-#if 0
-	for(uint32_t i=0;i<15;i++){
+#if 1
+	for(uint32_t i=0;i<500;i++){
 		asm("nop");
 	}
 #endif
@@ -316,26 +334,63 @@ inline void WaitForSend(void){
 
 void DMA_IRQHandler (void)
 {
+//	xprintf("DMA_IRQ");
 	// check GPDMA interrupt on channel 0
 	if (GPDMA_IntGetStatus(GPDMA_STAT_INT, 0)){
 		// Check counter terminal status
 		if(GPDMA_IntGetStatus(GPDMA_STAT_INTTC, 0)){
 			// Clear terminate counter Interrupt pending
 			GPDMA_ClearIntPending (GPDMA_STATCLR_INTTC, 0);
-				Channel0_TC++;
+//			Channel0_TC++;
+//			xprintf("ch0_TC:%d\n",Channel0_TC);
+			LatchIn();
 		}
 		// Check error terminal status
 		if (GPDMA_IntGetStatus(GPDMA_STAT_INTERR, 0)){
 			// Clear error counter Interrupt pending
 			GPDMA_ClearIntPending (GPDMA_STATCLR_INTERR, 0);
 			Channel0_Err++;
+//			xprintf("ch0_Err:%d\n",Channel0_Err);
 		}
 	}
+#if 0
+	// check GPDMA interrupt on channel 1
+	if (GPDMA_IntGetStatus(GPDMA_STAT_INT, 1)){
+		// Check counter terminal status
+		if(GPDMA_IntGetStatus(GPDMA_STAT_INTTC, 1)){
+			// Clear terminate counter Interrupt pending
+			GPDMA_ClearIntPending (GPDMA_STATCLR_INTTC, 1);
+				Channel1_TC++;
+				xprintf("ch1_TC:%d\n",Channel0_TC);
+		}
+		// Check error terminal status
+		if (GPDMA_IntGetStatus(GPDMA_STAT_INTERR, 1)){
+			// Clear error counter Interrupt pending
+			GPDMA_ClearIntPending (GPDMA_STATCLR_INTERR, 1);
+			Channel1_Err++;
+			xprintf("ch1_Err:%d\n",Channel0_Err);
+		}
+	}
+	xprintf("Rx:0x%x\n",LED_PRECALC1[0][0]);
+#endif
+/*	xprintf("DMA_IRQHandler GPDMA_STAT_INT:%d\n",GPDMA_IntGetStatus(GPDMA_STAT_INT, 0));
+	xprintf("DMA_IRQHandler GPDMA_STAT_INTTC:%d\n",GPDMA_IntGetStatus(GPDMA_STAT_INTTC, 0));
+	xprintf("DMA_IRQHandler GPDMA_STAT_INTERR:%d\n",GPDMA_IntGetStatus(GPDMA_STAT_INTERR, 0));
+	xprintf("DMA_IRQHandler GPDMA_STAT_RAWINTTC:%d\n",GPDMA_IntGetStatus(GPDMA_STAT_RAWINTTC, 0));
+	xprintf("DMA_IRQHandler GPDMA_STAT_RAWINTERR:%d\n",GPDMA_IntGetStatus(GPDMA_STAT_RAWINTERR, 0));
+	xprintf("DMA_IRQHandler GPDMA_STAT_ENABLED_CH:%d\n",GPDMA_IntGetStatus(GPDMA_STAT_ENABLED_CH, 0));
+*/
 }
 
+void SSP0_IRQHandler (void)
+{
+//	SSP_ClearIntPending(LED_SPI_CHN, uint32_t IntType)
+}
 
 void LED_init(){
 	uint8_t tmp;
+
+	setPot(0x50);
 
 	SENDSEQ=0;
 	DELAY_TIME=1; //so RIT ms is not set to 0
@@ -440,15 +495,12 @@ void LED_init(){
 
 	/* initialize SSP configuration structure */
 	SSP_CFG_Type SSP_ConfigStruct;
-	SSP_ConfigStructInit(&SSP_ConfigStruct);
+//	SSP_ConfigStructInit(&SSP_ConfigStruct);
 	SSP_ConfigStruct.CPHA = SSP_CPHA_SECOND;
 //	SSP_ConfigStruct.CPOL = SSP_CPOL_HI;
 //	SSP_ConfigStruct.CPHA = SSP_CPHA_FIRST;
 	SSP_ConfigStruct.CPOL = SSP_CPOL_LO;
-//	SSP_ConfigStruct.ClockRate = 500000;
-//	SSP_ConfigStruct.ClockRate = 10000000;
-//	SSP_ConfigStruct.ClockRate = 20000000;
-	SSP_ConfigStruct.ClockRate = 30000000; /* TLC5927 max freq = 30Mhz */
+	SSP_ConfigStruct.ClockRate = SSP_SPEED; /* TLC5927 max freq = 30Mhz */
 	SSP_ConfigStruct.FrameFormat = SSP_FRAME_SPI;
 	SSP_ConfigStruct.Databit = SSP_DATABIT_16;
 	SSP_ConfigStruct.Mode = SSP_MASTER_MODE;
@@ -497,6 +549,8 @@ void LED_init(){
 	TIM_Init(LPC_TIM0, TIM_TIMER_MODE,&TIM_ConfigStruct);
 	TIM_ConfigMatch(LPC_TIM0,&TIM_MatchConfigStruct);
 
+	xprintf(OK "TIM_ConfigMatch");FFL_();
+
 	/* preemption = 1, sub-priority = 1 */
 	NVIC_SetPriority(TIMER0_IRQn, 0);
 	/* Enable interrupt for timer 0 */
@@ -507,50 +561,26 @@ void LED_init(){
 //	FIO_ClearValue(LED_OE_PORT, LED_OE_BIT);//LED's on. active low
 #ifdef DMA
 //	GPDMA_Channel_CFG_Type GPDMACfg;
-
-	/* GPDMA Interrupt configuration section ------------------------------------------------- */
-	NVIC_SetPriority(DMA_IRQn, 0); // set according to main.c
-	/* Enable SSP0 interrupt */
-	NVIC_EnableIRQ(DMA_IRQn);
-
-	/* Initializing Buffer section ----------------------------------------------------------- */
-//	Buffer_Init();
-
-	/* Initialize GPDMA controller */
-	GPDMA_Init();
-
-
-	/* Setting GPDMA interrupt */
-	// Disable interrupt for DMA
-	NVIC_DisableIRQ (DMA_IRQn);
-	NVIC_SetPriority(DMA_IRQn, 0); // set according to main.c
-
-	uint8_t reg, bit;
 	/* Configure GPDMA channel 0 -------------------------------------------------------------*/
-	/* DMA Channel 0 */
-	GPDMACfg.ChannelNum = 0;
-	// Source memory - not used - will be sent in interrupt so independent bit Linker Lists can be chosen
-	GPDMACfg.SrcMemAddr = (uint32_t) &LinkerList[0][0];
-	// Destination memory - not used - only used when destination is memory
-	GPDMACfg.DstMemAddr = 0;
-	// Transfer size
-	GPDMACfg.TransferSize = sizeof(LinkerList[0][0]);
-	// Transfer width - 16 bits
-	GPDMACfg.TransferWidth = GPDMA_WIDTH_HALFWORD;
-	// Transfer type
-	GPDMACfg.TransferType = GPDMA_TRANSFERTYPE_M2P;
-	// Source connection - not used
-	GPDMACfg.SrcConn = 0;
-	// Destination connection - not used
-	GPDMACfg.DstConn = GPDMA_CONN_SSP0_Tx;
-	// Linker List Item - Pointer to linker list
-	GPDMACfg.DMALLI = (uint32_t) &LinkerList[0][0];
-	// Setup channel with given parameter
-	GPDMA_Setup(&GPDMACfg);
-	/* Reset terminal counter */
-	Channel0_TC = 0;
-	/* Reset Error counter */
-	Channel0_Err = 0;
+	NVIC_SetPriority(DMA_IRQn, 0);	// set according to main.c
+	NVIC_EnableIRQ(DMA_IRQn);
+	GPDMA_Init();				// Initialize GPDMA controller */
+	NVIC_DisableIRQ (DMA_IRQn);	// Disable interrupt for DMA
+	NVIC_SetPriority(DMA_IRQn, 0);	// set according to main.c
+
+	uint8_t reg, bit, linkerListNo;
+	GPDMACfg.ChannelNum = 0;	// DMA Channel 0
+	GPDMACfg.SrcMemAddr = 0;	// Source memory - not used - will be sent in interrupt so independent bit Linker Lists can be chosen
+	GPDMACfg.DstMemAddr = 0;	// Destination memory - not used - only used when destination is memory
+	GPDMACfg.TransferSize = 1;	// Transfer size
+	GPDMACfg.TransferWidth = GPDMA_WIDTH_HALFWORD;	// Transfer width - not used
+	GPDMACfg.TransferType = GPDMA_TRANSFERTYPE_M2P;	// Transfer type
+	GPDMACfg.SrcConn = 0;		// Source connection - not used
+	GPDMACfg.DstConn = GPDMA_CONN_SSP0_Tx;	// Destination connection - not used
+	GPDMACfg.DMALLI = (uint32_t) &LinkerList[0][0];	// Linker List Item - Pointer to linker list
+	GPDMA_Setup(&GPDMACfg);		// Setup channel with given parameter
+//	Channel0_TC = 0;			// Reset terminal counter
+//	Channel0_Err = 0;			// Reset Error counter
 
 	// Linker list 32bit Control
 	uint32_t LinkerListControl = 0;
@@ -561,53 +591,67 @@ void LED_init(){
 						| GPDMA_DMACCxControl_DWidth((uint32_t)GPDMACfg.TransferWidth) \
 						| GPDMA_DMACCxControl_SI;
 
-	for (bit=0;bit>BITS;bit++){
-		for (reg=5; 1<reg;reg--){
-			LinkerList[reg][bit].SrcAddr = (uint32_t) &LED_PRECALC[reg][bit];	/**< Source Address */
-			LinkerList[reg][bit].DstAddr = (uint32_t) &LPC_SSP0->DR;			/**< Destination address */
-			LinkerList[reg][bit].NextLLI = (uint32_t) &LED_PRECALC[reg-1][bit];	/**< Next LLI address, otherwise set to '0' */
-			LinkerList[reg][bit].Control = LinkerListControl;
+	for (bit=0;bit<BITS;bit++){
+		linkerListNo=0;
+		for (reg=5; 0<reg;reg--,linkerListNo++){
+			xprintf("bit:%d reg:%d SrcAddr:0x%x DstAddr:0x%x NextLLI:0x%x linkerListNo:0x%x\n",bit,reg,(uint32_t) &LED_PRECALC[reg][bit],(uint32_t) &LPC_SSP0->DR,(uint32_t) &LinkerList[linkerListNo+1][bit],linkerListNo);
+			LinkerList[linkerListNo][bit].SrcAddr = (uint32_t) &LED_PRECALC[reg][bit];	/**< Source Address */
+			LinkerList[linkerListNo][bit].DstAddr = (uint32_t) &LPC_SSP0->DR;			/**< Destination address */
+			LinkerList[linkerListNo][bit].NextLLI = (uint32_t) &LinkerList[linkerListNo+1][bit];	/**< Next LLI address, otherwise set to '0' */
+			LinkerList[linkerListNo][bit].Control = LinkerListControl;
+			xprintf("SrcAddr:0x%x DstAddr:0x%x NextLLI:0x%x\n",(uint32_t) &LinkerList[linkerListNo][bit].SrcAddr,(uint32_t) &LinkerList[linkerListNo][bit].DstAddr,(uint32_t) &LinkerList[linkerListNo][bit].NextLLI,(uint32_t) &LinkerList[linkerListNo][bit].Control);
 		}
 //		if (reg==0){
-		LinkerList[reg][bit].SrcAddr = (uint32_t) &LED_PRECALC[reg][bit];	/**< Source Address */
-		LinkerList[reg][bit].DstAddr = (uint32_t) &LPC_SSP0->DR;			/**< Destination address */
-		LinkerList[reg][bit].NextLLI = (uint32_t) &LED_PRECALC[reg+11][bit];/**< Next LLI address, otherwise set to '0' */
-		LinkerList[reg][bit].Control = LinkerListControl;
+		xprintf("bit:%d reg:%d SrcAddr:0x%x DstAddr:0x%x NextLLI:0x%x linkerListNo:0x%x\n",bit,reg,(uint32_t) &LED_PRECALC[reg][bit],(uint32_t) &LPC_SSP0->DR,(uint32_t) &LinkerList[linkerListNo+1][bit],linkerListNo);
+		LinkerList[linkerListNo][bit].SrcAddr = (uint32_t) &LED_PRECALC[reg][bit];	/**< Source Address */
+		LinkerList[linkerListNo][bit].DstAddr = (uint32_t) &LPC_SSP0->DR;			/**< Destination address */
+		LinkerList[linkerListNo][bit].NextLLI = (uint32_t) &LinkerList[linkerListNo+1][bit];/**< Next LLI address, otherwise set to '0' */
+		LinkerList[linkerListNo][bit].Control = LinkerListControl;
+		linkerListNo++;
+		xprintf("SrcAddr:0x%x DstAddr:0x%x NextLLI:0x%x\n",(uint32_t) &LinkerList[linkerListNo][bit].SrcAddr,(uint32_t) &LinkerList[linkerListNo][bit].DstAddr,(uint32_t) &LinkerList[linkerListNo][bit].NextLLI,(uint32_t) &LinkerList[linkerListNo][bit].Control);
 //		}
-		for (reg=11; reg>6;reg--){
-			LinkerList[reg][bit].SrcAddr = (uint32_t) &LED_PRECALC[reg][bit];	/**< Source Address */
-			LinkerList[reg][bit].DstAddr = (uint32_t) &LPC_SSP0->DR;			/**< Destination address */
-			LinkerList[reg][bit].NextLLI = (uint32_t) &LED_PRECALC[reg-1][bit];	/**< Next LLI address, otherwise set to '0' */
-			LinkerList[reg][bit].Control = LinkerListControl;
+		for (reg=11; reg>6;reg--,linkerListNo++){
+			xprintf("bit:%d reg:%d SrcAddr:0x%x DstAddr:0x%x NextLLI:0x%x linkerListNo:0x%x\n",bit,reg,(uint32_t) &LED_PRECALC[reg][bit],(uint32_t) &LPC_SSP0->DR,(uint32_t) &LinkerList[linkerListNo+1][bit],linkerListNo);
+			LinkerList[linkerListNo][bit].SrcAddr = (uint32_t) &LED_PRECALC[reg][bit];	/**< Source Address */
+			LinkerList[linkerListNo][bit].DstAddr = (uint32_t) &LPC_SSP0->DR;			/**< Destination address */
+			LinkerList[linkerListNo][bit].NextLLI = (uint32_t) &LinkerList[linkerListNo+1][bit];	/**< Next LLI address, otherwise set to '0' */
+			LinkerList[linkerListNo][bit].Control = LinkerListControl;
+			xprintf("SrcAddr:0x%x DstAddr:0x%x NextLLI:0x%x\n",(uint32_t) &LinkerList[linkerListNo][bit].SrcAddr,(uint32_t) &LinkerList[linkerListNo][bit].DstAddr,(uint32_t) &LinkerList[linkerListNo][bit].NextLLI,(uint32_t) &LinkerList[linkerListNo][bit].Control);
 		}
 //		if (reg==7){
-		LinkerList[reg][bit].SrcAddr = (uint32_t) &LED_PRECALC[reg][bit];	/**< Source Address */
-		LinkerList[reg][bit].DstAddr = (uint32_t) &LPC_SSP0->DR;			/**< Destination address */
-		LinkerList[reg][bit].NextLLI = 0;									/**< Next LLI address, otherwise set to '0' */
-		LinkerList[reg][bit].Control = LinkerListControl;
+		xprintf("bit:%d reg:%d SrcAddr:0x%x DstAddr:0x%x NextLLI:0x%x linkerListNo:0x%x\n",bit,reg,(uint32_t) &LED_PRECALC[reg][bit],(uint32_t) &LPC_SSP0->DR,(uint32_t) &LinkerList[linkerListNo+1][bit],linkerListNo);
+		LinkerList[linkerListNo][bit].SrcAddr = (uint32_t) &LED_PRECALC[reg][bit];	/**< Source Address */
+		LinkerList[linkerListNo][bit].DstAddr = (uint32_t) &LPC_SSP0->DR;			/**< Destination address */
+		LinkerList[linkerListNo][bit].NextLLI = 0;									/**< Next LLI address, otherwise set to '0' */
+		LinkerList[linkerListNo][bit].Control = LinkerListControl;
+		linkerListNo++;
+		xprintf("SrcAddr:0x%x DstAddr:0x%x NextLLI:0x%x NextLLI_V:0x%x\n",(uint32_t) &LinkerList[linkerListNo][bit].SrcAddr,(uint32_t) &LinkerList[linkerListNo][bit].DstAddr,(uint32_t) &LinkerList[linkerListNo][bit].NextLLI,LinkerList[linkerListNo][bit].NextLLI);
 //		}
 	}
-
-
-//	_DBG_("Start transfer...");
-
-    // Enable Tx DMA on SSP0
-	SSP_DMACmd (LED_SPI_CHN, SSP_DMA_TX, ENABLE);
-
-	// Enable GPDMA channel 0
-//	GPDMA_ChannelCmd(0, ENABLE);
-
-    // Enable interrupt for DMA
-    NVIC_EnableIRQ (DMA_IRQn);
-
-	/* Wait for GPDMA processing complete */
-//	while (((Channel0_TC == 0) && (Channel0_Err == 0)) \
-//			|| ((Channel1_TC == 0) && (Channel1_Err ==0)));
-
-	/* Verify buffer */
-//	Buffer_Verify();
+	xprintf(OK "DMA Setup");FFL_();
+	SSP_DMACmd (LED_SPI_CHN, SSP_DMA_TX, ENABLE);	// Enable Tx DMA on SSP0
+//	GPDMA_ChannelCmd(0, ENABLE);	// Enable GPDMA channel 0
+	NVIC_EnableIRQ (DMA_IRQn);		// Enable interrupt for DMA
 #endif
-
+#if 0 // SSP Rx DMA
+	GPDMA_Channel_CFG_Type GPDMACfg1;
+	/* Configure GPDMA channel 1 -------------------------------------------------------------*/
+	GPDMACfg1.ChannelNum = 1;	// DMA Channel 0
+	GPDMACfg1.SrcMemAddr = 0;	// Source memory - not used - will be sent in interrupt so independent bit Linker Lists can be chosen
+	GPDMACfg1.DstMemAddr = (uint32_t) &LED_PRECALC1[0][0];	// Destination memory - not used - only used when destination is memory
+	GPDMACfg1.TransferSize = 1;	// Transfer size
+	GPDMACfg1.TransferWidth = GPDMA_WIDTH_HALFWORD;	// Transfer width
+	GPDMACfg1.TransferType = GPDMA_TRANSFERTYPE_P2M;	// Transfer type
+	GPDMACfg1.SrcConn = GPDMA_CONN_SSP0_Rx;		// Source connection - not used
+	GPDMACfg1.DstConn = 0;	// Destination connection - not used
+	GPDMACfg1.DMALLI = 0;	// Linker List Item - Pointer to linker list
+	GPDMA_Setup(&GPDMACfg1);		// Setup channel with given parameter
+//	Channel1_TC = 0;			// Reset terminal counter
+//	Channel1_Err = 0;			// Reset Error counter
+	xprintf(OK "DMA Rx Setup");FFL_();
+	SSP_DMACmd (LED_SPI_CHN, SSP_DMA_RX, ENABLE);	// Enable Tx DMA on SSP0
+//	GPDMA_ChannelCmd(1, ENABLE);	// Enable GPDMA channel 0
+#endif
 }
 
 
@@ -717,35 +761,36 @@ void LED_test(){
 //	}
 
 #endif
-#if 1 //led test
+#if 0 //led test
 	while(1){
 	for(uint8_t led=0; led<LEDS;led++){
 		SetLED(led,0xff);
 		calulateLEDMIBAMBits();
-		delay_ms(20);
-//		SetLED(led,0x00);
+		delay_ms(100);
+		SetLED(led,0x00);
 	}
 	}
 
 #endif
-#if 0
-	while(1){
-	for(uint8_t led=0;led<LEDS;led++){ // loop over all LED's
+#if 1
+//	while(1){
+	for(uint8_t led=0;led<LEDS;led+=3){ // loop over all LED's
 //		xprintf("LED no %d ",(led/3));
 //		if ((led % 3)==0) xprintf("Red\n");
 //		if ((led % 3)==1) xprintf("Green\n");
 //		if ((led % 3)==2) xprintf("Blue\n");
-		for(uint8_t b=0;b<=0x7f;b++){
+		for(int16_t b=0;b<=0x7f;b++){
 			SetLED(led,b);
 			calulateLEDMIBAMBits();
-			delay_ms(100);
+			delay_ms(1);
 		}
-		for(uint8_t b=0x80;b==0;--b){
-			SetLED(led,b);
-			calulateLEDMIBAMBits();
-			delay_ms(100);
-		}
-	}}
+//		for(int16_t b=0x7f;b>=0;b--){
+//			SetLED(led,b);
+//			calulateLEDMIBAMBits();
+//			delay_ms(1);
+//		}
+	}
+//	}
 #endif
 }
 
@@ -829,6 +874,7 @@ void calulateLEDMIBAMBits(){
 				l=LED_RAW[led]>>(bit);
 //				xprintf(INFO "l=%d 1<<bitinreg=%15b" " (%s:%d)\n",l,1<<bitinreg,_F_,_L_);
 				tt[t] = (l<<bitinreg)&(1<<bitinreg);
+				tt[15] = 0;
 				bitinreg++;
 //				if (bit==7){
 //					xprintf("bit:%d reg:%d LED_PRECALC[%d][%d]:%d\n",bit,reg,bit,reg,LED_PRECALC[reg][bit]);
@@ -852,7 +898,8 @@ void calulateLEDMIBAMBits(){
 				tt[11] |
 				tt[12] |
 				tt[13] |
-				tt[14];
+				tt[14] |
+				tt[15];
 
 //			if (led==91){//|led==1|led==2){
 //				xprintf("reg:%d brightness:%d\n",reg,LED_PRECALC[reg][bit]);
