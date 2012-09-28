@@ -39,6 +39,8 @@
 #include "comm.h"
 #include "sys_timer.h"
 
+#define DMA
+
 //#define MAX_BAM_BITS 16
 #define MAX_BAM_BITS 8		// number of BITORDER bits to cycle through
 
@@ -60,21 +62,6 @@ volatile uint32_t NEXT_DELAY_TIME; 	//so RIT ms is not set to 0
 volatile uint8_t SEND_BIT;			// which of the 8 bits to send
 volatile uint8_t NEXT_SEND_BIT;
 //volatile uint32_t LED_SEND;
-
-/* For DMA controller */
-#define DMA_DATA_SIZE	65
-
-// Terminal Counter flag for Channel 0
-uint32_t Channel0_TC;
-
-// Error Counter flag for Channel 0
-uint32_t Channel0_Err;
-
-// DMA source variable
-uint8_t dma_src[DMA_DATA_SIZE];
-
-// DMA source variable
-uint8_t dma_dst[DMA_DATA_SIZE];
 
 /*
 uint32_t SEQ_BIT[] = {
@@ -169,6 +156,10 @@ volatile uint16_t LED_PRECALC[REGS][BITS];	// 16bit value sent to LED drivers wi
 volatile uint16_t LED_PRECALC1[REGS][BITS];	// buffered as above
 volatile uint16_t LED_PRECALC2[REGS][BITS];	// buffered as above
 volatile uint8_t BUFFER=1;					// 1 if above precalcs are buffered
+GPDMA_LLI_Type LinkerList[REGS][BITS];
+GPDMA_Channel_CFG_Type GPDMACfg;
+uint32_t Channel0_TC;	// Terminal Counter flag for Channel 0
+uint32_t Channel0_Err;	// Error Counter flag for Channel 0
 
 //uint16_t BITINREG[LEDS];
 //uint16_t WHICHREG[LEDS];
@@ -224,6 +215,11 @@ void TIMER0_IRQHandler(void){
 		LPC_TIM0->MR0 = NEXT_DELAY_TIME;
 //		FIO_SetValue(LED_LE_PORT, LED_LE_BIT);
 
+#ifdef DMA
+		GPDMACfg.SrcMemAddr = (uint32_t) &LinkerList[0][SEND_BIT];
+		GPDMA_Setup(&GPDMACfg);
+		GPDMA_ChannelCmd(0, ENABLE);
+#else
 		uint8_t reg;
 		for(reg=6; 0<reg;reg--){
 			xprintf("%d ",reg-1);
@@ -269,6 +265,7 @@ void TIMER0_IRQHandler(void){
 //			LED_SPI_CHN->DR = LED_PRECALC[reg-1][SEND_BIT];
 
 		}
+#endif
 		xprintf("\n");
 		//LatchIn();
 		LPC_GPIO0->FIOSET = LED_LE_BIT;
@@ -508,8 +505,8 @@ void LED_init(){
 	TIM_Cmd(LPC_TIM0,ENABLE);
 #endif
 //	FIO_ClearValue(LED_OE_PORT, LED_OE_BIT);//LED's on. active low
-#if 1 //dma not used yet
-	GPDMA_Channel_CFG_Type GPDMACfg;
+#ifdef DMA
+//	GPDMA_Channel_CFG_Type GPDMACfg;
 
 	/* GPDMA Interrupt configuration section ------------------------------------------------- */
 	NVIC_SetPriority(DMA_IRQn, 0); // set according to main.c
@@ -528,7 +525,6 @@ void LED_init(){
 	NVIC_DisableIRQ (DMA_IRQn);
 	NVIC_SetPriority(DMA_IRQn, 0); // set according to main.c
 
-	GPDMA_LLI_Type LinkerList[REGS][BITS];
 	uint8_t reg, bit;
 	/* Configure GPDMA channel 0 -------------------------------------------------------------*/
 	/* DMA Channel 0 */
@@ -596,10 +592,10 @@ void LED_init(){
 //	_DBG_("Start transfer...");
 
     // Enable Tx DMA on SSP0
-//	SSP_DMACmd (LED_SPI_CHN, SSP_DMA_TX, ENABLE);
+	SSP_DMACmd (LED_SPI_CHN, SSP_DMA_TX, ENABLE);
 
 	// Enable GPDMA channel 0
-	GPDMA_ChannelCmd(0, ENABLE);
+//	GPDMA_ChannelCmd(0, ENABLE);
 
     // Enable interrupt for DMA
     NVIC_EnableIRQ (DMA_IRQn);

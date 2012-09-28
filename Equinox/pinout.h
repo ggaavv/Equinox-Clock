@@ -31,7 +31,7 @@
 #ifndef _PINOUT_H
 #define _PINOUT_H
 
-#define DEV
+//#define DEV
 #ifdef DEV
 #define BOARD "DEV"
 #else
