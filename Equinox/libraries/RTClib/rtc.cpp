@@ -13,6 +13,7 @@ extern "C" {
 	#include "lpc17xx_nvic.h"
 	#include "comm.h"
 	#include "sys_timer.h"
+	#include "ShiftPWM.h"
 //#include <sys/stdio.h>
 //#include <sys/time.h>
 }
@@ -167,6 +168,7 @@ void secondlyCheck(void) {
 	//Checks and adjusts time for DST
 	update_time();
 	DST_check_and_correct();
+	LED_time(GetHH(), GetMM(), GetSS());
 }
 
 void hourlyCheck(void) {
