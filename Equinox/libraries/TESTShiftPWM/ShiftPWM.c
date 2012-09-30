@@ -80,9 +80,10 @@ transfer time for 16 bits * buffer size of 8
 40ns * 16bits * buffer 8 = 5.12us + 50% = 7.86
 ==========================================================*/
 
-#define START_TIME 8192 //largest time inteval??
-//#define START_TIME 4096 //largest time inteval??
-//#define START_TIME 2048 //largest time inteval??
+//#define START_TIME 16384	// too high
+//#define START_TIME 8192	// slight flicker
+#define START_TIME 4096
+//#define START_TIME 2048	// too low
 
 //#define START_TIME 32 //smallest time inteval 33us
 //#define START_TIME 32/2 //fastest possible
@@ -95,45 +96,6 @@ volatile uint8_t SEND_BIT;			// which of the 8 bits to send
 volatile uint8_t NEXT_SEND_BIT;
 //volatile uint32_t LED_SEND;
 
-/*
-uint32_t SEQ_BIT[] = {
-		BITORDER[0],
-		BITORDER[1],
-		BITORDER[2],
-		BITORDER[3],
-		BITORDER[4],
-		BITORDER[5],
-		BITORDER[6],
-		BITORDER[7],
-		BITORDER[8],
-		BITORDER[9],
-		BITORDER[10],
-		BITORDER[11],
-		BITORDER[12],
-		BITORDER[13],
-		BITORDER[14],
-		BITORDER[15]
-};
-uint32_t SEQ_TIME[] = {
-		BITTIME[BITORDER[0]],
-		BITTIME[BITORDER[1]],
-		BITTIME[BITORDER[2]],
-		BITTIME[BITORDER[3]],
-		BITTIME[BITORDER[4]],
-		BITTIME[BITORDER[5]],
-		BITTIME[BITORDER[6]],
-		BITTIME[BITORDER[7]],
-		BITTIME[BITORDER[8]],
-		BITTIME[BITORDER[9]],
-		BITTIME[BITORDER[10]],
-		BITTIME[BITORDER[11]],
-		BITTIME[BITORDER[12]],
-		BITTIME[BITORDER[13]],
-		BITTIME[BITORDER[14]],
-		BITTIME[BITORDER[15]]
-};
-*/
-#if 1
 const uint32_t BITTIME[] = {
 		START_TIME/128, //Bit 0 time (LSB)
 		START_TIME/64, //Bit 1 time
@@ -144,62 +106,24 @@ const uint32_t BITTIME[] = {
 		START_TIME/2, //Bit 6 time
 		START_TIME //Bit 7 time (MSB)
 };
-/*
-const uint32_t BITTIME[] = {
-		START_TIME*1, //Bit 0 time (LSB)
-		START_TIME*2, //Bit 1 time
-		START_TIME*3, //Bit 2 time
-		START_TIME*4, //Bit 3 time
-		START_TIME*6, //Bit 4 time
-		START_TIME*12, //Bit 5 time
-		START_TIME*20, //Bit 6 time
-		START_TIME*25 //Bit 7 time (MSB)
-};
-*/
-#else
-const uint32_t BITTIME[] = {
-		START_TIME*1, //Bit 0 time (LSB)
-		START_TIME*2, //Bit 1 time
-		START_TIME*4, //Bit 2 time
-		START_TIME*8, //Bit 3 time
-		START_TIME*16, //Bit 4 time
-		START_TIME*32, //Bit 5 time
-		START_TIME*64, //Bit 6 time
-		START_TIME*128 //Bit 7 time (MSB)
-};
-#endif
-#if 0
-#define REGS 1 //12
-#define RGBS 5 //60
-#define LEDS RGBS*3
-#define BITS MAX_BAM_BITS
-#else
+
+// for single board led 30 is led 1
 #define REGS 12
 #define RGBS 60
 #define LEDS RGBS*3
 #define LEDS16 REGS*16
 #define BITS 8
-#endif
 uint16_t SEQ_BIT[16];
 uint32_t SEQ_TIME[16];
 
-volatile uint8_t LED_RAW[LEDS];				// 8bit brightness
-volatile uint16_t LED_PRECALC[REGS][BITS];	// 16bit value sent to LED drivers with high bit staying on for longest
-volatile uint16_t LED_PRECALC1[REGS][BITS];	// buffered as above
-volatile uint16_t LED_PRECALC2[REGS][BITS];	// buffered as above
-volatile uint8_t BUFFER=1;					// 1 if above precalcs are buffered
-GPDMA_LLI_Type LinkerList[REGS][BITS];
-GPDMA_Channel_CFG_Type GPDMACfg;
-uint32_t Channel0_TC;	// Terminal Counter flag for Channel 0
-uint32_t Channel0_Err;	// Error Counter flag for Channel 0
-uint32_t Channel1_TC;	// Terminal Counter flag for Channel 1
-uint32_t Channel1_Err;	// Error Counter flag for Channel 1
+#define BUFFERS 1									// Number of buffers
+volatile uint8_t LED_RAW[LEDS];						// 8bit brightness
+volatile uint16_t LED_PRECALC[REGS][BITS][BUFFERS];	// 16bit value sent to LED drivers with high bit staying on for longest
 
-//uint16_t BITINREG[LEDS];
-//uint16_t WHICHREG[LEDS];
-//uint32_t LAST_MS;
-//uint32_t TOTAL_MS;
-extern volatile uint32_t TOG[4];
+GPDMA_LLI_Type LinkerList[REGS][BITS][BUFFERS];
+GPDMA_Channel_CFG_Type GPDMACfg;
+
+volatile uint32_t BufferNo;
 //volatile uint32_t UPDATE_COUNT;
 //volatile uint32_t LED_UPDATE_REQUIRED;
 
@@ -207,8 +131,6 @@ void TIMER0_IRQHandler(void){
 //	xprintf("TIMER0_IRQ");
 	if (TIM_GetIntStatus(LPC_TIM0,TIM_MR0_INT)){
 #if 0
-//		char tempstr[50];
-
 		if(TOG[0])
 //			FIO_SetValue(LED_LE_PORT, LED_LE_BIT);
 			GPIO_SetValue(LED_4_PORT, LED_4_BIT);
@@ -216,7 +138,6 @@ void TIMER0_IRQHandler(void){
 //			FIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
 			GPIO_ClearValue(LED_4_PORT, LED_4_BIT);
 		TOG[0]=!TOG[0];
-
 //		TIM_ClearIntPending(LPC_TIM0, TIM_MR0_INT);
 //		return;
 #endif
@@ -225,18 +146,10 @@ void TIMER0_IRQHandler(void){
 		//Set bit/time
 		DELAY_TIME=NEXT_DELAY_TIME;
 		SEND_BIT=NEXT_SEND_BIT;
-/*
-		//longest
-		if(SEND_BIT==)
-			LED_SEND=1;
-		else
-			LED_SEND=0;
-*/
+
 		//Retart sequence if required
 		SENDSEQ+=1;
-		if (SENDSEQ>=MAX_BAM_BITS)
-			SENDSEQ=0;
-//		SENDSEQ=0;
+		SENDSEQ>=MAX_BAM_BITS ? SENDSEQ=0 : 0;
 
 		//Setup new timing for next Timer
 		NEXT_DELAY_TIME=SEQ_TIME[SENDSEQ];
@@ -245,7 +158,7 @@ void TIMER0_IRQHandler(void){
 		TIM_UpdateMatchValue(LPC_TIM0,0,NEXT_DELAY_TIME);
 		FIO_SetValue(LED_OE_PORT, LED_OE_BIT);
 #ifdef DMA
-		GPDMACfg.DMALLI = (uint32_t) &LinkerList[0][SEND_BIT];
+		GPDMACfg.DMALLI = (uint32_t) &LinkerList[0][SEND_BIT][BufferNo];
 		GPDMA_Setup(&GPDMACfg);
 		GPDMA_ChannelCmd(0, ENABLE);
 #ifdef RxDMA
@@ -260,20 +173,14 @@ void TIMER0_IRQHandler(void){
 				SSP_SendData(LED_SPI_CHN, LED_PRECALC1[reg][SEND_BIT]);
 			else
 				SSP_SendData(LED_SPI_CHN, LED_PRECALC2[reg][SEND_BIT]);
-			//SSP_SendData(LED_SPI_CHN, LED_PRECALC[reg][SEND_BIT]<<6);
 #endif
 			//WaitForSend();//Wait if TX buffer full
 			//while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
 			while(SSP_GetStatus(LED_SPI_CHN, SSP_STAT_BUSY)){
-				uint32_t w1;
-				w1+=1;
-//				xprintf("w1");
 			};
 			SSP_SendData(LED_SPI_CHN, LED_PRECALC[reg-1][SEND_BIT]);
 			xprintf("%4x ",(LED_PRECALC[reg-1][SEND_BIT]));
-//			LED_SPI_CHN->DR = LED_PRECALC[reg-1][SEND_BIT];
 		}
-//		xprintf("Regs2\n");
 		for(reg=12; reg>6;reg--){
 			xprintf("%d ",reg-1);
 #if 0
@@ -281,21 +188,15 @@ void TIMER0_IRQHandler(void){
 				SSP_SendData(LED_SPI_CHN, LED_PRECALC1[reg][SEND_BIT]);
 			else
 				SSP_SendData(LED_SPI_CHN, LED_PRECALC2[reg][SEND_BIT]);
-			//SSP_SendData(LED_SPI_CHN, LED_PRECALC[reg][SEND_BIT]<<6);
 #endif
 			//WaitForSend();//Wait if TX buffer full
-//			while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
 			while(SSP_GetStatus(LED_SPI_CHN, SSP_STAT_BUSY)){
-				uint32_t w2;
-				w2+=1;
-//				xprintf("w2");
 			}
 			SSP_SendData(LED_SPI_CHN, LED_PRECALC[reg-1][SEND_BIT]);
 //			if (reg==7){
 				xprintf("%4x ",(LED_PRECALC[reg-1][SEND_BIT]));
 //			}
 		}
-		xprintf("\n");
 		LatchIn();
 #endif
 /*		UPDATE_COUNT+=1;
@@ -310,7 +211,6 @@ void TIMER0_IRQHandler(void){
 void TIMER1_IRQHandler(void){
 //	xprintf("TIMER1_IRQ");
 	if (TIM_GetIntStatus(LPC_TIM1,TIM_MR0_INT)){
-//		xprintf("LatchIn()");
 		LatchIn();
 	}
 	TIM_ClearIntPending(LPC_TIM1, TIM_MR0_INT);
@@ -330,23 +230,22 @@ inline void LatchIn(void){
 		asm("nop");
 	}
 #endif
-	ticks_at_LE_start = ticks;
+//	ticks_at_LE_start = ticks;
 	FIO_SetValue(LED_LE_PORT, LED_LE_BIT);
 #if 0
 	for(uint32_t i=0;i<5;i++){
 		asm("nop");
 	}
 #endif
-	ticks_at_LE_finish = ticks;
+//	ticks_at_LE_finish = ticks;
 	FIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
 #if 0
 	for(uint32_t i=0;i<10;i++){
 		asm("nop");
 	}
 #endif
-	ticks_at_OE_start = ticks;
+//	ticks_at_OE_start = ticks;
 	FIO_ClearValue(LED_OE_PORT, LED_OE_BIT);
-
 /*	xprintf("SB:%d ",SEND_BIT);
 	xprintf("DMS_S:%d ",ticks_at_DMA_start);
 	xprintf("DMS_F:%d ",ticks_after_DMA_finish);
@@ -370,25 +269,20 @@ inline void WaitForSend(void){
 void DMA_IRQHandler (void)
 {
 //	xprintf("DMA_IRQ");
-	ticks_at_DMA_start = ticks;
+//	ticks_at_DMA_start = ticks;
 	// check GPDMA interrupt on channel 0
 	if (GPDMA_IntGetStatus(GPDMA_STAT_INT, 0)){
 		// Check counter terminal status
 		if(GPDMA_IntGetStatus(GPDMA_STAT_INTTC, 0)){
 			// Clear terminate counter Interrupt pending
 			GPDMA_ClearIntPending (GPDMA_STATCLR_INTTC, 0);
-//			Channel0_TC++;
-//			xprintf("ch0_TC:%d\n",Channel0_TC);
-//			LatchIn();
-			ticks_after_DMA_finish = ticks;
+//			ticks_after_DMA_finish = ticks;
 			TIM_Cmd(LPC_TIM1,ENABLE);
 		}
 		// Check error terminal status
 		if (GPDMA_IntGetStatus(GPDMA_STAT_INTERR, 0)){
 			// Clear error counter Interrupt pending
 			GPDMA_ClearIntPending (GPDMA_STATCLR_INTERR, 0);
-			Channel0_Err++;
-//			xprintf("ch0_Err:%d\n",Channel0_Err);
 		}
 	}
 #ifdef RxDMA
@@ -424,6 +318,7 @@ void LED_init(){
 	NEXT_DELAY_TIME=1; //so RIT ms is not set to 0
 	SEND_BIT=0;
 	NEXT_SEND_BIT=0;
+	BufferNo = 0;
 //	UPDATE_COUNT=0;
 //	LED_UPDATE_REQUIRED=0;
 //	LED_SEND=0;
@@ -434,49 +329,23 @@ void LED_init(){
 	GPIO_SetDir(LED_LE_PORT, LED_LE_BIT, 1);
 	GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
 
+	//reset all arrays
 	for (tmp=0;tmp<MAX_BAM_BITS;tmp++){
 		SEQ_BIT[tmp] = BITORDER[tmp];
-	}
-	for (tmp=0;tmp<MAX_BAM_BITS;tmp++){
 		SEQ_TIME[tmp] = BITTIME[BITORDER[tmp]];
 	}
-	//clear led bits
-	for(uint8_t a=0; a<LEDS; a++){
-		LED_RAW[a]=0;
+	for(uint8_t l=0; l<LEDS; l++){
+		LED_RAW[l]=0;
 	}
-	//clear precalc bits
-	for(uint8_t a=0; a<REGS; a++){
-		for (uint8_t b=0;b<BITS;b++){
-			LED_PRECALC[a][b]=0;
+	for(uint8_t rbuf=0; rbuf<BUFFERS; rbuf++){
+		for (uint8_t bit=0;bit<BITS;bit++){
+			for(uint8_t r=0; r<REGS; r++){
+				LED_PRECALC[r][bit][rbuf]=0;
+			}
 		}
 	}
-	for(uint8_t a=0; a<REGS; a++){
-		for (uint8_t b=0;b<BITS;b++){
-			LED_PRECALC1[a][b]=0;
-		}
-	}
-	for(uint8_t a=0; a<REGS; a++){
-		for (uint8_t b=0;b<BITS;b++){
-			LED_PRECALC2[a][b]=0;
-		}
-	}
-	resetLeds();
-#if 0
-	//which bit in register
-	tmp = 0;
-	for(uint8_t a=0; a<LEDS; a++){
-		BITINREG[a]=tmp++;
-		if (tmp == 15)
-			tmp = 0;
-	}
-	//which register
-	tmp = 0;
-	for(uint8_t a=0; a<LEDS; a++,tmp++){
-		WHICHREG[a]=tmp2;
-		if (tmp == 15)
-			tmp2++;
-	}
-#endif
+	calulateLEDMIBAMBits();
+
 	// Initialize SPI pin connect
 	PINSEL_CFG_Type PinCfg;
 	/* LE1 */
@@ -599,7 +468,7 @@ void LED_init(){
 	NVIC_DisableIRQ (DMA_IRQn);	// Disable interrupt for DMA
 	NVIC_SetPriority(DMA_IRQn, 0);	// set according to main.c
 
-	uint8_t reg, bit, linkerListNo;
+	uint8_t reg, bit, linkerListNo, buf;
 	GPDMACfg.ChannelNum = 0;	// DMA Channel 0
 	GPDMACfg.SrcMemAddr = 0;	// Source memory - not used - will be sent in interrupt so independent bit Linker Lists can be chosen
 	GPDMACfg.DstMemAddr = 0;	// Destination memory - not used - only used when destination is memory
@@ -610,8 +479,6 @@ void LED_init(){
 	GPDMACfg.DstConn = GPDMA_CONN_SSP0_Tx;	// Destination connection - not used
 	GPDMACfg.DMALLI = (uint32_t) &LinkerList[0][0];	// Linker List Item - Pointer to linker list
 	GPDMA_Setup(&GPDMACfg);		// Setup channel with given parameter
-//	Channel0_TC = 0;			// Reset terminal counter
-//	Channel0_Err = 0;			// Reset Error counter
 
 	// Linker list 32bit Control
 	uint32_t LinkerListControl = 0;
@@ -622,42 +489,44 @@ void LED_init(){
 						| GPDMA_DMACCxControl_DWidth((uint32_t)GPDMACfg.TransferWidth) \
 						| GPDMA_DMACCxControl_SI;
 
-	for (bit=0;bit<BITS;bit++){
-		linkerListNo=0;
-		for (reg=5; 0<reg;reg--,linkerListNo++){
+	for (buf=0;buf<BUFFERS;buf++){
+		for (bit=0;bit<BITS;bit++){
+			linkerListNo=0;
+			for (reg=5; 0<reg;reg--,linkerListNo++){
+//				xprintf("bit:%d reg:%d SrcAddr:0x%x DstAddr:0x%x NextLLI:0x%x linkerListNo:0x%x\n",bit,reg,(uint32_t) &LED_PRECALC[reg][bit],(uint32_t) &LPC_SSP0->DR,(uint32_t) &LinkerList[linkerListNo+1][bit],linkerListNo);
+				LinkerList[linkerListNo][bit][buf].SrcAddr = (uint32_t) &LED_PRECALC[reg][bit][buf];	/**< Source Address */
+				LinkerList[linkerListNo][bit][buf].DstAddr = (uint32_t) &LPC_SSP0->DR;			/**< Destination address */
+				LinkerList[linkerListNo][bit][buf].NextLLI = (uint32_t) &LinkerList[linkerListNo+1][bit][buf];	/**< Next LLI address, otherwise set to '0' */
+				LinkerList[linkerListNo][bit][buf].Control = LinkerListControl;
+//				xprintf("SrcAddr:0x%x DstAddr:0x%x NextLLI:0x%x\n",(uint32_t) &LinkerList[linkerListNo][bit].SrcAddr,(uint32_t) &LinkerList[linkerListNo][bit].DstAddr,(uint32_t) &LinkerList[linkerListNo][bit].NextLLI,(uint32_t) &LinkerList[linkerListNo][bit].Control);
+			}
+//			if (reg==0){
 //			xprintf("bit:%d reg:%d SrcAddr:0x%x DstAddr:0x%x NextLLI:0x%x linkerListNo:0x%x\n",bit,reg,(uint32_t) &LED_PRECALC[reg][bit],(uint32_t) &LPC_SSP0->DR,(uint32_t) &LinkerList[linkerListNo+1][bit],linkerListNo);
-			LinkerList[linkerListNo][bit].SrcAddr = (uint32_t) &LED_PRECALC[reg][bit];	/**< Source Address */
-			LinkerList[linkerListNo][bit].DstAddr = (uint32_t) &LPC_SSP0->DR;			/**< Destination address */
-			LinkerList[linkerListNo][bit].NextLLI = (uint32_t) &LinkerList[linkerListNo+1][bit];	/**< Next LLI address, otherwise set to '0' */
-			LinkerList[linkerListNo][bit].Control = LinkerListControl;
+			LinkerList[linkerListNo][bit][buf].SrcAddr = (uint32_t) &LED_PRECALC[reg][bit][buf];	/**< Source Address */
+			LinkerList[linkerListNo][bit][buf].DstAddr = (uint32_t) &LPC_SSP0->DR;			/**< Destination address */
+			LinkerList[linkerListNo][bit][buf].NextLLI = (uint32_t) &LinkerList[linkerListNo+1][bit][buf];/**< Next LLI address, otherwise set to '0' */
+			LinkerList[linkerListNo][bit][buf].Control = LinkerListControl;
+			linkerListNo++;
 //			xprintf("SrcAddr:0x%x DstAddr:0x%x NextLLI:0x%x\n",(uint32_t) &LinkerList[linkerListNo][bit].SrcAddr,(uint32_t) &LinkerList[linkerListNo][bit].DstAddr,(uint32_t) &LinkerList[linkerListNo][bit].NextLLI,(uint32_t) &LinkerList[linkerListNo][bit].Control);
-		}
-//		if (reg==0){
-//		xprintf("bit:%d reg:%d SrcAddr:0x%x DstAddr:0x%x NextLLI:0x%x linkerListNo:0x%x\n",bit,reg,(uint32_t) &LED_PRECALC[reg][bit],(uint32_t) &LPC_SSP0->DR,(uint32_t) &LinkerList[linkerListNo+1][bit],linkerListNo);
-		LinkerList[linkerListNo][bit].SrcAddr = (uint32_t) &LED_PRECALC[reg][bit];	/**< Source Address */
-		LinkerList[linkerListNo][bit].DstAddr = (uint32_t) &LPC_SSP0->DR;			/**< Destination address */
-		LinkerList[linkerListNo][bit].NextLLI = (uint32_t) &LinkerList[linkerListNo+1][bit];/**< Next LLI address, otherwise set to '0' */
-		LinkerList[linkerListNo][bit].Control = LinkerListControl;
-		linkerListNo++;
-//		xprintf("SrcAddr:0x%x DstAddr:0x%x NextLLI:0x%x\n",(uint32_t) &LinkerList[linkerListNo][bit].SrcAddr,(uint32_t) &LinkerList[linkerListNo][bit].DstAddr,(uint32_t) &LinkerList[linkerListNo][bit].NextLLI,(uint32_t) &LinkerList[linkerListNo][bit].Control);
-//		}
-		for (reg=11; reg>6;reg--,linkerListNo++){
+//			}
+			for (reg=11; reg>6;reg--,linkerListNo++){
+//				xprintf("bit:%d reg:%d SrcAddr:0x%x DstAddr:0x%x NextLLI:0x%x linkerListNo:0x%x\n",bit,reg,(uint32_t) &LED_PRECALC[reg][bit],(uint32_t) &LPC_SSP0->DR,(uint32_t) &LinkerList[linkerListNo+1][bit],linkerListNo);
+				LinkerList[linkerListNo][bit][buf].SrcAddr = (uint32_t) &LED_PRECALC[reg][bit][buf];	/**< Source Address */
+				LinkerList[linkerListNo][bit][buf].DstAddr = (uint32_t) &LPC_SSP0->DR;			/**< Destination address */
+				LinkerList[linkerListNo][bit][buf].NextLLI = (uint32_t) &LinkerList[linkerListNo+1][bit][buf];	/**< Next LLI address, otherwise set to '0' */
+				LinkerList[linkerListNo][bit][buf].Control = LinkerListControl;
+//				xprintf("SrcAddr:0x%x DstAddr:0x%x NextLLI:0x%x\n",(uint32_t) &LinkerList[linkerListNo][bit].SrcAddr,(uint32_t) &LinkerList[linkerListNo][bit].DstAddr,(uint32_t) &LinkerList[linkerListNo][bit].NextLLI,(uint32_t) &LinkerList[linkerListNo][bit].Control);
+			}
+//			if (reg==7){
 //			xprintf("bit:%d reg:%d SrcAddr:0x%x DstAddr:0x%x NextLLI:0x%x linkerListNo:0x%x\n",bit,reg,(uint32_t) &LED_PRECALC[reg][bit],(uint32_t) &LPC_SSP0->DR,(uint32_t) &LinkerList[linkerListNo+1][bit],linkerListNo);
-			LinkerList[linkerListNo][bit].SrcAddr = (uint32_t) &LED_PRECALC[reg][bit];	/**< Source Address */
-			LinkerList[linkerListNo][bit].DstAddr = (uint32_t) &LPC_SSP0->DR;			/**< Destination address */
-			LinkerList[linkerListNo][bit].NextLLI = (uint32_t) &LinkerList[linkerListNo+1][bit];	/**< Next LLI address, otherwise set to '0' */
-			LinkerList[linkerListNo][bit].Control = LinkerListControl;
-//			xprintf("SrcAddr:0x%x DstAddr:0x%x NextLLI:0x%x\n",(uint32_t) &LinkerList[linkerListNo][bit].SrcAddr,(uint32_t) &LinkerList[linkerListNo][bit].DstAddr,(uint32_t) &LinkerList[linkerListNo][bit].NextLLI,(uint32_t) &LinkerList[linkerListNo][bit].Control);
+			LinkerList[linkerListNo][bit][buf].SrcAddr = (uint32_t) &LED_PRECALC[reg][bit][buf];	/**< Source Address */
+			LinkerList[linkerListNo][bit][buf].DstAddr = (uint32_t) &LPC_SSP0->DR;			/**< Destination address */
+			LinkerList[linkerListNo][bit][buf].NextLLI = 0;									/**< Next LLI address, otherwise set to '0' */
+			LinkerList[linkerListNo][bit][buf].Control = LinkerListControl;
+			linkerListNo++;
+//			xprintf("SrcAddr:0x%x DstAddr:0x%x NextLLI:0x%x NextLLI_V:0x%x\n",(uint32_t) &LinkerList[linkerListNo][bit].SrcAddr,(uint32_t) &LinkerList[linkerListNo][bit].DstAddr,(uint32_t) &LinkerList[linkerListNo][bit].NextLLI,LinkerList[linkerListNo][bit].NextLLI);
+//			}
 		}
-//		if (reg==7){
-//		xprintf("bit:%d reg:%d SrcAddr:0x%x DstAddr:0x%x NextLLI:0x%x linkerListNo:0x%x\n",bit,reg,(uint32_t) &LED_PRECALC[reg][bit],(uint32_t) &LPC_SSP0->DR,(uint32_t) &LinkerList[linkerListNo+1][bit],linkerListNo);
-		LinkerList[linkerListNo][bit].SrcAddr = (uint32_t) &LED_PRECALC[reg][bit];	/**< Source Address */
-		LinkerList[linkerListNo][bit].DstAddr = (uint32_t) &LPC_SSP0->DR;			/**< Destination address */
-		LinkerList[linkerListNo][bit].NextLLI = 0;									/**< Next LLI address, otherwise set to '0' */
-		LinkerList[linkerListNo][bit].Control = LinkerListControl;
-		linkerListNo++;
-//		xprintf("SrcAddr:0x%x DstAddr:0x%x NextLLI:0x%x NextLLI_V:0x%x\n",(uint32_t) &LinkerList[linkerListNo][bit].SrcAddr,(uint32_t) &LinkerList[linkerListNo][bit].DstAddr,(uint32_t) &LinkerList[linkerListNo][bit].NextLLI,LinkerList[linkerListNo][bit].NextLLI);
-//		}
 	}
 	SSP_DMACmd (LED_SPI_CHN, SSP_DMA_TX, ENABLE);	// Enable Tx DMA on SSP0
 //	GPDMA_ChannelCmd(0, ENABLE);	// Enable GPDMA channel 0
@@ -686,18 +555,18 @@ void LED_init(){
 }
 
 void LED_time(uint8_t HH, uint8_t MM, uint8_t SS){
-//	resetLeds();
-//	while(1){
+	resetLeds();
 /*		HH = GetHH();
 		MM = GetMM();
 		SS = GetSS();*/
-//		HH = 12;
 		HH>11 ? HH-=12 : 0;
-//		MM = 4-1;
-//		SS = 45;
+
+		// Remove the tails
 		SS<5 ? SetLED((SS+60)*3-13,0) : SetLED(SS*3-13,0);
 		MM<4 ? SetLED((MM+60)*3-11,0) : SetLED(MM*3-11,0);
-		HH<1 ? SetLED((HH+12)*3*5-9,0) : SetLED(HH*3*5-9,0);
+		HH<2 ? SetLED((HH+11)*3*5,0) : SetLED((HH-1)*3*5,0);
+		HH<2 ? SetLED((HH+11)*3*5-3,0) : SetLED((HH-1)*3*5-3,0);
+		HH<2 ? SetLED((HH+11)*3*5-6,0) : SetLED((HH-1)*3*5-6,0);
 
 		// Seconds Blue
 //		for (SS=0;SS<60;SS++){
@@ -825,16 +694,14 @@ void resetLeds(void){
 	for(uint8_t a=0; a<LEDS; a++){
 		LED_RAW[a]=0;
 	}
-	calulateLEDMIBAMBits();
+//	calulateLEDMIBAMBits();
 }
-//LED_PRECALC[reg][bit] = (0x01<<bit) & LED_RAW[led];
 
 void calulateLEDMIBAMBits(){
 //	xprintf(INFO "calulateLEDMIBAMBits()");
 	uint8_t led,bitinreg;
 //	xprintf("bit reg LED_PRECALC[bit][reg]\n");
 	for(uint8_t bit=0; bit<BITS; bit++){
-//	uint32_t bit=7;
 		led=0;
 		for(uint8_t reg=0; reg<REGS; reg++){
 			bitinreg=0;
@@ -857,34 +724,14 @@ void calulateLEDMIBAMBits(){
 			_DBG("[INFO]-(LED_RAW[led++]<<bitinreg)&bitinreg++= ");_DBH16((LED_RAW[led++]<<bitinreg)&(1<<bitinreg++));_DBG("\r\n");//;_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 			_DBG("[INFO]-(LED_RAW[led++]<<bitinreg)&bitinreg++= ");_DBH16((LED_RAW[led++]<<bitinreg)&(1<<bitinreg++));_DBG("\r\n");//;_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 */
-///*
-//			bitinreg=0;
-//			for (uint_8 rbit=15; rbit<16; rbit++)
-//			LED_PRECALC[reg][bit] &= (0x01<<rbit) & LED_RAW[led++]<<rbit;
-
-/*
-			for(uint8_t tmp=0; tmp<BITS; tmp++){
-				led=0;
-				_DBG("[INFO]-led=");_DBH(led);_DBG("\r\n");
-				_DBG("[INFO]-LED_RAW[led]=");_DBH(LED_RAW[led]);_DBG("\r\n");
-				_DBG("[INFO]-tmp=");_DBD(tmp);_DBG("-");_DBH16((LED_RAW[led++]<<tmp)&(1<<tmp));_DBG("\r\n");
-			}
-*/
 			uint16_t tt[16],l;
 			for(uint8_t t=0;t<15;t++,led++){
 				l=LED_RAW[led]>>(bit);
-//				xprintf(INFO "l=%d 1<<bitinreg=%15b" " (%s:%d)\n",l,1<<bitinreg,_F_,_L_);
 				tt[t] = (l<<bitinreg)&(1<<bitinreg);
 				tt[15] = 0;
 				bitinreg++;
-//				if (bit==7){
-//					xprintf("bit:%d reg:%d LED_PRECALC[%d][%d]:%d\n",bit,reg,bit,reg,LED_PRECALC[reg][bit]);
-//				xprintf("bit reg LED_PRECALC[%d][%d]:%d\n",bit,reg,bit,reg,LED_PRECALC[reg][bit]);
-//				xprintf("%d   %d          %d\n",bit,reg,LED_PRECALC[reg][bit]);
-//				}
 			}
-#if 1
-			LED_PRECALC[reg][bit] =
+			LED_PRECALC[reg][bit][0] =
 				tt[0] |
 				tt[1] |
 				tt[2] |
@@ -901,74 +748,6 @@ void calulateLEDMIBAMBits(){
 				tt[13] |
 				tt[14] |
 				tt[15];
-
-//			if (led==91){//|led==1|led==2){
-//				xprintf("reg:%d brightness:%d\n",reg,LED_PRECALC[reg][bit]);
-//				xprintf("LED_RAW:%d\n",LED_RAW[led]);
-//			}
-
-#else
-			if(BUFFER==1){
-				LED_PRECALC1[reg][bit] =
-					tt[0] |
-					tt[1] |
-					tt[2] |
-					tt[3] |
-					tt[4] |
-					tt[5] |
-					tt[6] |
-					tt[7] |
-					tt[8] |
-					tt[9] |
-					tt[10] |
-					tt[11] |
-					tt[12] |
-					tt[13] |
-					tt[14];
-				BUFFER=1;
-			}
-			else{
-				LED_PRECALC2[reg][bit] =
-					tt[0] |
-					tt[1] |
-					tt[2] |
-					tt[3] |
-					tt[4] |
-					tt[5] |
-					tt[6] |
-					tt[7] |
-					tt[8] |
-					tt[9] |
-					tt[10] |
-					tt[11] |
-					tt[12] |
-					tt[13] |
-					tt[14];
-				BUFFER=2;
-			}
-#endif
-//			_DBH16(LED_PRECALC[reg][bit]);_DBG("=LED_PRECALC=");_DBG("\r\n");
-/*
-			LED_PRECALC[reg][bit] =
-					(LED_RAW[led++]<<bitinreg)&(1<<bitinreg++) |
-					(LED_RAW[led++]<<bitinreg)&(1<<bitinreg++) |
-					(LED_RAW[led++]<<bitinreg)&(1<<bitinreg++) |
-					(LED_RAW[led++]<<bitinreg)&(1<<bitinreg++) |
-					(LED_RAW[led++]<<bitinreg)&(1<<bitinreg++) |
-					(LED_RAW[led++]<<bitinreg)&(1<<bitinreg++) |
-					(LED_RAW[led++]<<bitinreg)&(1<<bitinreg++) |
-					(LED_RAW[led++]<<bitinreg)&(1<<bitinreg++) |
-					(LED_RAW[led++]<<bitinreg)&(1<<bitinreg++) |
-					(LED_RAW[led++]<<bitinreg)&(1<<bitinreg++) |
-					(LED_RAW[led++]<<bitinreg)&(1<<bitinreg++) |
-					(LED_RAW[led++]<<bitinreg)&(1<<bitinreg++) |
-					(LED_RAW[led++]<<bitinreg)&(1<<bitinreg++) |
-					(LED_RAW[led++]<<bitinreg)&(1<<bitinreg++);
-			_DBG("[INFO]-led=");_DBH(led);_DBG("\r\n");
-			_DBG("[INFO]-bitinreg=");_DBH(bitinreg);_DBG("\r\n");
-*/
-
-//*/
 		}
 	}
 	//	UPDATE_REQUIRED=true;
@@ -985,11 +764,6 @@ static inline void calulateLEDMIBAMBit(uint8 LED){
 }
 */
 /*
-for(uint32_t led=0; led<LEDS; led++)
-for(uint32_t bit=0; bit<BITS; bit++)
-for(uint32_t reg=0; reg<REGS; reg++)
-*/
-/*
 16bitcol
 16bit*60=120bytes
 120hz
@@ -999,6 +773,20 @@ for(uint32_t reg=0; reg<REGS; reg++)
 sensors
 
 battery
+========
+highest output current with pot set to 1 = 48mA/led
+3 on high	= 144mA
+3 of 4/5	= 115.2mA
+3 of 3/5	= 86.4mA
+2 of 2/5	= 38.4mA
+1 of 1/5	= 9.6mA
+LPC1768		= non-configured state should draw a maximum of 100 mA
+LPC1768		= The maximum value is 500 mA
+LPC1768		= 100mA	@ 3.3V = 0.33W
+LPC1768		= 500mA	@ 3.3V = 1.65W
+Total		= 393.6mA @ 5V = 1.968W
+battery at 2300mAh * 1.2V = 2.76Wh = 2 hours battery
+
 
 128	160
 64	30

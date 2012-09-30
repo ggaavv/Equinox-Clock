@@ -51,8 +51,7 @@ const char form_close[] = "\n</form>";
 
 //bool home_page(char* URL_REQUESTED){
 bool home_page(char* URL){
-//	_DBG(URL);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
-
+//	xprintf("URL:%s",URL);
 	// Check if the requested URL matches is enter date
 	if (strncmp(URL,"/date?",6) == 0){
 		uint16_t year = 0;
