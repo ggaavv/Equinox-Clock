@@ -35,6 +35,7 @@ unsigned char last_key;
 //unsigned char ScreenLitData[12];
 //unsigned char ScreenAsciiData[34];
 //unsigned char ScreenSendPackets[5][8];
+unsigned char screen_debug_show = 0;
 unsigned char PrevScreenText[10]={'P','H','O','N','E'};
 unsigned char Source;
 volatile unsigned int ScreenTimeoutCounter;
@@ -52,6 +53,7 @@ volatile int32_t recieve_521_count;
 volatile int32_t random;
 
 
+
 //*** Global variables ***
 volatile struct {                   // use a bit field as flag store
 unsigned char usart_recieve_complete :	1 ; // signals a send of completed packet
@@ -66,6 +68,7 @@ unsigned char recieved_49A :			1 ; // ok from 49A recieved (remote)
 
 extern volatile int32_t DISPLAY_TIMEOUT;
 extern volatile uint32_t OFF_TIMEOUT;
+
 
 extern CAN_MSG_Type TXMsg, RXMsg; // messages for test Bypass mode
 
@@ -604,7 +607,8 @@ void Screen_loop( void ){
 //			ipod_control(BUTTON_STOP_ONLY);
 		}
 #endif //test
-		screen_debug_print();
+		if(screen_debug_show)
+			screen_debug_print();
 		RecieveComplete = 0;
 	}
 	if(ButtomPressed){
@@ -853,10 +857,16 @@ send
 					recieve_521_count=-1;
 					ScreenTempData[6+RxScreenPacketNo]=0;
 				}
+				if (rec_121 > 4){
+					xprintf(ERR "rec_121 > 4\r\n");
+					PrintMessage(&RXMsg);
+				}
 			}
 			else{
 				xprintf(ERR "Screen overrun\r\n");
+				PrintMessage(&RXMsg);
 			}
+			break;
 		case 0x3CF: // Ping recieved
 		case 0x3DF: // Ping recieved
 			//exec_usart_cmd("t3DF87900818181818181");
