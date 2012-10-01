@@ -308,7 +308,7 @@ void DMA_IRQHandler (void)
 }
 
 void LED_init(){
-	uint8_t pot = 0x01;
+	uint8_t pot = 0x50;
 	xprintf(INFO "Pot set to:%d",pot);FFL_();
 	setPot(pot);
 	uint8_t tmp;
@@ -616,6 +616,7 @@ void LED_time(uint8_t HH, uint8_t MM, uint8_t SS){
 //			HH<1 ? SetLED((HH+12)*3*5-12,0) : SetLED(HH*3*5-12,0);
 //		}
 //	}
+	calulateLEDMIBAMBits();
 }
 
 void LED_test(){
@@ -784,8 +785,25 @@ LPC1768		= non-configured state should draw a maximum of 100 mA
 LPC1768		= The maximum value is 500 mA
 LPC1768		= 100mA	@ 3.3V = 0.33W
 LPC1768		= 500mA	@ 3.3V = 1.65W
-Total		= 393.6mA @ 5V = 1.968W
-battery at 2300mAh * 1.2V = 2.76Wh = 2 hours battery
+Wifi		= 100mA	@ 3.3V = 0.33W
+Total		= 393.6mA @ 5V = 2.298W
+battery at 2300mAh * 1.2V = 2.76Wh = ~2 hours battery
+
+if pot at 0x30 =  1mA/led
+3 on high	= 3mA
+3 of 4/5	= 2.4mA
+3 of 3/5	= 1.8mA
+2 of 2/5	= 0.8mA
+1 of 1/5	= 0.2mA
+Total		= 8.2mA @ 5V = 0.041W
+LPC1768		= non-configured state should draw a maximum of 100 mA
+LPC1768		= The maximum value is 500 mA
+LPC1768		= 100mA	@ 3.3V = 0.33W
+LPC1768		= 500mA	@ 3.3V = 1.65W
+Wifi		= 100mA	@ 3.3V = 0.33W
+LPC + leds	= ~ 0.88W
+battery at 2300mAh * 1.2V = 2.76Wh = 5 hours battery
+
 
 
 128	160
