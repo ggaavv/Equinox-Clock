@@ -52,6 +52,50 @@ const char form_close[] = "\n</form>";
 //bool home_page(char* URL_REQUESTED){
 bool home_page(char* URL){
 //	xprintf("URL:%s",URL);
+
+	// Get all Date/Times
+	// Days of the Week
+	uint8_t DOW = GetDOW();
+	// Days of the Month
+	uint8_t DOM = GetDOM();
+	char DOM_s[2];
+	sprintf(DOM_s,"%.2d",DOM);
+	// Month
+	uint8_t M = GetM();
+	// Year
+	uint16_t Y = GetY();
+	char Y_s[5];
+	sprintf(Y_s,"%.4d",Y);
+	// Hours
+	uint8_t hh = GetHH();
+	char hh_s[2];
+	sprintf(hh_s,"%.2d",hh);
+	// Minutes
+	uint8_t mm = GetMM();
+	char mm_s[2];
+	sprintf(mm_s,"%.2d",mm);
+	// Seconds
+	uint8_t ss = GetSS();
+	char ss_s[2];
+	sprintf(ss_s,"%.2d",ss);
+	// Sunrise
+	char Sunrise_s[9];
+	GetSunRiseHH_MM_SS(&Sunrise_s[0]);
+	// Noon
+	char Noon_s[9];
+	GetNoonHH_MM_SS(&Noon_s[0]);
+	// Sunset
+	char Sunset_s[9];
+	GetSunSetHH_MM_SS(&Sunset_s[0]);
+	// Summertime
+	int8_t dst = GetDST_correction();
+	char dst_s[4];
+	sprintf(dst_s,"%.2d",dst);
+
+	//Led Config
+	//get bightness - need to be stored in a variable
+
+
 	// Check if the requested URL matches is enter date
 	if (strncmp(URL,"/date?",6) == 0){
 		uint16_t year = 0;
@@ -89,45 +133,6 @@ bool home_page(char* URL){
 
 	// Check if the requested URL matches "/"
 	if (strncmp(URL, "/",1) == 0) {
-		// Get all Date/Times
-		// Days of the Week
-		uint8_t DOW = GetDOW();
-		// Days of the Month
-		uint8_t DOM = GetDOM();
-		char DOM_s[2];
-		sprintf(DOM_s,"%.2d",DOM);
-		// Month
-		uint8_t M = GetM();
-		// Year
-		uint16_t Y = GetY();
-		char Y_s[5];
-		sprintf(Y_s,"%.4d",Y);
-		// Hours
-		uint8_t hh = GetHH();
-		char hh_s[2];
-		sprintf(hh_s,"%.2d",hh);
-		// Minutes
-		uint8_t mm = GetMM();
-		char mm_s[2];
-		sprintf(mm_s,"%.2d",mm);
-		// Seconds
-		uint8_t ss = GetSS();
-		char ss_s[2];
-		sprintf(ss_s,"%.2d",ss);
-		// Sunrise
-		char Sunrise_s[9];
-		GetSunRiseHH_MM_SS(&Sunrise_s[0]);
-		// Noon
-		char Noon_s[9];
-		GetNoonHH_MM_SS(&Noon_s[0]);
-		// Sunset
-		char Sunset_s[9];
-		GetSunSetHH_MM_SS(&Sunset_s[0]);
-		// Summertime
-		int8_t dst = GetDST_correction();
-		char dst_s[4];
-		sprintf(dst_s,"%.2d",dst);
-
 	// Use WiServer's print and println functions to write out the page content
 		// DOCTYPE
 		WiServer.print(DOCTYPE);
@@ -146,7 +151,6 @@ bool home_page(char* URL){
 		WiServer.print(h1_open);
 		WiServer.print(Heading1);
 		WiServer.print(h1_close);
-
 		// Title
 		WiServer.print(body_open);
 
@@ -176,7 +180,11 @@ bool home_page(char* URL){
 		WiServer.print("   Sunset ");
 		WiServer.print(Sunset_s);
 		WiServer.print(p_close);
+	}
 
+
+
+	if (strncmp(URL, "/setdatetime",6) == 0) {
 		// Date drop down selection box
 		WiServer.print(form_open);
 		WiServer.print(p_open);
@@ -315,7 +323,9 @@ bool home_page(char* URL){
 		// Save + Reset
 		WiServer.print(submit_reset_buttons);
 		WiServer.print(form_close);
-//		_DBG("[INFO]-strcmp(URL, /) END");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
+	}
+
+	if (strncmp(URL, "/",1) == 0) {
 		WiServer.print(body_close);
 		WiServer.print(html_close);
 		return true;

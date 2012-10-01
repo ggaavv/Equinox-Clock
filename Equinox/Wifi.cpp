@@ -88,7 +88,7 @@ void WiFi_init(){
 	SSP_CFG_Type SSP_ConfigStruct;
 	SSP_ConfigStruct.CPHA = SSP_CPHA_SECOND;
 	SSP_ConfigStruct.CPOL = SSP_CPOL_LO;
-	SSP_ConfigStruct.ClockRate = 25000000; /* 10Mhz WF max frequency = 25mhz*/
+	SSP_ConfigStruct.ClockRate = 25000000; /* WF max frequency = 25mhz*/
 	SSP_ConfigStruct.Databit = SSP_DATABIT_8;
 	SSP_ConfigStruct.Mode = SSP_MASTER_MODE;
 	SSP_ConfigStruct.FrameFormat = SSP_FRAME_SPI;
