@@ -33,6 +33,7 @@ volatile int TX_TOG=0;
 volatile int LINE_READY=0;
 volatile uint8_t UART_LINE[50];
 volatile uint32_t UART_LINE_LEN=0;
+extern unsigned char screen_debug_show;
 
 #define USARTx LPC_UART0
 
@@ -99,6 +100,16 @@ void exec_cmd(char *cmd){
 		WDT_Init (WDT_CLKSRC_PCLK, WDT_MODE_RESET);
 		WDT_Start(1);
 		NVIC_EnableIRQ(WDT_IRQn);
+	}
+	else if(stricmp(cmd,"dp")==0){
+		if(screen_debug_show){
+			screen_debug_show = 0;
+			xprintf(INFO "Debug print off\r\n");
+		}
+		else{
+			screen_debug_show = 1;
+			xprintf(INFO "Debug print on\r\n");
+		}
 	}
 	else if(stricmp(cmd,"bt")==0){
 		xprintf("TASKER:PAUSE\r\n");
