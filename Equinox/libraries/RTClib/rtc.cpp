@@ -168,7 +168,6 @@ void secondlyCheck(void) {
 	//Checks and adjusts time for DST
 	update_time();
 	DST_check_and_correct();
-	LED_time(GetHH(), GetMM(), GetSS());
 }
 
 void hourlyCheck(void) {

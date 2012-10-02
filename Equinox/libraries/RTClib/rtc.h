@@ -9,10 +9,10 @@
 #define RTC_H_
 
 
-//extern "C" {
+extern "C" {
 	#include "lpc_types.h"
 	#include "comm.h"
-//}
+}
 
 typedef enum {
 	NIGHT,
@@ -137,19 +137,25 @@ void weeklyCheck(void);
 void monthlyCheck(void);
 void yearlyCheck(void);
 
-uint32_t Getunix(void);
-uint16_t GetY(void);
-uint8_t GetM(void);
-uint8_t GetDOM(void);
-uint8_t GetDOW(void);
-uint8_t GetDOY(void);
-uint8_t GetHH(void);
-uint8_t GetMM(void);
-uint8_t GetSS(void);
-void GetSunRiseHH_MM_SS(char * str);
-void GetSunSetHH_MM_SS(char * str);
-void GetNoonHH_MM_SS(char * str);
-int8_t GetDST_correction(void);
+#ifdef __cplusplus
+extern "C" {
+#endif
+	uint32_t Getunix(void);
+	uint16_t GetY(void);
+	uint8_t GetM(void);
+	uint8_t GetDOM(void);
+	uint8_t GetDOW(void);
+	uint8_t GetDOY(void);
+	uint8_t GetHH(void);
+	uint8_t GetMM(void);
+	uint8_t GetSS(void);
+	void GetSunRiseHH_MM_SS(char * str);
+	void GetSunSetHH_MM_SS(char * str);
+	void GetNoonHH_MM_SS(char * str);
+	int8_t GetDST_correction(void);
+#ifdef __cplusplus
+}
+#endif
 void RTC_time_SetTime(uint16_t year, uint8_t month, uint8_t dayOfM, uint8_t hour, uint8_t min, uint8_t sec, int8_t st);
 // number of days since 20xx/01/01, valid for 2001..2099
 uint16_t days_from_20xx(uint16_t year, uint8_t month, uint8_t dayOfM);
