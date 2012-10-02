@@ -38,7 +38,7 @@
 #include "hsv2rgb.h"
 #include "comm.h"
 #include "sys_timer.h"
-#include "rtc.h"
+//#include "rtc.h"	not needed if calling c++ functions - links ok without
 
 #define DMA
 //#define RxDMA
@@ -57,28 +57,6 @@ uint32_t volatile ticks_at_OE_start = 0;
 const uint8_t BITORDER[] = { 0,1,2,3,4,5,6,7,7,6,5,4,3,2,1,0 };		// which of the 8 bits to send
 //const uint8_t BITORDER[] = { 0,7,2,5,4,3,6,1,1,6,3,4,5,2,7,0 };
 //const uint8_t BITORDER[] = { 5,3,1,7,2,4,6,0,5,3,1,7,2,4,6 };
-
-/*=======================================================
-buffer size = 8
-proc clk	= 100,000,000 Mhz
-SSP speed	= 25,000,000 MB/s
-SSP speed /	16	= 1,562,500 16bit cyles per sec
-above / buffer size = 195,312.5
-
-proc time for 32 bits * buffer size of 8
-============================================
-1sec / 100,000,000 = 0.000,000,01 = 10ns 1 proc clock
-10ns * buffer 8 = 80ns]
-
-timer 1 calc
-============================================
-500nops = 1600 proc ticks
-
-transfer time for 16 bits * buffer size of 8
-============================================
-1sec / 25,000,000 = 0.000,000,04 = 40ns to transfer 1 bit
-40ns * 16bits * buffer 8 = 5.12us + 50% = 7.86
-==========================================================*/
 
 //#define START_TIME 16384	// too high
 //#define START_TIME 8192	// slight flicker
@@ -126,6 +104,17 @@ GPDMA_Channel_CFG_Type GPDMACfg;
 volatile uint32_t BufferNo;
 //volatile uint32_t UPDATE_COUNT;
 //volatile uint32_t LED_UPDATE_REQUIRED;
+
+volatile uint8_t LED_PATTERN;
+volatile uint8_t LED_SPEED;
+
+#define MAX_PATTERNS 3
+#define MAX_PATTERNS_LETTERS 10 // (inc \0)
+const char LED_PATTERN_NAME[MAX_PATTERNS][MAX_PATTERNS_LETTERS] = {
+	"Clock",
+	"Test",
+	"Name3"
+};
 
 void TIMER0_IRQHandler(void){
 //	xprintf("TIMER0_IRQ");
@@ -264,7 +253,6 @@ inline void WaitForSend(void){
 	}
 //	while(!SSP_GetStatus(LED_SPI_CHN,SSP_STAT_TXFIFO_EMPTY));
 }
-
 
 void DMA_IRQHandler (void)
 {
@@ -554,11 +542,11 @@ void LED_init(){
 #endif
 }
 
-void LED_time(uint8_t HH, uint8_t MM, uint8_t SS){
+void LED_time(){
 	resetLeds();
-/*		HH = GetHH();
-		MM = GetMM();
-		SS = GetSS();*/
+		uint8_t HH = GetHH();
+		uint8_t MM = GetMM();
+		uint8_t SS = GetSS();
 		HH>11 ? HH-=12 : 0;
 
 		// Remove the tails
@@ -754,6 +742,24 @@ void calulateLEDMIBAMBits(){
 	//	UPDATE_REQUIRED=true;
 //	_DBG("[INFO]-MIBAM Precal time = ");_DBD32(end-start);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 }
+
+void Set_LED_Pattern(uint8_t no,uint8_t speed){
+	LED_PATTERN = no;
+	LED_SPEED = speed;
+}
+
+void LED_loop(void){
+	switch(LED_PATTERN){
+		case 0:
+			LED_time();
+			break;
+		case 1:
+			LED_test();
+			break;
+		case 2:
+			break;
+	}
+};
 /*
 static inline void calulateLEDMIBAMBit(uint8 LED){
 	uint8_t bitinreg = BITINREG[LED];
@@ -820,3 +826,26 @@ battery at 2300mAh * 1.2V = 2.76Wh = 5 hours battery
 0.00000006	1/16mhz
 522.875817	clocks
 */
+
+/*=======================================================
+buffer size = 8
+proc clk	= 100,000,000 Mhz
+SSP speed	= 25,000,000 MB/s
+SSP speed /	16	= 1,562,500 16bit cyles per sec
+above / buffer size = 195,312.5
+
+proc time for 32 bits * buffer size of 8
+============================================
+1sec / 100,000,000 = 0.000,000,01 = 10ns 1 proc clock
+10ns * buffer 8 = 80ns]
+
+timer 1 calc
+============================================
+500nops = 1600 proc ticks
+
+transfer time for 16 bits * buffer size of 8
+============================================
+1sec / 25,000,000 = 0.000,000,04 = 40ns to transfer 1 bit
+40ns * 16bits * buffer 8 = 5.12us + 50% = 7.86
+==========================================================*/
+
