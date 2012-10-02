@@ -7,6 +7,7 @@
 
 extern "C" {
 	#include "debug_frmwrk.h"
+	#include "ShiftPWM.h"
 }
 
 #include "rtc.h"
@@ -97,38 +98,56 @@ bool home_page(char* URL){
 
 
 	// Check if the requested URL matches is enter date
+	// date?dom=01&mm=01&yy=2010&hh=24&mm=59&ss=59&st=??
 	if (strncmp(URL,"/date?",6) == 0){
-		uint16_t year = 0;
-		uint8_t dom = 0, month = 0, hh = 0, mm = 0, ss = 0, st = 0;
-		// /date?dom=01&mm=01&yy=2010
+		uint16_t ed_year = 0;
+		uint8_t ed_dom = 0, ed_month = 0, ed_hh = 0, ed_mm = 0, ed_ss = 0, ed_st = 0;
 		// size set to 50 but should break before this point
 		uint8_t dom_set = 0, m_set = 0, y_set = 0, hh_set = 0, mm_set = 0, ss_set = 0, st_set = 0;
 		for (uint8_t i=6;i<100;i++){
 			if (!dom_set && strncmp(URL+i,"dom",3)==0){
-				dom = strtoul (URL+i+4,NULL,10);
+				ed_dom = strtoul (URL+i+4,NULL,10);
 				dom_set=1;
 			} else if (!m_set && strncmp(URL+i,"month",5)==0){
-				month = strtoul (URL+i+6,NULL,10);
+				ed_month = strtoul (URL+i+6,NULL,10);
 				m_set=1;
-			} else if (!year && strncmp(URL+i,"yy",2)==0){
-				year = strtoul (URL+i+3,NULL,10);
+			} else if (!y_set && strncmp(URL+i,"yy",2)==0){
+				ed_year = strtoul (URL+i+3,NULL,10);
 				y_set=1;
 			} else if (!hh_set && strncmp(URL+i,"hh",2)==0){
-				hh = strtoul (URL+i+3,NULL,10);
+				ed_hh = strtoul (URL+i+3,NULL,10);
 				hh_set=1;
 			}else if (!mm_set && strncmp(URL+i,"mm",2)==0){
-				mm = strtoul (URL+i+3,NULL,10);
+				ed_mm = strtoul (URL+i+3,NULL,10);
 				mm_set=1;
 			}else if (!ss_set && strncmp(URL+i,"ss",2)==0){
-				ss = strtoul (URL+i+3,NULL,10);
+				ed_ss = strtoul (URL+i+3,NULL,10);
 				ss_set=1;
 			}else if (!st_set && strncmp(URL+i,"st",2)==0){
-				st = strtoul (URL+i+3,NULL,10);
+				ed_st = strtoul (URL+i+3,NULL,10);
 				st_set=1;
 			}
 			if (dom_set&&m_set&&y_set&&hh_set&&mm_set&&ss_set&&st_set)break;
 		}
-     	RTC_time_SetTime(year, month, dom, hh, mm, ss, st);
+     	RTC_time_SetTime(ed_year, ed_month, ed_dom, ed_hh, ed_mm, ed_ss, ed_st);
+	}
+
+	// Check if the requested URL matches is LED_Pattern
+	// LED?no=7$speed=7
+	if (strncmp(URL,"/LED?",6) == 0){
+		uint8_t no = 0, speed;
+		uint8_t no_set = 0, speed_set = 0;
+		for (uint8_t i=6;i<100;i++){
+			if (!no_set && strncmp(URL+i,"no",2)==0){
+				no = strtoul (URL+i+4,NULL,10);
+				no_set=1;
+			} else if (!speed_set && strncmp(URL+i,"speed",5)==0){
+				speed = strtoul (URL+i+6,NULL,10);
+				speed_set=1;
+			}
+			if (no_set&&speed_set)break;
+		}
+     	Set_LED_Pattern(no, speed);
 	}
 
 	// Check if the requested URL matches "/"
