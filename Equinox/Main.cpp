@@ -253,20 +253,20 @@ int main(void){
 	// Wifi init
 	WiFi_init();xprintf(OK "WiFi_init()");FFL_();
 
-    // Init LED module
-    LED_init();xprintf(OK "LED_init()");FFL_();
-    LED_test();xprintf(OK "LED_test()");FFL_();
+	// Init LED module
+	LED_init();xprintf(OK "LED_init()");FFL_();
+//	LED_test();xprintf(OK "LED_test()");FFL_();
 #endif
 
 #if 0
-    time_t rawtime;
-    struct tm * timeinfo;
-    time( &rawtime );
-    timeinfo = localtime ( &rawtime );
-    xprintf( "The current date/time is: %s", asctime (timeinfo) );
+	time_t rawtime;
+	struct tm * timeinfo;
+	time( &rawtime );
+	timeinfo = localtime ( &rawtime );
+	xprintf( "The current date/time is: %s", asctime (timeinfo) );
 
-//    rawtime = time (NULL);
-//    printf ("%ld hours since January 1, 1970", asctime (time (NULL)));///3600);
+//	rawtime = time (NULL);
+//	printf ("%ld hours since January 1, 1970", asctime (time (NULL)));///3600);
 
 #endif
 
@@ -290,7 +290,7 @@ int main(void){
 #endif
 
 //		RTC_print_time();
-//		LED_loop();
+		LED_loop();
 
 		/* Power save - Do every 5000ms */
 		#define DELAY 20
