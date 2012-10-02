@@ -158,7 +158,7 @@ INCLUDES = $(APPLIBDIR)/CMSISv1p30_LPC17xx/inc \
 	 $(APPLIBDIR)/WiShield/ \
 	 $(APPLIBDIR)/RTClib/ \
 	 $(APPLIBDIR)/CANlib/ \
-	 $(APPLIBDIR)/TESTShiftPWM/ \
+	 $(APPLIBDIR)/ShiftPWM/ \
 	 $(APPLIBDIR)/i2c/ \
 	 $(APPDIR)
 
@@ -181,8 +181,8 @@ SRC = \
 	$(APPLIBDIR)/WiShield/uiplib.c \
 	$(APPLIBDIR)/WiShield/uip-neighbor.c \
 	$(APPLIBDIR)/WiShield/uip-split.c \
-	$(APPLIBDIR)/TESTShiftPWM/ShiftPWM.c \
-	$(APPLIBDIR)/TESTShiftPWM/hsv2rgb.c \
+	$(APPLIBDIR)/LED/ShiftPWM.c \
+	$(APPLIBDIR)/LED/hsv2rgb.c \
 	$(APPSRC) \
 	$(APPLIBDIR)/R2C2/sys_timer.c \
 	$(APPLIBDIR)/R2C2/serial.c \
