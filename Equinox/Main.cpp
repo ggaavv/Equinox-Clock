@@ -327,17 +327,18 @@ int main(void){
 			colorshift+=1;
 			if(colorshift==360)
 				colorshift=0;
+			// TODO move hue to calulateLEDMIBAMBits();!!!!!!!!
 //			for(int cycle=0;cycle<numCycles;cycle++){ // shift the raibom numCycles times
 //				for(int led=0;led<RGBS;led++){ // loop over all LED's
 				for(int led=0;led<1;led++){ // loop over all LED's
-					hue = ((led*1)*360/1+colorshift)%360; // Set hue from 0 to 360 from first to last led and shift the hue
-					sat = 255;
-					val = 255;
+//					hue = ((led*1)*360/1+colorshift)%360; // Set hue from 0 to 360 from first to last led and shift the hue
+//					sat = 255;
+//					val = 255;
 //					hsv2rgb(hue, sat, val, &red, &green, &blue, maxBrightness); // convert hsv to rgb values
-					hsv2rgb(hue, sat, val, &red, &green, &blue, 0x7f); // convert hsv to rgb values
-					SetRGB(led, red, green, blue); // write rgb values
+//					hsv2rgb(hue, sat, val, &red, &green, &blue, 0x7f); // convert hsv to rgb values
+//					SetRGB(led, red, green, blue); // write rgb values
 				}
-				calulateLEDMIBAMBits();
+//				calulateLEDMIBAMBits();
 //			}
 		}
 #endif
