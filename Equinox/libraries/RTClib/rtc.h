@@ -9,10 +9,10 @@
 #define RTC_H_
 
 
-extern "C" {
+//extern "C" {
 	#include "lpc_types.h"
 	#include "comm.h"
-}
+//}
 
 typedef enum {
 	NIGHT,

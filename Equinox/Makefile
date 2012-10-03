@@ -158,7 +158,7 @@ INCLUDES = $(APPLIBDIR)/CMSISv1p30_LPC17xx/inc \
 	 $(APPLIBDIR)/WiShield/ \
 	 $(APPLIBDIR)/RTClib/ \
 	 $(APPLIBDIR)/CANlib/ \
-	 $(APPLIBDIR)/ShiftPWM/ \
+	 $(APPLIBDIR)/LED/ \
 	 $(APPLIBDIR)/i2c/ \
 	 $(APPDIR)
 
