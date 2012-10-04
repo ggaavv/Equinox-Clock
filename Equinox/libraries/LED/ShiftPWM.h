@@ -29,5 +29,6 @@ void resetLeds(void);
 void calulateLEDMIBAMBits(void);
 void Set_LED_Pattern(uint8_t no,uint8_t speed);
 void LED_loop(void);
+void Rainbow(void);
 
 #endif

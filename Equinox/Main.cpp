@@ -67,12 +67,8 @@ extern "C" {
 /* External function prototypes ----------------------------------------------*/
 extern "C" char* get_heap_end(void);
 extern "C" char* get_stack_top(void);
-extern volatile uint32_t LED_UPDATE_REQUIRED;
-extern volatile uint32_t LED_SEND;
 
 volatile uint32_t TOG[4] = {0,0,0,0};
-extern volatile uint32_t USER_MILLIS;
-extern volatile uint32_t SEC_MILLIS;
 
 extern volatile int LINE_READY;
 extern volatile uint8_t UART_LINE[50];
@@ -272,9 +268,7 @@ int main(void){
 
 
 	// main loop
-	long timer1, steptimeout, count1, tcount=Getunix(), colorshift=0;
-	int hue, sat, val;
-	unsigned char red, green, blue;
+	long timer1, steptimeout, count1, tcount=Getunix();
 	for (;;){
 		//Reset Watchdog timer (30sec)
 //		WDT_UpdateTimeOut(30);
@@ -316,67 +310,6 @@ int main(void){
 		if(LINE_READY){
 			exec_cmd(UART_LINE);
 			LINE_READY=0;
-		}
-#endif
-#ifndef DEV
-		#define LEDDELAY 10
-		if(USER_MILLIS>=10){
-//		if(LED_UPDATE_REQUIRED){
-			LED_UPDATE_REQUIRED=0;
-			USER_MILLIS=0;
-			colorshift+=1;
-			if(colorshift==360)
-				colorshift=0;
-			// TODO move hue to calulateLEDMIBAMBits();!!!!!!!!
-//			for(int cycle=0;cycle<numCycles;cycle++){ // shift the raibom numCycles times
-//				for(int led=0;led<RGBS;led++){ // loop over all LED's
-				for(int led=0;led<1;led++){ // loop over all LED's
-//					hue = ((led*1)*360/1+colorshift)%360; // Set hue from 0 to 360 from first to last led and shift the hue
-//					sat = 255;
-//					val = 255;
-//					hsv2rgb(hue, sat, val, &red, &green, &blue, maxBrightness); // convert hsv to rgb values
-//					hsv2rgb(hue, sat, val, &red, &green, &blue, 0x7f); // convert hsv to rgb values
-//					SetRGB(led, red, green, blue); // write rgb values
-				}
-//				calulateLEDMIBAMBits();
-//			}
-		}
-#endif
-#if 0
-		if(timeUpdate()) {
-			resetLeds();
-	//	colourToRGBled(time_now.hour12()*5,RED1,RED2,RED3,false,0);
-	//	colourToRGBled(time_now.minute(),GREEN1,GREEN2,GREEN3,false,0);
-	//	colourToRGBled(time_now.second(),BLUE1,BLUE2,BLUE3,false,0);
-
-	/* good
-			SetRGB(time_now.second()-4,0,0,1);
-			SetRGB(time_now.second()-3,0,0,2);
-			SetRGB(time_now.second()-2,0,0,4);
-			SetRGB(time_now.second()-1,0,0,100);
-			SetRGB(time_now.second()-0,0,0,255);
-
-			SetRGB(time_now.minute()-2,3,0,5);
-			SetRGB(time_now.minute()-1,10,0,25);
-			SetRGB(time_now.minute()-0,20,0,180);
-
-			SetRGB(time_now.hour12()*5+(time_now.minute()/12),85,0,130);
-	*/
-
-			SetRGB(time_now.second()-0,0,0,1);
-	//		SetRGB(time_now.second()-3,0,0,2);
-	//		SetRGB(time_now.second()-2,0,0,4);
-	//		SetRGB(time_now.second()-1,0,0,100);
-	//		SetRGB(time_now.second()-0,0,0,255);
-
-			SetRGB(time_now.minute()-1,1,0,1);
-			SetRGB(time_now.minute()-0,1,0,1);
-	//		SetRGB(time_now.minute()-0,20,0,180);
-
-			SetRGB(time_now.hour12()*5+(time_now.minute()/12),1,1,1);
-
-
-	//		delay(100);
 		}
 #endif
 
