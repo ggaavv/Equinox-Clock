@@ -35,8 +35,8 @@ const char h2_style[] = "H2{font-family:'Comic Sans MS',cursive; color:Red; text
 const char h2_open[] = "<H2>\n";
 const char h2_close[] = "</H2>\n";
 
-const char Heading1[] = "<a href=\"/\">--==Equinox Clock==--</a>";
 const char line_break[] = "<br />\n";
+const char Heading1[] = "<a href=\"/\">--==Equinox Clock==--</a>";
 const char html_open[] = "<HTML>\n";
 const char html_close[] = "</HTML>\n";
 const char head_open[] = "<HEAD>\n";
@@ -134,7 +134,7 @@ bool home_page(char* URL){
 
 	// Check if the requested URL matches is LED_Pattern
 	// LED?no=7$speed=7
-	if (strncmp(URL,"/LED?",6) == 0){
+	if (strncmp(URL,"/LED?",5) == 0){
 		uint8_t no = 0, speed;
 		uint8_t no_set = 0, speed_set = 0;
 		for (uint8_t i=6;i<100;i++){
@@ -201,7 +201,15 @@ bool home_page(char* URL){
 		WiServer.print(p_close);
 	}
 
-
+	if ((strncmp(URL, "/",1) == 0)&&(!strncmp(URL, "/set",4))&&(!strncmp(URL, "/LED",4))) {
+		WiServer.print(line_break);
+		WiServer.print("<FORM METHOD=\"LINK\" ACTION=\"/setdatetime\">");
+		WiServer.print("<INPUT TYPE=\"submit\" VALUE=\"Set Time&Date\">");
+		WiServer.print("</FORM>");
+		WiServer.print("<FORM METHOD=\"LINK\" ACTION=\"/LED\">");
+		WiServer.print("<INPUT TYPE=\"submit\" VALUE=\"Set LED Pattern\">");
+		WiServer.print("</FORM>");
+	}
 
 	if (strncmp(URL, "/setdatetime",6) == 0) {
 		// Date drop down selection box
