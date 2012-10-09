@@ -108,8 +108,6 @@ volatile uint32_t BufferNo;
 volatile uint8_t LED_PATTERN;
 volatile uint8_t LED_SPEED;
 
-#define MAX_PATTERNS 3
-#define MAX_PATTERNS_LETTERS 10 // (inc \0)
 const char LED_PATTERN_NAME[MAX_PATTERNS][MAX_PATTERNS_LETTERS] = {
 	"Clock",
 	"Test",
@@ -749,9 +747,14 @@ void calulateLEDMIBAMBits(){
 //	_DBG("[INFO]-MIBAM Precal time = ");_DBD32(end-start);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 }
 
-void Set_LED_Pattern(uint8_t no,uint8_t speed){
+void Set_LED_Pattern(uint8_t no,uint8_t speed, uint8_t bri){
 	LED_PATTERN = no;
 	LED_SPEED = speed;
+}
+
+
+void Get_LED_Pattern(uint8_t * no,uint8_t * speed, uint8_t * bri){
+
 }
 
 void LED_loop(void){

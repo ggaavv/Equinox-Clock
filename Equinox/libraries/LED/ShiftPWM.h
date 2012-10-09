@@ -27,7 +27,8 @@ void SetLEDColour(uint8_t led, colour col, uint8_t v0); //TODO not used delete?
 void SetLED(uint8_t led, uint8_t v0);
 void resetLeds(void);
 void calulateLEDMIBAMBits(void);
-void Set_LED_Pattern(uint8_t no,uint8_t speed);
+void Set_LED_Pattern(uint8_t no,uint8_t speed, uint8_t bri);
+void Get_LED_Pattern(uint8_t * no,uint8_t * speed, uint8_t * bri);
 void LED_loop(void);
 void Rainbow(void);
 
