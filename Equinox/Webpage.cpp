@@ -44,6 +44,8 @@ const char head_close[] = "</HEAD>\n";
 const char title[] = "<title>--==Equinox Clock==-- by Gavin and Jamie Clarke</title>\n";
 const char enter_date_format[] = " Enter Date: \n";
 const char enter_time_format[] = " Enter Time: \n";
+const char enter_led_pattern[] = " Choose Pattern: \n";
+const char enter_led_speed[] = " Choose Speed: \n";
 const char enter_DST_format[] = " Summertime (not yet implimented) \n";
 const char enter_UTC_format[] = " Timezone   Summertime \n";
 const char submit_reset_buttons[] = "<input type=\"submit\" value=\"Send Date\" />\n<input type=\"reset\" value=\"Reset\" />\n";
@@ -93,9 +95,9 @@ bool home_page(char* URL){
 	char dst_s[4];
 	sprintf(dst_s,"%.2d",dst);
 
-	//Led Config
-	//get bightness - need to be stored in a variable
-
+	//Get all LED pattern/speed/brightness
+	uint8_t no, speed, bri;
+	Get_LED_Pattern(uint8_t * no,uint8_t * speed, uint8_t * bri);
 
 	// Check if the requested URL matches is enter date
 	// date?dom=01&mm=01&yy=2010&hh=24&mm=59&ss=59&st=??
@@ -133,21 +135,24 @@ bool home_page(char* URL){
 	}
 
 	// Check if the requested URL matches is LED_Pattern
-	// LED?no=7$speed=7
+	// LED?no=7&speed=7&bri=128
 	if (strncmp(URL,"/LED?",5) == 0){
-		uint8_t no = 0, speed;
-		uint8_t no_set = 0, speed_set = 0;
+		uint8_t ed_no = 0, ed_speed = 0, ed_bri = 0;
+		uint8_t no_set = 0, speed_set = 0, bri_set = 0;
 		for (uint8_t i=6;i<100;i++){
 			if (!no_set && strncmp(URL+i,"no",2)==0){
-				no = strtoul (URL+i+4,NULL,10);
+				ed_no = strtoul (URL+i+4,NULL,10);
 				no_set=1;
 			} else if (!speed_set && strncmp(URL+i,"speed",5)==0){
-				speed = strtoul (URL+i+6,NULL,10);
+				ed_speed = strtoul (URL+i+6,NULL,10);
 				speed_set=1;
+			} else if (!bri_set && strncmp(URL+i,"bri",3)==0){
+				ed_bri = strtoul (URL+i+6,NULL,10);
+				bri_set=1;
 			}
-			if (no_set&&speed_set)break;
+			if (no_set&&speed_set&&bri_set)break;
 		}
-     	Set_LED_Pattern(no, speed);
+     	Set_LED_Pattern(ed_no, ed_speed, ed_bri);
 	}
 
 	// Check if the requested URL matches "/"
@@ -201,7 +206,7 @@ bool home_page(char* URL){
 		WiServer.print(p_close);
 	}
 
-	if ((strncmp(URL, "/",1) == 0)&&(!strncmp(URL, "/set",4))&&(!strncmp(URL, "/LED",4))) {
+	if ((strncmp(URL, "/",1) == 0)&&(!strncmp(URL, "/set",4))) {
 		WiServer.print(line_break);
 		WiServer.print("<FORM METHOD=\"LINK\" ACTION=\"/setdatetime\">");
 		WiServer.print("<INPUT TYPE=\"submit\" VALUE=\"Set Time&Date\">");
@@ -229,7 +234,6 @@ bool home_page(char* URL){
 			WiServer.print(i_s);
 			WiServer.print("</option>\n");
 		}
-//		_DBG("[INFO]-strcmp(URL, /) First dropdown box finished");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 		WiServer.print("</select>\n");
 		// Month
 		WiServer.print("<select name=month>\n");
@@ -248,9 +252,146 @@ bool home_page(char* URL){
 			WiServer.print(" </option>\n");
 		}
 		WiServer.print("</select>\n");
-//		_DBG("[INFO]-strcmp(URL, /) Half way");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 		// Year
 		WiServer.print("<select name=yy>\n");
+		for (uint16_t i = Y; i < (Y+12); i++){
+			WiServer.print("<option");
+			if (i==Y){
+				WiServer.print(" selected");
+			}
+			WiServer.print(">");
+			// Calculate year
+			sprintf(Y_s,"%.4d",i);
+			WiServer.print(Y_s);
+			WiServer.print("</option>\n");
+		}
+		WiServer.print("</select>\n");
+		WiServer.print(line_break);
+		WiServer.print(enter_time_format);
+		// Hours
+		WiServer.print("<select name=hh>\n");
+		for (uint8_t i = 0; i < 24; i++){
+			WiServer.print("<option");
+			if (i==hh){
+				WiServer.print(" selected");
+			}
+			WiServer.print(">");
+			// Calculate year
+			sprintf(hh_s,"%.2d",i);
+			WiServer.print(hh_s);
+			WiServer.print("</option>\n");
+		}
+		WiServer.print("</select>\n");
+		// Minutes
+		WiServer.print("<select name=mm>\n");
+		for (uint8_t i = 0; i < 60; i++){
+			WiServer.print("<option");
+			if (i==mm){
+				WiServer.print(" selected");
+			}
+			WiServer.print(">");
+			// Calculate year
+			sprintf(mm_s,"%.2d",i);
+			WiServer.print(mm_s);
+			WiServer.print("</option>\n");
+		}
+		WiServer.print("</select>\n");
+		// Seconds
+		WiServer.print("<select name=ss>\n");
+		for (uint8_t i = 0; i < 60; i++){
+			WiServer.print("<option");
+			if (i==ss){
+				WiServer.print(" selected");
+			}
+			WiServer.print(">");
+			// Calculate year
+			sprintf(ss_s,"%.2d",i);
+			WiServer.print(ss_s);
+			WiServer.print("</option>\n");
+		}
+		WiServer.print("</select>\n");
+/*		// UTC
+		WiServer.print(enter_UTC_format);
+		WiServer.print("<select name=tz size=1>");
+		for (int8_t i = -12; i < 15; i++){
+			for (int8_t j = 0; j < 50; (j+15)){
+				WiServer.print("<option name=tz value=");
+				// Calculate year
+				sprintf(ss_s,"%.2d",i);
+				WiServer.print(ss_s);
+				WiServer.print(":");
+				sprintf(ss_s,"%.2d",j);
+				WiServer.print(ss_s);
+				if (i==ss){
+					WiServer.print(" selected");
+				}
+				WiServer.print("> ");
+				WiServer.print(ss_s);
+				WiServer.print(" </option>");
+			}
+		}
+		WiServer.print("</select>");*/
+		// Summer time
+		WiServer.print(p_open);
+		WiServer.print(enter_DST_format);
+		WiServer.print("<select name=st>\n");
+		for (int8_t i = (0-60); i < 61; ){
+			WiServer.print("<option");
+			if (i==dst){
+				WiServer.print(" selected");
+			}
+			WiServer.print(">");
+			// Calculate year
+			sprintf(dst_s,"%i",i);
+			WiServer.print(dst_s);
+			WiServer.print("</option>\n");
+			i += 15;
+		}
+		WiServer.print("</select>\n");
+		WiServer.print(line_break);
+		// Save + Reset
+		WiServer.print(submit_reset_buttons);
+		WiServer.print(form_close);
+	}
+
+	if (strncmp(URL, "/setledpattern",6) == 0) {
+		// Date drop down selection box
+		WiServer.print(form_open);
+		WiServer.print(p_open);
+		WiServer.print(enter_led_pattern);
+		WiServer.print("<select name=no>\n");
+		// Pattern
+//		for (uint8_t i = 1; i < MAX_PATTERNS; i++){
+			WiServer.print("<option");
+//			if (i==LED_PATTERN){
+				WiServer.print(" selected");
+			}
+			WiServer.print(">");
+			char i_s[2];
+			sprintf(i_s,"%.2d",i);
+			WiServer.print(i_s);
+			WiServer.print("</option>\n");
+//		}
+		WiServer.print("</select>\n");
+		// Speed
+		WiServer.print("<select name=speed>\n");
+//		for (uint8_t i = 1; i <= LED_SPEED; i++){
+			WiServer.print("<option value=");
+			char i_s[2];
+			sprintf(i_s,"%.2d",i);
+			WiServer.print(i_s);
+			if (i==M){
+				WiServer.print(" selected");
+			}
+			WiServer.print("> ");
+			for (uint16_t j = 0; j < 3; j++){
+				WiServer.print(Month_of_the_year[i-1][j]);
+			}
+			WiServer.print(" </option>\n");
+		}
+		WiServer.print("</select>\n");
+		// Brightness
+		WiServer.print("<select name=bri>\n");
 		for (uint16_t i = Y; i < (Y+12); i++){
 			WiServer.print("<option");
 			if (i==Y){
@@ -352,6 +493,7 @@ bool home_page(char* URL){
 		WiServer.print(form_close);
 	}
 
+	// Clost all web pages
 	if (strncmp(URL, "/",1) == 0) {
 		WiServer.print(body_close);
 		WiServer.print(html_close);
