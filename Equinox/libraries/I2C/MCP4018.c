@@ -8,7 +8,7 @@
 #include "MCP4018.h"
 #include "lpc17xx_i2c.h"
 
-Status setPot(uint8_t pot){
+uint8_t setPot(uint8_t pot){
 
 	//max value
 	if( pot > 0x7f)

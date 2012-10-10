@@ -35,8 +35,8 @@ const char h2_style[] = "H2{font-family:'Comic Sans MS',cursive; color:Red; text
 const char h2_open[] = "<H2>\n";
 const char h2_close[] = "</H2>\n";
 
-const char Heading1[] = "<a href=\"/\">--==Equinox Clock==--</a>";
 const char line_break[] = "<br />\n";
+const char Heading1[] = "<a href=\"/\">--==Equinox Clock==--</a>";
 const char html_open[] = "<HTML>\n";
 const char html_close[] = "</HTML>\n";
 const char head_open[] = "<HEAD>\n";
@@ -44,10 +44,15 @@ const char head_close[] = "</HEAD>\n";
 const char title[] = "<title>--==Equinox Clock==-- by Gavin and Jamie Clarke</title>\n";
 const char enter_date_format[] = " Enter Date: \n";
 const char enter_time_format[] = " Enter Time: \n";
+const char enter_led_pattern[] = " Choose Pattern: \n";
+const char enter_led_speed[] = " Choose Speed: \n";
+const char enter_led_brightness[] = " Choose Brightness: \n";
 const char enter_DST_format[] = " Summertime (not yet implimented) \n";
 const char enter_UTC_format[] = " Timezone   Summertime \n";
-const char submit_reset_buttons[] = "<input type=\"submit\" value=\"Send Date\" />\n<input type=\"reset\" value=\"Reset\" />\n";
-const char form_open[] = "<form name=\"input\" action=\"/date\" method=\"get\" >\n";
+const char date_submit_reset_buttons[] = "<input type=\"submit\" value=\"Send Date\" />\n<input type=\"reset\" value=\"Reset\" />\n";
+const char LED_submit_reset_buttons[] = "<input type=\"submit\" value=\"Send LED\" />\n<input type=\"reset\" value=\"Reset\" />\n";
+const char date_form_open[] = "<form name=\"input\" action=\"/date\" method=\"get\" >\n";
+const char LED_form_open[] = "<form name=\"input\" action=\"/LED\" method=\"get\" >\n";
 const char form_close[] = "\n</form>";
 
 //bool home_page(char* URL_REQUESTED){
@@ -59,7 +64,7 @@ bool home_page(char* URL){
 	uint8_t DOW = GetDOW();
 	// Days of the Month
 	uint8_t DOM = GetDOM();
-	char DOM_s[2];
+	char DOM_s[3];
 	sprintf(DOM_s,"%.2d",DOM);
 	// Month
 	uint8_t M = GetM();
@@ -69,15 +74,15 @@ bool home_page(char* URL){
 	sprintf(Y_s,"%.4d",Y);
 	// Hours
 	uint8_t hh = GetHH();
-	char hh_s[2];
+	char hh_s[3];
 	sprintf(hh_s,"%.2d",hh);
 	// Minutes
 	uint8_t mm = GetMM();
-	char mm_s[2];
+	char mm_s[3];
 	sprintf(mm_s,"%.2d",mm);
 	// Seconds
 	uint8_t ss = GetSS();
-	char ss_s[2];
+	char ss_s[3];
 	sprintf(ss_s,"%.2d",ss);
 	// Sunrise
 	char Sunrise_s[9];
@@ -93,8 +98,9 @@ bool home_page(char* URL){
 	char dst_s[4];
 	sprintf(dst_s,"%.2d",dst);
 
-	//Led Config
-	//get bightness - need to be stored in a variable
+	//Get all LED pattern/speed/brightness
+	uint8_t no, speed, bri;
+	Get_LED_Pattern(&no, &speed, &bri);
 
 
 	// Check if the requested URL matches is enter date
@@ -133,21 +139,24 @@ bool home_page(char* URL){
 	}
 
 	// Check if the requested URL matches is LED_Pattern
-	// LED?no=7$speed=7
-	if (strncmp(URL,"/LED?",6) == 0){
-		uint8_t no = 0, speed;
-		uint8_t no_set = 0, speed_set = 0;
-		for (uint8_t i=6;i<100;i++){
+	// LED?no=7&speed=7&bri=128
+	if (strncmp(URL,"/LED?",5) == 0){
+		uint8_t ed_no = 0, ed_speed = 0, ed_bri = 0;
+		uint8_t no_set = 0, speed_set = 0, bri_set = 0;
+		for (uint8_t i=5;i<100;i++){
 			if (!no_set && strncmp(URL+i,"no",2)==0){
-				no = strtoul (URL+i+4,NULL,10);
+				ed_no = strtoul (URL+i+3,NULL,10);
 				no_set=1;
 			} else if (!speed_set && strncmp(URL+i,"speed",5)==0){
-				speed = strtoul (URL+i+6,NULL,10);
+				ed_speed = strtoul (URL+i+6,NULL,10);
 				speed_set=1;
+			} else if (!bri_set && strncmp(URL+i,"bri",3)==0){
+				ed_bri = strtoul (URL+i+4,NULL,10);
+				bri_set=1;
 			}
-			if (no_set&&speed_set)break;
+			if (no_set&&speed_set&&bri_set)break;
 		}
-     	Set_LED_Pattern(no, speed);
+     	Set_LED_Pattern(ed_no, ed_speed, ed_bri);
 	}
 
 	// Check if the requested URL matches "/"
@@ -201,11 +210,19 @@ bool home_page(char* URL){
 		WiServer.print(p_close);
 	}
 
-
+	if ((strncmp(URL, "/",1) == 0)&&(strncmp(URL, "/set",4)) != 0) {
+		WiServer.print(line_break);
+		WiServer.print("<FORM METHOD=\"LINK\" ACTION=\"/setdatetime\">");
+		WiServer.print("<INPUT TYPE=\"submit\" VALUE=\"Set Time & Date\">");
+		WiServer.print(form_close);
+		WiServer.print("<FORM METHOD=\"LINK\" ACTION=\"/setledpattern\">");
+		WiServer.print("<INPUT TYPE=\"submit\" VALUE=\"Set LED Pattern\">");
+		WiServer.print(form_close);
+	}
 
 	if (strncmp(URL, "/setdatetime",6) == 0) {
 		// Date drop down selection box
-		WiServer.print(form_open);
+		WiServer.print(date_form_open);
 		WiServer.print(p_open);
 		WiServer.print(enter_date_format);
 		WiServer.print("<select name=dom>\n");
@@ -216,12 +233,11 @@ bool home_page(char* URL){
 				WiServer.print(" selected");
 			}
 			WiServer.print(">");
-			char i_s[2];
+			char i_s[4];
 			sprintf(i_s,"%.2d",i);
 			WiServer.print(i_s);
 			WiServer.print("</option>\n");
 		}
-//		_DBG("[INFO]-strcmp(URL, /) First dropdown box finished");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 		WiServer.print("</select>\n");
 		// Month
 		WiServer.print("<select name=month>\n");
@@ -240,7 +256,6 @@ bool home_page(char* URL){
 			WiServer.print(" </option>\n");
 		}
 		WiServer.print("</select>\n");
-//		_DBG("[INFO]-strcmp(URL, /) Half way");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 		// Year
 		WiServer.print("<select name=yy>\n");
 		for (uint16_t i = Y; i < (Y+12); i++){
@@ -321,7 +336,6 @@ bool home_page(char* URL){
 		}
 		WiServer.print("</select>");*/
 		// Summer time
-//		_DBG("Summer time");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 		WiServer.print(p_open);
 		WiServer.print(enter_DST_format);
 		WiServer.print("<select name=st>\n");
@@ -340,10 +354,69 @@ bool home_page(char* URL){
 		WiServer.print("</select>\n");
 		WiServer.print(line_break);
 		// Save + Reset
-		WiServer.print(submit_reset_buttons);
+		WiServer.print(date_submit_reset_buttons);
 		WiServer.print(form_close);
 	}
 
+	if (strncmp(URL, "/setledpattern",6) == 0) {
+		// Date drop down selection box
+		WiServer.print(LED_form_open);
+		WiServer.print(p_open);
+		WiServer.print(enter_led_pattern);
+		WiServer.print("<select name=no>\n");
+		// Pattern
+		for (uint8_t i = 0; i < MAX_PATTERNS; i++){
+			WiServer.print("<option value=");
+			char i_s[4];
+			sprintf(i_s,"%.d",i);
+			WiServer.print(i_s);
+			if (i==no){
+				WiServer.print(" selected");
+			}
+			WiServer.print(">");
+			for (uint16_t j = 0; j < MAX_PATTERNS_LETTERS; j++){
+				WiServer.print(LED_PATTERN_NAME[i][j]);
+			};
+			WiServer.print("</option>\n");
+		}
+		WiServer.print("</select>\n");
+		// Speed
+		WiServer.print(enter_led_speed);
+		WiServer.print("<select name=speed>\n");
+		for (uint8_t i = 1; i < MAX_SPEED; i++){
+			WiServer.print("<option");
+			if (i==speed){
+				WiServer.print(" selected");
+			}
+			WiServer.print("> ");
+			char i_s[4];
+			sprintf(i_s,"%.d",i);
+			WiServer.print(i_s);
+			WiServer.print(" </option>\n");
+		}
+		WiServer.print("</select>\n");
+		// Brightness
+		WiServer.print(enter_led_brightness);
+		WiServer.print("<select name=bri>\n");
+		for (uint16_t i = 1; i < 128; i++){
+			WiServer.print("<option");
+			if (i==bri){
+				WiServer.print(" selected");
+			}
+			WiServer.print(">");
+			char Bri_s[4];
+			sprintf(Bri_s,"%.d",i);
+			WiServer.print(Bri_s);
+			WiServer.print("</option>\n");
+		}
+		WiServer.print("</select>\n");
+		WiServer.print(line_break);
+		// Save + Reset
+		WiServer.print(LED_submit_reset_buttons);
+		WiServer.print(form_close);
+	}
+
+	// Clost all web pages
 	if (strncmp(URL, "/",1) == 0) {
 		WiServer.print(body_close);
 		WiServer.print(html_close);

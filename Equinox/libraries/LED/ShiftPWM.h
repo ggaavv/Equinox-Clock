@@ -7,12 +7,16 @@
 
 #include "lpc_types.h"
 
-typedef enum { //TODO not used delete?
-	red = 0b001,
-	green = 0b010,
-	blue = 0b100,
-	all = 0b111,
-} colour;
+#define MAX_SPEED 255
+
+#define MAX_PATTERNS 4
+#define MAX_PATTERNS_LETTERS 20
+const char LED_PATTERN_NAME[MAX_PATTERNS][MAX_PATTERNS_LETTERS] = {
+	"Clock",
+	"Test",
+	"Rainbow",
+	"simple all colors"
+};
 
 void TIMER0_IRQHandler(void);
 void TIMER1_IRQHandler(void);
@@ -23,12 +27,14 @@ void LED_init(void);
 void LED_test(void);
 void LED_time();
 void SetRGB(int32_t group, uint8_t v0, uint8_t v1, uint8_t v2);
-void SetLEDColour(uint8_t led, colour col, uint8_t v0); //TODO not used delete?
 void SetLED(uint8_t led, uint8_t v0);
 void resetLeds(void);
 void calulateLEDMIBAMBits(void);
-void Set_LED_Pattern(uint8_t no,uint8_t speed);
+void Set_LED_Pattern(uint8_t no,uint8_t speed, uint8_t bri);
+void Get_LED_Pattern(uint8_t * no,uint8_t * speed, uint8_t * bri);
 void LED_loop(void);
 void Rainbow(void);
+uint8_t SetBrightness(uint8_t bri);
+uint8_t GetBrightness(void);
 
 #endif

@@ -20,7 +20,7 @@
 #include "lpc17xx_wdt.h"
 #include "lpc17xx_rtc.h"
 #include "renault_stereo.h"
-#include "MCP4018.h"
+#include "lpc17xx_i2c.h"
 
 
 #define USER_FLASH_START 0x3000 // For USB bootloader
@@ -154,9 +154,25 @@ void exec_cmd(char *cmd){
 		LED_test();
 		xprintf(INFO "led tests finished");FFL_();
 	}
+	else if(stricmp(cmd,"ls")==0){
+		xprintf(INFO "led set pattern running");FFL_();
+		uint8_t l_pattern = 0;
+		while(1){
+			LINE_READY=0;
+			while(!LINE_READY){
+			}
+			l_pattern = atoi (UART_LINE);
+			if(l_pattern<=0x5)
+				break;
+			else
+				xprintf(ERR "less than 5 please");FFL_();
+		}
+		Set_LED_Pattern(l_pattern,0,GetBrightness());
+		xprintf(INFO "led pattern finished");FFL_();
+	}
 	else if(stricmp(cmd,"p") == 0){
-		SetRGB(1,0x7f,0x7f,0x7f);
-		calulateLEDMIBAMBits();
+//		SetRGB(1,0x7f,0x7f,0x7f);
+//		calulateLEDMIBAMBits();
 		for(uint8_t pot = 0;pot<128;pot++){
 			xprintf(INFO "setting pot to 0x%x",pot);FFL_();
 			if(setPot(pot)==ERROR){
@@ -190,9 +206,9 @@ void exec_cmd(char *cmd){
 				xprintf(ERR "less than 128 please");FFL_();
 		}
 		xprintf(INFO "setting pot to 0x%x",pot);FFL_();
-		if(setPot(pot)==ERROR)
+		if(SetBrightness(pot)==ERROR)
 			xprintf(ERR "Failed to set pot");FFL_();
-		xprintf(INFO "(verify) pot=0x%x",readPot());FFL_();
+		xprintf(INFO "(verify) pot=0x%x",GetBrightness());FFL_();
 	}
 	else if(stricmp(cmd,"q")==0){
 		xprintf(INFO "q");FFL_();
@@ -225,6 +241,7 @@ void exec_cmd(char *cmd){
 				"ct-CAN test\n"
 				"i2c-probei2c\n"
 				"lt-LED test\n"
+				"ls-LED set pattern\n"
 				"p-pot test\n"
 				"ps-Pot set\n"
 				"rs-Resets board\n"

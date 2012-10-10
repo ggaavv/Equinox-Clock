@@ -38,6 +38,7 @@
 #include "hsv2rgb.h"
 #include "comm.h"
 #include "sys_timer.h"
+#include "MCP4018.h"
 //#include "rtc.h"	not needed if calling c++ functions - links ok without
 
 #define DMA
@@ -107,16 +108,6 @@ volatile uint32_t BufferNo;
 
 volatile uint8_t LED_PATTERN;
 volatile uint8_t LED_SPEED;
-
-#define MAX_PATTERNS 4
-#define MAX_PATTERNS_LETTERS 20
-const char LED_PATTERN_NAME[MAX_PATTERNS][MAX_PATTERNS_LETTERS] = {
-	"Clock",
-	"Test",
-	"Rainbow",
-	"simple all colors"
-};
-
 
 extern volatile uint32_t LED_UPDATE_REQUIRED;
 extern volatile uint32_t LED_SEND;
@@ -651,7 +642,7 @@ void LED_test(){
 		}
 	}
 #endif
-#if 0 // All smooth on then all smooth off
+#if 1 // All smooth on then all smooth off
 	for(uint8_t led=0,bri=0;led<LEDS;led+=3,bri++){
 		SetLED(led,bri);
 		calulateLEDMIBAMBits();
@@ -830,9 +821,17 @@ void calulateLEDMIBAMBits(){
 //	_DBG("[INFO]-MIBAM Precal time = ");_DBD32(end-start);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 }
 
-void Set_LED_Pattern(uint8_t no,uint8_t speed){
+void Set_LED_Pattern(uint8_t no,uint8_t speed, uint8_t bri){
 	LED_PATTERN = no;
 	LED_SPEED = speed;
+	SetBrightness(bri);
+}
+
+
+void Get_LED_Pattern(uint8_t * no,uint8_t * speed, uint8_t * bri){
+	*no = (uint32_t)LED_PATTERN;
+	*speed = (uint32_t)LED_SPEED;
+	*bri = (uint32_t)GetBrightness();
 }
 
 void LED_loop(void){
@@ -926,6 +925,15 @@ void Rainbow(void) {
 		}
 #endif
 
+uint8_t  SetBrightness(uint8_t bri){
+	uint8_t err = setPot(bri);
+	return err;
+}
+
+uint8_t GetBrightness(void){
+	uint8_t bri = readPot();
+	return bri;
+}
 
 /*
 static inline void calulateLEDMIBAMBit(uint8 LED){
