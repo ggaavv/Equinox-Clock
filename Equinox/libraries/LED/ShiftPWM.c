@@ -108,12 +108,13 @@ volatile uint32_t BufferNo;
 volatile uint8_t LED_PATTERN;
 volatile uint8_t LED_SPEED;
 
-#define MAX_PATTERNS 3
-#define MAX_PATTERNS_LETTERS 10 // (inc \0)
+#define MAX_PATTERNS 4
+#define MAX_PATTERNS_LETTERS 20
 const char LED_PATTERN_NAME[MAX_PATTERNS][MAX_PATTERNS_LETTERS] = {
 	"Clock",
 	"Test",
-	"Name3"
+	"Rainbow",
+	"simple all colors"
 };
 
 
@@ -659,6 +660,86 @@ void LED_test(){
 #endif
 }
 
+void simple_all_colors(){ //simple all colors
+	// while(1){
+	for (uint8_t i=0;i<16;i++){
+//		xprintf(OK "%d",i+1);FFL_();
+		GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
+		for (uint8_t j=0;j<11;j++){
+			SSP_SendData(LED_SPI_CHN, 0x0000);
+			while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+		}
+//		SSP_SendData(LED_SPI_CHN, 0x0001<<i);
+		SSP_SendData(LED_SPI_CHN, 0x1249);
+		while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+		for (uint8_t k=0;k<0;k++){
+			SSP_SendData(LED_SPI_CHN, 0x0000);
+			while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+		}
+		GPIO_SetValue(LED_LE_PORT, LED_LE_BIT);
+		GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
+		GPIO_ClearValue(LED_OE_PORT, LED_OE_BIT);//LED's on. active low
+		delay_ms(150);
+	};
+	for (uint8_t i=0;i<16;i++){
+//		xprintf(OK "%d",i+1);FFL_();
+		GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
+		for (uint8_t j=0;j<11;j++){
+			SSP_SendData(LED_SPI_CHN, 0x0000);
+			while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+		}
+//		SSP_SendData(LED_SPI_CHN, 0x0001<<i);
+		SSP_SendData(LED_SPI_CHN, 0x2492);
+		while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+		for (uint8_t k=0;k<0;k++){
+			SSP_SendData(LED_SPI_CHN, 0x0000);
+			while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+		}
+		GPIO_SetValue(LED_LE_PORT, LED_LE_BIT);
+		GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
+		GPIO_ClearValue(LED_OE_PORT, LED_OE_BIT);//LED's on. active low
+		delay_ms(150);
+	};
+	for (uint8_t i=0;i<16;i++){
+	xprintf(OK "%d",i+1);FFL_();
+	GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
+	for (uint8_t j=0;j<11;j++){
+		SSP_SendData(LED_SPI_CHN, 0x0000);
+		while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+	}
+//	SSP_SendData(LED_SPI_CHN, 0x0001<<i);
+	SSP_SendData(LED_SPI_CHN, 0x4924);
+	while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+	for (uint8_t k=0;k<0;k++){
+		SSP_SendData(LED_SPI_CHN, 0x0000);
+		while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+	}
+	GPIO_SetValue(LED_LE_PORT, LED_LE_BIT);
+	GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
+	GPIO_ClearValue(LED_OE_PORT, LED_OE_BIT);//LED's on. active low
+	delay_ms(150);
+	};
+	for (uint8_t i=0;i<16;i++){
+//		xprintf(OK "%d",i+1);FFL_();
+		GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
+		for (uint8_t j=0;j<11;j++){
+			SSP_SendData(LED_SPI_CHN, 0x0000);
+			while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+		}
+//		SSP_SendData(LED_SPI_CHN, 0x0001<<i);
+		SSP_SendData(LED_SPI_CHN, 0xffff);
+		while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+		for (uint8_t k=0;k<0;k++){
+			SSP_SendData(LED_SPI_CHN, 0x0000);
+			while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+		}
+	GPIO_SetValue(LED_LE_PORT, LED_LE_BIT);
+	GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
+	GPIO_ClearValue(LED_OE_PORT, LED_OE_BIT);//LED's on. active low
+	delay_ms(150);
+	};
+}
+
 void SetRGB(int32_t group, uint8_t v0, uint8_t v1, uint8_t v2){
 //	if(group<0)
 //		group = RGBS + group;
@@ -765,6 +846,9 @@ void LED_loop(void){
 		case 2:
 			Rainbow();
 			break;
+		case 3:
+			simple_all_colors();
+			break;
 		default:
 			LED_time();
 			break;
@@ -774,7 +858,7 @@ void LED_loop(void){
 
 long colorshift=0;
 
-void Rainbow( void ) {
+void Rainbow(void) {
 #ifndef DEV
 	#define LEDDELAY 10
 	int hue, sat, val;
