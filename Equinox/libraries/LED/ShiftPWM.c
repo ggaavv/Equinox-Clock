@@ -106,8 +106,9 @@ volatile uint32_t BufferNo;
 //volatile uint32_t UPDATE_COUNT;
 //volatile uint32_t LED_UPDATE_REQUIRED;
 
-volatile uint8_t LED_PATTERN;
-volatile uint8_t LED_SPEED;
+volatile uint8_t LED_PATTERN = 0;
+volatile uint8_t LED_SPEED = 1; //Milliseconds delay max=255
+volatile uint8_t LED_INT_SPEED = 1;
 
 extern volatile uint32_t LED_UPDATE_REQUIRED;
 extern volatile uint32_t LED_SEND;
@@ -206,7 +207,7 @@ void TIMER1_IRQHandler(void){
 void TIMER2_IRQHandler(void){
 //	xprintf("TIMER2_IRQ");
 	if (TIM_GetIntStatus(LPC_TIM2,TIM_MR0_INT)){
-		ticks+=1;
+		LED_INT_SPEED = 1;
 	}
 	TIM_ClearIntPending(LPC_TIM2, TIM_MR0_INT);
 }
@@ -295,8 +296,8 @@ void DMA_IRQHandler (void)
 
 void LED_init(){
 	uint8_t pot = 0x50;
+	Set_LED_Pattern(0,128, pot);
 	xprintf(INFO "Pot set to:%d",pot);FFL_();
-	setPot(pot);
 	uint8_t tmp;
 
 	SENDSEQ=0;
@@ -427,24 +428,24 @@ void LED_init(){
 	TIM_Cmd(LPC_TIM0,ENABLE);	// To start timer 0
 //	TIM_Cmd(LPC_TIM1,ENABLE);	// To start timer 1
 
-	// Counter interupt
-/*	TIM_TIMERCFG_Type TIM2_ConfigStruct;
+	// Speed timer
+	TIM_TIMERCFG_Type TIM2_ConfigStruct;
 	TIM_MATCHCFG_Type TIM2_MatchConfigStruct;
-	TIM2_ConfigStruct.PrescaleOption = TIM_PRESCALE_TICKVAL;	// Initialize timer 0, prescale count time of 1us //1000000uS = 1S
+	TIM2_ConfigStruct.PrescaleOption = TIM_PRESCALE_USVAL;	// Initialize timer 0, prescale count time of 1us //1000000uS = 1S
 	TIM2_ConfigStruct.PrescaleValue	= 1;
 	TIM2_MatchConfigStruct.MatchChannel = 0;	// use channel 0, MR0
 	TIM2_MatchConfigStruct.IntOnMatch   = TRUE;	// Enable interrupt when MR0 matches the value in TC register
-	TIM2_MatchConfigStruct.ResetOnMatch = TRUE;	//Enable reset on MR0: TIMER will reset if MR0 matches it
-	TIM2_MatchConfigStruct.StopOnMatch  = FALSE;	//Stop on MR0 if MR0 matches it
+	TIM2_MatchConfigStruct.ResetOnMatch = FALSE;	//Enable reset on MR0: TIMER will reset if MR0 matches it
+	TIM2_MatchConfigStruct.StopOnMatch  = TRUE;	//Stop on MR0 if MR0 matches it
 	TIM2_MatchConfigStruct.ExtMatchOutputType = TIM_EXTMATCH_NOTHING;
-	TIM2_MatchConfigStruct.MatchValue   = 50;		// Set Match value, count value of 1000000 (1000000 * 1uS = 1000000us = 1s --> 1 Hz)
+	TIM2_MatchConfigStruct.MatchValue   = 256000;		// Set Match value, count value of 1000000 (1000000 * 1uS = 1000000us = 1s --> 1 Hz)
 	TIM_Init(LPC_TIM2, TIM_TIMER_MODE,&TIM2_ConfigStruct);	// Set configuration for Tim_config and Tim_MatchConfig
 	TIM_ConfigMatch(LPC_TIM2,&TIM2_MatchConfigStruct);
-	xprintf(OK "LED Latch TIM2_ConfigMatch");FFL_();
+//	xprintf(OK "LED Latch TIM2_ConfigMatch");FFL_();
 	NVIC_SetPriority(TIMER2_IRQn, 0);
 	NVIC_EnableIRQ(TIMER2_IRQn);
 	TIM_Cmd(LPC_TIM2,ENABLE);	// To start timer 2
-	TIM_Cmd(LPC_TIM0,ENABLE);	// To start timer 0*/
+//	TIM_Cmd(LPC_TIM0,ENABLE);	// To start timer 0
 
 #ifdef DMA
 //	GPDMA_Channel_CFG_Type GPDMACfg;
@@ -835,22 +836,27 @@ void Get_LED_Pattern(uint8_t * no,uint8_t * speed, uint8_t * bri){
 }
 
 void LED_loop(void){
-	switch(LED_PATTERN){
-		case 0:
-			LED_time();
-			break;
-		case 1:
-			LED_test();
-			break;
-		case 2:
-			Rainbow();
-			break;
-		case 3:
-			simple_all_colors();
-			break;
-		default:
-			LED_time();
-			break;
+	if (LED_INT_SPEED){
+		switch(LED_PATTERN){
+			case 0:
+				LED_time();
+				break;
+			case 1:
+				LED_test();
+				break;
+			case 2:
+				Rainbow();
+				break;
+			case 3:
+				simple_all_colors();
+				break;
+			default:
+				LED_time();
+				break;
+		}
+	LED_INT_SPEED = 0;
+	TIM_UpdateMatchValue(LPC_TIM2, 0, LED_SPEED*1000-256000);
+	TIM_Cmd(LPC_TIM2,ENABLE);
 	}
 }
 
