@@ -86,10 +86,10 @@ ServiceBinary=%12%\%DRIVERFILENAME%.sys
 [SourceDisksFiles]
 [SourceDisksNames]
 [DeviceList]
-%DESCRIPTION%=DriverInstall, USB\VID_FFFF&PID_014E
+%DESCRIPTION%=DriverInstall, USB\VID_FFFF&PID_55AA
 
 [DeviceList.NTamd64]
-%DESCRIPTION%=DriverInstall, USB\VID_FFFF&PID_014E
+%DESCRIPTION%=DriverInstall, USB\VID_FFFF&PID_55AA
 
 
 ;------------------------------------------------------------------------------
@@ -102,5 +102,5 @@ MFGFILENAME="CDC_vista"
 DRIVERFILENAME ="usbser"
 MFGNAME="http://github.com/ggaavv/Equinox-Clock"
 INSTDISK="Equinox Clock"
-DESCRIPTION="Communications Port"
-SERVICE="USB RS-232 Emulation Driver"
+DESCRIPTION="Equinox-Clock"
+SERVICE="Equinox-Clock"
