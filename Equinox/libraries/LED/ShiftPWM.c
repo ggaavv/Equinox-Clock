@@ -87,8 +87,8 @@ const uint32_t BITTIME[] = {
 };
 
 // for single board led 30 is led 1
-#define REGS 12
 #define RGBS 60
+#define REGS RGBS/5
 #define LEDS RGBS*3
 #define LEDS16 REGS*16
 #define BITS 8
@@ -118,6 +118,7 @@ extern volatile uint32_t SEC_MILLIS;
 void TIMER0_IRQHandler(void){
 //	xprintf("TIMER0_IRQ");
 	if (TIM_GetIntStatus(LPC_TIM0,TIM_MR0_INT)){
+		TIM_ClearIntPending(LPC_TIM0, TIM_MR0_INT);
 #if 0
 		if(TOG[0])
 //			FIO_SetValue(LED_LE_PORT, LED_LE_BIT);
@@ -188,28 +189,26 @@ void TIMER0_IRQHandler(void){
 		LatchIn();
 #endif
 /*		UPDATE_COUNT+=1;
-		if(UPDATE_COUNT>=(1600/MAX_BAM_BITS)){
-			UPDATE_COUNT=0;
+		ATE_COUNT=0;
 			LED_UPDATE_REQUIRED=1;
 		}*/
 	}
-	TIM_ClearIntPending(LPC_TIM0, TIM_MR0_INT);
 }
 
 void TIMER1_IRQHandler(void){
 //	xprintf("TIMER1_IRQ");
 	if (TIM_GetIntStatus(LPC_TIM1,TIM_MR0_INT)){
+		TIM_ClearIntPending(LPC_TIM1, TIM_MR0_INT);
 		LatchIn();
 	}
-	TIM_ClearIntPending(LPC_TIM1, TIM_MR0_INT);
 }
 
 void TIMER2_IRQHandler(void){
 //	xprintf("TIMER2_IRQ");
 	if (TIM_GetIntStatus(LPC_TIM2,TIM_MR0_INT)){
+		TIM_ClearIntPending(LPC_TIM2, TIM_MR0_INT);
 		LED_INT_SPEED = 1;
 	}
-	TIM_ClearIntPending(LPC_TIM2, TIM_MR0_INT);
 }
 
 inline void LatchIn(void){
@@ -253,8 +252,7 @@ inline void WaitForSend(void){
 //	while(!SSP_GetStatus(LED_SPI_CHN,SSP_STAT_TXFIFO_EMPTY));
 }
 
-void DMA_IRQHandler (void)
-{
+void DMA_IRQHandler (void){
 //	xprintf("DMA_IRQ");
 //	ticks_at_DMA_start = ticks;
 	// check GPDMA interrupt on channel 0
@@ -390,8 +388,8 @@ void LED_init(){
 	};
 	LatchIn();
 
-	xprintf(INFO "LED TIM0_ConfigMatch");FFL_();
 	// Setup LED interupt
+//	xprintf(INFO "LED TIM0_ConfigMatch");FFL_();
 	TIM_TIMERCFG_Type TIM0_ConfigStruct;
 	TIM_MATCHCFG_Type TIM0_MatchConfigStruct;
 	TIM0_ConfigStruct.PrescaleOption = TIM_PRESCALE_USVAL;	// Initialize timer 0, prescale count time of 1us //1000000uS = 1S
@@ -401,15 +399,15 @@ void LED_init(){
 	TIM0_MatchConfigStruct.ResetOnMatch = TRUE;	//Enable reset on MR0: TIMER will reset if MR0 matches it
 	TIM0_MatchConfigStruct.StopOnMatch  = FALSE;	//Stop on MR0 if MR0 matches it
 	TIM0_MatchConfigStruct.ExtMatchOutputType = TIM_EXTMATCH_NOTHING;
-	TIM0_MatchConfigStruct.MatchValue   = BITTIME[1];		// Set Match value, count value of 1000000 (1000000 * 1uS = 1000000us = 1s --> 1 Hz)
+	TIM0_MatchConfigStruct.MatchValue   = BITTIME[MAX_BAM_BITS-1];		// Set Match value, count value of 1000000 (1000000 * 1uS = 1000000us = 1s --> 1 Hz)
 	TIM_Init(LPC_TIM0, TIM_TIMER_MODE,&TIM0_ConfigStruct);	// Set configuration for Tim_config and Tim_MatchConfig
 	TIM_ConfigMatch(LPC_TIM0,&TIM0_MatchConfigStruct);
-	xprintf(OK "LED TIM0_ConfigMatch");FFL_();
 	NVIC_SetPriority(TIMER0_IRQn, 0);
 	NVIC_EnableIRQ(TIMER0_IRQn);
-//	TIM_Cmd(LPC_TIM0,ENABLE);	// Turned on after Timer 1 is turned on
+//	xprintf(OK "LED TIM0_ConfigMatch");FFL_();
 
 	// Setup LED Latch interupt
+//	xprintf(INFO "LED TIM1_ConfigMatch");FFL_();
 	TIM_TIMERCFG_Type TIM1_ConfigStruct;
 	TIM_MATCHCFG_Type TIM1_MatchConfigStruct;
 	TIM1_ConfigStruct.PrescaleOption = TIM_PRESCALE_TICKVAL;	// Initialize timer 0, prescale count time of 1us //1000000uS = 1S
@@ -422,30 +420,27 @@ void LED_init(){
 	TIM1_MatchConfigStruct.MatchValue   = DelayLatchIn;		// Set Match value, count value of 1000000 (1000000 * 1uS = 1000000us = 1s --> 1 Hz)
 	TIM_Init(LPC_TIM1, TIM_TIMER_MODE,&TIM1_ConfigStruct);	// Set configuration for Tim_config and Tim_MatchConfig
 	TIM_ConfigMatch(LPC_TIM1,&TIM1_MatchConfigStruct);
-	xprintf(OK "LED Latch TIM1_ConfigMatch");FFL_();
 	NVIC_SetPriority(TIMER1_IRQn, 0);
 	NVIC_EnableIRQ(TIMER1_IRQn);
-	TIM_Cmd(LPC_TIM0,ENABLE);	// To start timer 0
-//	TIM_Cmd(LPC_TIM1,ENABLE);	// To start timer 1
+//	xprintf(OK "LED TIM1_ConfigMatch");FFL_();
 
 	// Speed timer
+//	xprintf(INFO "LED TIM2_ConfigMatch");FFL_();
 	TIM_TIMERCFG_Type TIM2_ConfigStruct;
 	TIM_MATCHCFG_Type TIM2_MatchConfigStruct;
 	TIM2_ConfigStruct.PrescaleOption = TIM_PRESCALE_USVAL;	// Initialize timer 0, prescale count time of 1us //1000000uS = 1S
 	TIM2_ConfigStruct.PrescaleValue	= 1;
 	TIM2_MatchConfigStruct.MatchChannel = 0;	// use channel 0, MR0
 	TIM2_MatchConfigStruct.IntOnMatch   = TRUE;	// Enable interrupt when MR0 matches the value in TC register
-	TIM2_MatchConfigStruct.ResetOnMatch = FALSE;	//Enable reset on MR0: TIMER will reset if MR0 matches it
-	TIM2_MatchConfigStruct.StopOnMatch  = TRUE;	//Stop on MR0 if MR0 matches it
+	TIM2_MatchConfigStruct.ResetOnMatch = TRUE;	//Enable reset on MR0: TIMER will reset if MR0 matches it
+	TIM2_MatchConfigStruct.StopOnMatch  = FALSE;	//Stop on MR0 if MR0 matches it
 	TIM2_MatchConfigStruct.ExtMatchOutputType = TIM_EXTMATCH_NOTHING;
 	TIM2_MatchConfigStruct.MatchValue   = 256000;		// Set Match value, count value of 1000000 (1000000 * 1uS = 1000000us = 1s --> 1 Hz)
 	TIM_Init(LPC_TIM2, TIM_TIMER_MODE,&TIM2_ConfigStruct);	// Set configuration for Tim_config and Tim_MatchConfig
 	TIM_ConfigMatch(LPC_TIM2,&TIM2_MatchConfigStruct);
-//	xprintf(OK "LED Latch TIM2_ConfigMatch");FFL_();
 	NVIC_SetPriority(TIMER2_IRQn, 0);
 	NVIC_EnableIRQ(TIMER2_IRQn);
-	TIM_Cmd(LPC_TIM2,ENABLE);	// To start timer 2
-//	TIM_Cmd(LPC_TIM0,ENABLE);	// To start timer 0
+//	xprintf(OK "LED TIM2_ConfigMatch");FFL_();
 
 #ifdef DMA
 //	GPDMA_Channel_CFG_Type GPDMACfg;
@@ -519,6 +514,15 @@ void LED_init(){
 //	GPDMA_ChannelCmd(0, ENABLE);	// Enable GPDMA channel 0
 	NVIC_EnableIRQ (DMA_IRQn);		// Enable interrupt for DMA
 	xprintf(OK "DMA Setup");FFL_();
+
+
+	TIM_Cmd(LPC_TIM0,ENABLE);	// To start timer 0
+//	TIM_Cmd(LPC_TIM1,ENABLE);	// To start timer 1 //done at DMA end
+	TIM_Cmd(LPC_TIM2,ENABLE);	// To start timer 2
+
+	xprintf(OK "TIM_Cmd(LPC_TIM0/2,ENABLE);");FFL_();
+
+
 #endif
 #ifdef RxDMA // SSP Rx DMA
 	GPDMA_Channel_CFG_Type GPDMACfg1;
@@ -543,73 +547,72 @@ void LED_init(){
 
 void LED_time(){
 	resetLeds();
-		uint8_t HH = GetHH();
-		uint8_t MM = GetMM();
-		uint8_t SS = GetSS();
-		HH>11 ? HH-=12 : 0;
+	uint8_t HH = GetHH();
+	uint8_t MM = GetMM();
+	uint8_t SS = GetSS();
+	HH>11 ? HH-=12 : 0;
 
-		// Remove the tails
-		SS<5 ? SetLED((SS+60)*3-13,0) : SetLED(SS*3-13,0);
-		MM<4 ? SetLED((MM+60)*3-11,0) : SetLED(MM*3-11,0);
-		HH<2 ? SetLED((HH+11)*3*5,0) : SetLED((HH-1)*3*5,0);
-		HH<2 ? SetLED((HH+11)*3*5-3,0) : SetLED((HH-1)*3*5-3,0);
-		HH<2 ? SetLED((HH+11)*3*5-6,0) : SetLED((HH-1)*3*5-6,0);
+	// Remove the tails
+	SS<5 ? SetLED((SS+60)*3-13,0) : SetLED(SS*3-13,0);
+	MM<4 ? SetLED((MM+60)*3-11,0) : SetLED(MM*3-11,0);
+	HH<2 ? SetLED((HH+11)*3*5,0) : SetLED((HH-1)*3*5,0);
+	HH<2 ? SetLED((HH+11)*3*5-3,0) : SetLED((HH-1)*3*5-3,0);
+	HH<2 ? SetLED((HH+11)*3*5-6,0) : SetLED((HH-1)*3*5-6,0);
 
-		// Seconds Blue
-//		for (SS=0;SS<60;SS++){
-			SetLED(SS*3+2,0xff);
-			SS<1 ? SetLED((SS+60)*3-1,0x66/5*4) : SetLED(SS*3-1,0x66/5*4);
-			SS<2 ? SetLED((SS+60)*3-4,0x4c/5*3) : SetLED(SS*3-4,0x4c/5*3);
-			SS<3 ? SetLED((SS+60)*3-7,0x33/5*2) : SetLED(SS*3-7,0x33/5*2);
-			SS<4 ? SetLED((SS+60)*3-10,0x19/5) : SetLED(SS*3-10,0x19/5);
-//			calulateLEDMIBAMBits();
-//			delay_ms(100);
-//			SetLED(SS*3+2,0);
-//			SS<1 ? SetLED((SS+60)*3-1,0) : SetLED(SS*3-1,0);
-//			SS<2 ? SetLED((SS+60)*3-4,0) : SetLED(SS*3-4,0);
-//			SS<3 ? SetLED((SS+60)*3-7,0) : SetLED(SS*3-7,0);
-//			SS<4 ? SetLED((SS+60)*3-10,0) : SetLED(SS*3-10,0);
-//			calulateLEDMIBAMBits();
-//		}
-		// Minutes Green
-//		for (MM=0;MM<60;MM++){
-			SetLED(MM*3+1,0xff);
-			MM<1 ? SetLED((MM+60)*3-2,0x66/5*4) : SetLED(MM*3-2,0x66/5*4);
-			MM<2 ? SetLED((MM+60)*3-5,0x4c/5*3) : SetLED(MM*3-5,0x4c/5*3);
-			MM<3 ? SetLED((MM+60)*3-8,0x33/5*2) : SetLED(MM*3-8,0x33/5*2);
-//			MM<4 ? SetLED((MM+60)*3-11,0x19/5) : SetLED(MM*3-11,0x19/5);
-//			calulateLEDMIBAMBits();
-//			delay_ms(100);
-//			SetLED(MM*3+1,0);
-//			MM<1 ? SetLED((MM+60)*3-2,0) : SetLED(MM*3-2,0);
-//			MM<2 ? SetLED((MM+60)*3-5,0) : SetLED(MM*3-5,0);
-//			MM<3 ? SetLED((MM+60)*3-8,0) : SetLED(MM*3-8,0);
-//			MM<4 ? SetLED((MM+60)*3-11,0) : SetLED(MM*3-11,0);
-//			calulateLEDMIBAMBits();
-//		}
-		//Hours red
-//		for (HH=0;HH<12;HH++){
-			SetLED(HH*3*5,0xff);
-			HH<1 ? SetLED((HH+12)*3*5-3,0x66/5*4) : SetLED(HH*3*5-3,0x66/5*4);
-			HH<1 ? SetLED((HH+12)*3*5-6,0x4c/5*3) : SetLED(HH*3*5-6,0x4c/5*3);
-//			HH<1 ? SetLED((HH+12)*3*5-9,0x33/5*2) : SetLED(HH*3*5-9,0x33/5*2);
-//			HH<1 ? SetLED((HH+12)*3*5-12,0x19/5) : SetLED(HH*3*5-12,0x19/5);
-//			calulateLEDMIBAMBits();
-//			delay_ms(1000);
-//			SetLED(HH*3*5,0);
-//			HH<1 ? SetLED((HH+12)*3*5-3,0) : SetLED(HH*3*5-3,0);
-//			HH<1 ? SetLED((HH+12)*3*5-6,0) : SetLED(HH*3*5-6,0);
-//			HH<1 ? SetLED((HH+12)*3*5-9,0) : SetLED(HH*3*5-9,0);
-//			HH<1 ? SetLED((HH+12)*3*5-12,0) : SetLED(HH*3*5-12,0);
-//		}
+	// Seconds Blue
+//	for (SS=0;SS<60;SS++){
+		SetLED(SS*3+2,0xff);
+		SS<1 ? SetLED((SS+60)*3-1,0x66/5*4) : SetLED(SS*3-1,0x66/5*4);
+		SS<2 ? SetLED((SS+60)*3-4,0x4c/5*3) : SetLED(SS*3-4,0x4c/5*3);
+		SS<3 ? SetLED((SS+60)*3-7,0x33/5*2) : SetLED(SS*3-7,0x33/5*2);
+		SS<4 ? SetLED((SS+60)*3-10,0x19/5) : SetLED(SS*3-10,0x19/5);
+//		calulateLEDMIBAMBits();
+//		delay_ms(100);
+//		SetLED(SS*3+2,0);
+//		SS<1 ? SetLED((SS+60)*3-1,0) : SetLED(SS*3-1,0);
+//		SS<2 ? SetLED((SS+60)*3-4,0) : SetLED(SS*3-4,0);
+//		SS<3 ? SetLED((SS+60)*3-7,0) : SetLED(SS*3-7,0);
+//		SS<4 ? SetLED((SS+60)*3-10,0) : SetLED(SS*3-10,0);
+//		calulateLEDMIBAMBits();
+//	}
+	// Minutes Green
+//	for (MM=0;MM<60;MM++){
+		SetLED(MM*3+1,0xff);
+		MM<1 ? SetLED((MM+60)*3-2,0x66/5*4) : SetLED(MM*3-2,0x66/5*4);
+		MM<2 ? SetLED((MM+60)*3-5,0x4c/5*3) : SetLED(MM*3-5,0x4c/5*3);
+		MM<3 ? SetLED((MM+60)*3-8,0x33/5*2) : SetLED(MM*3-8,0x33/5*2);
+//		MM<4 ? SetLED((MM+60)*3-11,0x19/5) : SetLED(MM*3-11,0x19/5);
+//		calulateLEDMIBAMBits();
+//		delay_ms(100);
+//		SetLED(MM*3+1,0);
+//		MM<1 ? SetLED((MM+60)*3-2,0) : SetLED(MM*3-2,0);
+//		MM<2 ? SetLED((MM+60)*3-5,0) : SetLED(MM*3-5,0);
+//		MM<3 ? SetLED((MM+60)*3-8,0) : SetLED(MM*3-8,0);
+//		MM<4 ? SetLED((MM+60)*3-11,0) : SetLED(MM*3-11,0);
+//		calulateLEDMIBAMBits();
+//	}
+	//Hours red
+//	for (HH=0;HH<12;HH++){
+		SetLED(HH*3*5,0xff);
+		HH<1 ? SetLED((HH+12)*3*5-3,0x66/5*4) : SetLED(HH*3*5-3,0x66/5*4);
+		HH<1 ? SetLED((HH+12)*3*5-6,0x4c/5*3) : SetLED(HH*3*5-6,0x4c/5*3);
+//		HH<1 ? SetLED((HH+12)*3*5-9,0x33/5*2) : SetLED(HH*3*5-9,0x33/5*2);
+//		HH<1 ? SetLED((HH+12)*3*5-12,0x19/5) : SetLED(HH*3*5-12,0x19/5);
+//		calulateLEDMIBAMBits();
+//		delay_ms(1000);
+//		SetLED(HH*3*5,0);
+//		HH<1 ? SetLED((HH+12)*3*5-3,0) : SetLED(HH*3*5-3,0);
+//		HH<1 ? SetLED((HH+12)*3*5-6,0) : SetLED(HH*3*5-6,0);
+//		HH<1 ? SetLED((HH+12)*3*5-9,0) : SetLED(HH*3*5-9,0);
+//		HH<1 ? SetLED((HH+12)*3*5-12,0) : SetLED(HH*3*5-12,0);
 //	}
 	calulateLEDMIBAMBits();
 }
 
 void LED_test(){
-#if 0 // Turn on then off every LED
+#if 1 // Turn on then off every LED
 	for(uint8_t led=0; led<LEDS;led++){
-		SetLED(led,0xff);
+		SetLED(led,0x7f);
 		calulateLEDMIBAMBits();
 		delay_ms(100);
 		SetLED(led,0x00);
@@ -628,22 +631,28 @@ void LED_test(){
 	SetLED(152,0x10);
 	SetLED(149,0x10);
 	SetLED(146,0x10);*/
+
+	//all leds off
+	for(uint8_t led=LEDS;LEDS>0;led--){
+		SetLED(led,0);
+		calulateLEDMIBAMBits();
+	}
 	for(uint8_t led=0;led<LEDS;led+=3){
 		for(int16_t b=0;b<=0x7f;b++){
 			SetLED(led,b);
 			calulateLEDMIBAMBits();
-			delay_ms(10);
+			delay_ms(100);
 		}
 	}
 	for(uint8_t led=0;led<LEDS;led+=3){
 		for(int16_t b=0x7f;b>=0;b--){
 			SetLED(led,b);
 			calulateLEDMIBAMBits();
-			delay_ms(10);
+			delay_ms(100);
 		}
 	}
 #endif
-#if 1 // All smooth on then all smooth off
+#if 0 // All smooth on then all smooth off
 	for(uint8_t led=0,bri=0;led<LEDS;led+=3,bri++){
 		SetLED(led,bri);
 		calulateLEDMIBAMBits();
@@ -854,9 +863,9 @@ void LED_loop(void){
 				LED_time();
 				break;
 		}
-	LED_INT_SPEED = 0;
-	TIM_UpdateMatchValue(LPC_TIM2, 0, LED_SPEED*1000-256000);
-	TIM_Cmd(LPC_TIM2,ENABLE);
+		LED_INT_SPEED = 0;
+//		TIM_UpdateMatchValue(LPC_TIM2, 0, LED_SPEED*1000-256000);
+//		TIM_Cmd(LPC_TIM2,ENABLE);
 	}
 }
 
