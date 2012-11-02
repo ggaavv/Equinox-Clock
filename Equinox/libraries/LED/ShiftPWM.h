@@ -28,6 +28,7 @@ void DMA_IRQHandler (void);
 void LatchIn(void);
 void WaitForSend(void);
 void LED_init(void);
+void SetHue(uint32_t led, uint32_t hue);
 void SetRGB(int32_t group, uint8_t v0, uint8_t v1, uint8_t v2);
 void SetLED(uint8_t led, uint8_t v0);
 void resetLeds(void);

@@ -151,7 +151,7 @@ void exec_cmd(char *cmd){
 	}
 	else if(stricmp(cmd,"lp")==0){
 		xprintf(INFO "led set pattern running");FFL_();
-		xprintf(INFO "enter number between 0 and 5");FFL_();
+		xprintf(INFO "enter number between 0 and %d",MAX_PATTERNS);FFL_();
 		uint8_t l_pattern = 0;
 		while(1){
 			LINE_READY=0;
@@ -161,7 +161,7 @@ void exec_cmd(char *cmd){
 			if(l_pattern<=0x5)
 				break;
 			else
-				xprintf(ERR "less than 5 please");FFL_();
+				xprintf(ERR "less than %d please",MAX_PATTERNS);FFL_();
 		}
 		xprintf(INFO "led pattern set to %d", l_pattern);FFL_();
 		Set_LED_Pattern(l_pattern,250,GetBrightness());
@@ -169,17 +169,17 @@ void exec_cmd(char *cmd){
 	}
 	else if(stricmp(cmd,"ls")==0){
 		xprintf(INFO "led set DELAY");FFL_();
-		xprintf(INFO "enter number between 1 and 1000");FFL_();
+		xprintf(INFO "enter number between 1 and %d",MAX_DELAY);FFL_();
 		uint8_t l_delay = 0;
 		while(1){
 			LINE_READY=0;
 			while(!LINE_READY){
 			}
 			l_delay = atoi (UART_LINE);
-			if(l_delay<=1000)
+			if(l_delay<=MAX_DELAY)
 				break;
 			else
-				xprintf(ERR "less than 1000 please");FFL_();
+				xprintf(ERR "less than %d please",MAX_DELAY);FFL_();
 		}
 		xprintf(INFO "led selay set to %d", l_delay);FFL_();
 		Set_LED_Pattern(0,l_delay,GetBrightness());

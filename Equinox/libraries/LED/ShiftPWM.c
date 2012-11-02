@@ -107,7 +107,7 @@ volatile uint32_t BufferNo;
 //volatile uint32_t LED_UPDATE_REQUIRED;
 
 volatile uint8_t LED_PATTERN = 0;
-volatile uint16_t MILLI_DELAY = 1; //Milliseconds delay max=255
+volatile uint16_t MILLI_DELAY = 121; //Milliseconds delay max=255
 volatile uint8_t LED_INT_OCCURED = 1;
 volatile int32_t LED_Loop=0;		// Variables for Led Loop
 volatile int32_t LED_Loop_v1=0;		// Variables for inside Led Loops
@@ -542,6 +542,12 @@ void LED_init(){
 #endif
 }
 
+void SetHue(uint32_t led, uint32_t hue){
+	unsigned char red, green, blue;
+	hsv2rgb(hue, 255, 255, &red, &green, &blue, MAX_BRIGHTNESS); // convert hsv to rgb values
+	SetRGB(led, red, green, blue); // write rgb values
+}
+
 void SetRGB(int32_t group, uint8_t v0, uint8_t v1, uint8_t v2){
 //	if(group<0)
 //		group = RGBS + group;
@@ -862,62 +868,18 @@ void LED_simple_all_colors(){ //simple all colors
 }
 long colorshift=0;
 void LED_Rainbow(void) {
-#if 1
-	#define LEDDELAY 10
 	int hue;
 	unsigned char red, green, blue;
-//	if(USER_MILLIS>=10){
-//		LED_UPDATE_REQUIRED=0;
-//		USER_MILLIS=0;
-		colorshift+=1;
-		if(colorshift==360)
-			colorshift=0;
-			for(int led=0;led<RGBS;led++){ // loop over all LED's
-				hue = ((led)*360/(RGBS-1)+colorshift)%360;
-				hsv2rgb(hue, 255, 255, &red, &green, &blue, MAX_BRIGHTNESS); // convert hsv to rgb values
-				SetRGB(led, red, green, blue); // write rgb values
-			}
-			calulateLEDMIBAMBits();
-//	}
-#else
-		if(timeUpdate()) {
-			resetLeds();
-	//	colourToRGBled(time_now.hour12()*5,RED1,RED2,RED3,false,0);
-	//	colourToRGBled(time_now.minute(),GREEN1,GREEN2,GREEN3,false,0);
-	//	colourToRGBled(time_now.second(),BLUE1,BLUE2,BLUE3,false,0);
-
-	/* good
-			SetRGB(time_now.second()-4,0,0,1);
-			SetRGB(time_now.second()-3,0,0,2);
-			SetRGB(time_now.second()-2,0,0,4);
-			SetRGB(time_now.second()-1,0,0,100);
-			SetRGB(time_now.second()-0,0,0,255);
-
-			SetRGB(time_now.minute()-2,3,0,5);
-			SetRGB(time_now.minute()-1,10,0,25);
-			SetRGB(time_now.minute()-0,20,0,180);
-
-			SetRGB(time_now.hour12()*5+(time_now.minute()/12),85,0,130);
-	*/
-
-			SetRGB(time_now.second()-0,0,0,1);
-	//		SetRGB(time_now.second()-3,0,0,2);
-	//		SetRGB(time_now.second()-2,0,0,4);
-	//		SetRGB(time_now.second()-1,0,0,100);
-	//		SetRGB(time_now.second()-0,0,0,255);
-
-			SetRGB(time_now.minute()-1,1,0,1);
-			SetRGB(time_now.minute()-0,1,0,1);
-	//		SetRGB(time_now.minute()-0,20,0,180);
-
-			SetRGB(time_now.hour12()*5+(time_now.minute()/12),1,1,1);
-
-
-	//		delay(100);
-		}
-#endif
+	colorshift+=1;
+	if(colorshift==360)
+		colorshift=0;
+	for(int led=0;led<RGBS;led++){ // loop over all LED's
+		hue = ((led)*360/(RGBS-1)+colorshift)%360;
+		hsv2rgb(hue, 255, 255, &red, &green, &blue, MAX_BRIGHTNESS); // convert hsv to rgb values
+		SetRGB(led, red, green, blue); // write rgb values
+	}
+	calulateLEDMIBAMBits();
 }
-
 static uint32_t Led_loopp=0;
 static uint32_t count=0;
 void LED_loop(void){

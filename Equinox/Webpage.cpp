@@ -59,6 +59,124 @@ const char form_close[] = "\n</form>";
 bool home_page(char* URL){
 //	xprintf("URL:%s",URL);
 
+	// Check if the requested URL matches is enter date
+	// raw?l=1&h=123   (hue colour)
+	if (strncmp(URL,"/raw?",5) == 0){
+		uint32_t l = 0, h = 0;
+		for (uint8_t i=6;i<100;i++){
+			if (!h && strncmp(URL+i,"h",1)==0){
+				h = strtoul (URL+i+2,NULL,10);
+			}else if (!l && strncmp(URL+i,"l",1)==0){
+				l = strtoul (URL+i+2,NULL,10);
+			}
+			if(l&&h)break;
+		}
+		SetHue(l, h);
+	}
+
+	// Check if the requested URL matches is enter date
+	// calc?
+	if (strncmp(URL,"/calc?",6) == 0){
+		calulateLEDMIBAMBits();
+	}
+
+	// Check if the requested URL matches is enter date
+	// off? turn off all leds but dont calulate LED MIBAM Bits
+	if (strncmp(URL,"/off?",5) == 0){
+		resetLeds();
+		Set_LED_Pattern(5, 1 , 50); //raw
+	}
+
+	// Check if the requested URL matches is enter date
+	// date?dom=01&mm=01&yy=2010&hh=24&mm=59&ss=59&st=??
+	if (strncmp(URL,"/date?",6) == 0){
+		uint16_t ed_year = 0;
+		uint8_t ed_dom = 0, ed_month = 0, ed_hh = 0, ed_mm = 0, ed_ss = 0, ed_st = 0;
+		// size set to 50 but should break before this point
+		uint8_t dom_set = 0, m_set = 0, y_set = 0, hh_set = 0, mm_set = 0, ss_set = 0, st_set = 0;
+		for (uint8_t i=6;i<100;i++){
+			if (!dom_set && strncmp(URL+i,"dom",3)==0){
+				ed_dom = strtoul (URL+i+4,NULL,10);
+				dom_set=1;
+			} else if (!m_set && strncmp(URL+i,"month",5)==0){
+				ed_month = strtoul (URL+i+6,NULL,10);
+				m_set=1;
+			} else if (!y_set && strncmp(URL+i,"yy",2)==0){
+				ed_year = strtoul (URL+i+3,NULL,10);
+				y_set=1;
+			} else if (!hh_set && strncmp(URL+i,"hh",2)==0){
+				ed_hh = strtoul (URL+i+3,NULL,10);
+				hh_set=1;
+			}else if (!mm_set && strncmp(URL+i,"mm",2)==0){
+				ed_mm = strtoul (URL+i+3,NULL,10);
+				mm_set=1;
+			}else if (!ss_set && strncmp(URL+i,"ss",2)==0){
+				ed_ss = strtoul (URL+i+3,NULL,10);
+				ss_set=1;
+			}else if (!st_set && strncmp(URL+i,"st",2)==0){
+				ed_st = strtoul (URL+i+3,NULL,10);
+				st_set=1;
+			}
+			if (dom_set&&m_set&&y_set&&hh_set&&mm_set&&ss_set&&st_set)break;
+		}
+     	RTC_time_SetTime(ed_year, ed_month, ed_dom, ed_hh, ed_mm, ed_ss, ed_st);
+	}
+	// Check if the requested URL matches is enter date
+	// colour?hc=hsv&mc=hsv&sc=hsv   (hsv colour)
+	if (strncmp(URL,"/colour?",8) == 0){
+		uint32_t hc = 0, hc_set = 0, mc = 0, mc_set = 0, sc = 0, sc_set = 0;
+		for (uint8_t i=6;i<100;i++){
+			if (!hc_set && strncmp(URL+i,"hc",2)==0){
+				hc = strtoul (URL+i+3,NULL,10);
+				hc_set=1;
+			}else if (!mc_set && strncmp(URL+i,"mc",2)==0){
+				mc = strtoul (URL+i+3,NULL,10);
+				mc_set=1;
+			}else if (!sc_set && strncmp(URL+i,"sc",2)==0){
+				sc = strtoul (URL+i+3,NULL,10);
+				sc_set=1;
+			}
+//			if (unix_set)break;
+		}
+	}
+
+	// Check if the requested URL matches is enter date
+	// unix?uni=1351887087
+	if (strncmp(URL,"/unix?",6) == 0){
+		uint32_t unixt = 0, unix_set = 0;
+		for (uint8_t i=6;i<100;i++){
+			if (!unix_set && strncmp(URL+i,"uni",3)==0){
+				unixt = strtoul (URL+i+4,NULL,10);
+				unix_set=1;
+			}
+			if (unix_set)break;
+		}
+		RTC_Set_print(unixt);
+//     	RTC_time_SetTime(ed_year, ed_month, ed_dom, ed_hh, ed_mm, ed_ss, ed_st);
+	}
+
+	// Check if the requested URL matches is LED_Pattern
+	// LED?no=7&speed=7&bri=128
+	if (strncmp(URL,"/LED?",5) == 0){
+		uint8_t ed_no = 0, ed_bri = 0;
+		uint16_t ed_delay = 0;
+		uint8_t no_set = 0, delay_set = 0, bri_set = 0;
+		for (uint8_t i=5;i<100;i++){
+			if (!no_set && strncmp(URL+i,"no",2)==0){
+				ed_no = strtoul (URL+i+3,NULL,10);
+				no_set=1;
+			} else if (!delay_set && strncmp(URL+i,"delay",5)==0){
+				ed_delay = strtoul (URL+i+6,NULL,10);
+				delay_set=1;
+			} else if (!bri_set && strncmp(URL+i,"bri",3)==0){
+				ed_bri = strtoul (URL+i+4,NULL,10);
+				bri_set=1;
+			}
+			if (no_set&&delay_set&&bri_set)break;
+		}
+     	Set_LED_Pattern(ed_no, ed_delay, ed_bri);
+	}
+
 	// Get all Date/Times
 	// Days of the Week
 	uint8_t DOW = GetDOW();
@@ -102,64 +220,6 @@ bool home_page(char* URL){
 	uint8_t no, bri;
 	uint16_t delay;
 	Get_LED_Pattern(&no, &delay, &bri);
-
-
-	// Check if the requested URL matches is enter date
-	// date?dom=01&mm=01&yy=2010&hh=24&mm=59&ss=59&st=??
-	if (strncmp(URL,"/date?",6) == 0){
-		uint16_t ed_year = 0;
-		uint8_t ed_dom = 0, ed_month = 0, ed_hh = 0, ed_mm = 0, ed_ss = 0, ed_st = 0;
-		// size set to 50 but should break before this point
-		uint8_t dom_set = 0, m_set = 0, y_set = 0, hh_set = 0, mm_set = 0, ss_set = 0, st_set = 0;
-		for (uint8_t i=6;i<100;i++){
-			if (!dom_set && strncmp(URL+i,"dom",3)==0){
-				ed_dom = strtoul (URL+i+4,NULL,10);
-				dom_set=1;
-			} else if (!m_set && strncmp(URL+i,"month",5)==0){
-				ed_month = strtoul (URL+i+6,NULL,10);
-				m_set=1;
-			} else if (!y_set && strncmp(URL+i,"yy",2)==0){
-				ed_year = strtoul (URL+i+3,NULL,10);
-				y_set=1;
-			} else if (!hh_set && strncmp(URL+i,"hh",2)==0){
-				ed_hh = strtoul (URL+i+3,NULL,10);
-				hh_set=1;
-			}else if (!mm_set && strncmp(URL+i,"mm",2)==0){
-				ed_mm = strtoul (URL+i+3,NULL,10);
-				mm_set=1;
-			}else if (!ss_set && strncmp(URL+i,"ss",2)==0){
-				ed_ss = strtoul (URL+i+3,NULL,10);
-				ss_set=1;
-			}else if (!st_set && strncmp(URL+i,"st",2)==0){
-				ed_st = strtoul (URL+i+3,NULL,10);
-				st_set=1;
-			}
-			if (dom_set&&m_set&&y_set&&hh_set&&mm_set&&ss_set&&st_set)break;
-		}
-     	RTC_time_SetTime(ed_year, ed_month, ed_dom, ed_hh, ed_mm, ed_ss, ed_st);
-	}
-
-	// Check if the requested URL matches is LED_Pattern
-	// LED?no=7&speed=7&bri=128
-	if (strncmp(URL,"/LED?",5) == 0){
-		uint8_t ed_no = 0, ed_bri = 0;
-		uint16_t ed_delay = 0;
-		uint8_t no_set = 0, delay_set = 0, bri_set = 0;
-		for (uint8_t i=5;i<100;i++){
-			if (!no_set && strncmp(URL+i,"no",2)==0){
-				ed_no = strtoul (URL+i+3,NULL,10);
-				no_set=1;
-			} else if (!delay_set && strncmp(URL+i,"delay",5)==0){
-				ed_delay = strtoul (URL+i+6,NULL,10);
-				delay_set=1;
-			} else if (!bri_set && strncmp(URL+i,"bri",3)==0){
-				ed_bri = strtoul (URL+i+4,NULL,10);
-				bri_set=1;
-			}
-			if (no_set&&delay_set&&bri_set)break;
-		}
-     	Set_LED_Pattern(ed_no, ed_delay, ed_bri);
-	}
 
 	// Check if the requested URL matches "/"
 	if (strncmp(URL, "/",1) == 0) {
