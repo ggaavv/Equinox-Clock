@@ -295,10 +295,6 @@ void DMA_IRQHandler (void){
 }
 
 void LED_init(){
-	uint8_t pot = 0x50;
-	Set_LED_Pattern(0,128, pot);
-	xprintf(INFO "Pot set to:%d",pot);FFL_();
-	uint8_t tmp;
 
 	SENDSEQ=0;
 	DELAY_TIME=1; //so RIT ms is not set to 0
@@ -317,7 +313,7 @@ void LED_init(){
 	GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
 
 	//reset all arrays
-	for (tmp=0;tmp<MAX_BAM_BITS;tmp++){
+	for (uint8_t tmp=0;tmp<MAX_BAM_BITS;tmp++){
 		SEQ_BIT[tmp] = BITORDER[tmp];
 		SEQ_TIME[tmp] = BITTIME[BITORDER[tmp]];
 	}
@@ -524,6 +520,10 @@ void LED_init(){
 
 	xprintf(OK "TIM_Cmd(LPC_TIM0/2,ENABLE);");FFL_();
 
+	// Start LED Pattern
+	uint8_t pot = 0x40;
+	Set_LED_Pattern(0,128, pot);
+	xprintf(OK "LED Pattern Started");FFL_();
 
 #endif
 #ifdef RxDMA // SSP Rx DMA
@@ -846,8 +846,8 @@ void Set_LED_Pattern(uint8_t no,uint8_t speed, uint8_t bri){
 	LAST_LED_SPEED = LED_SPEED;
 	LED_SPEED = speed;
 	SetBrightness(bri);
+	TIM_UpdateMatchValue(LPC_TIM2, 0, 256000-LED_SPEED*1000);
 }
-
 
 void Get_LED_Pattern(uint8_t * no,uint8_t * speed, uint8_t * bri){
 	*no = (uint32_t)LED_PATTERN;
@@ -855,8 +855,16 @@ void Get_LED_Pattern(uint8_t * no,uint8_t * speed, uint8_t * bri){
 	*bri = (uint32_t)GetBrightness();
 }
 
+static uint32_t Led_loopp=0;
+static uint32_t count=0;
+
 void LED_loop(void){
+//	xprintf(INFO "LED_loop(void)");FFL_();
+	Led_loopp++;
 	if (LED_INT_SPEED){
+		count++;
+		xprintf(INFO "LED_INT_SPEED=%d LED_LOOP=%d",count,Led_loopp);FFL_();
+		Led_loopp=0;
 		switch(LED_PATTERN){
 			case 0:
 				LED_time();
@@ -883,7 +891,6 @@ void LED_loop(void){
 	LED_INT_SPEED = 0;
 }
 
-
 long colorshift=0;
 
 void Rainbow(void) {
@@ -906,7 +913,6 @@ void Rainbow(void) {
 //	}
 #endif
 }
-
 
 #if 0
 		if(timeUpdate()) {

@@ -251,7 +251,7 @@ int main(void){
 
 	// Init LED module
 	LED_init();xprintf(OK "LED_init()");FFL_();
-	LED_test();xprintf(OK "LED_test()");FFL_();
+//	LED_test();xprintf(OK "LED_test()");FFL_();
 //	simple_all_colors();xprintf(OK "simple_all_colors()");FFL_();
 #endif
 
