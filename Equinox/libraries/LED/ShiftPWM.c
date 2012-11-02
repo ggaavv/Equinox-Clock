@@ -517,7 +517,7 @@ void LED_init(){
 
 	// Start LED Pattern
 	uint8_t pot = 64;
-	Set_LED_Pattern(0,121,pot);
+	Set_LED_Pattern(1,121,pot);
 	xprintf(OK "LED Pattern Started");FFL_();
 
 #endif
