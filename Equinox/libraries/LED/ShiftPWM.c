@@ -745,6 +745,12 @@ void simple_all_colors(){ //simple all colors
 	TIM_Cmd(LPC_TIM0,ENABLE);	// To start timer 0
 }
 
+void SetHue(uint32_t led, uint32_t hue){
+	unsigned char red, green, blue;
+	hsv2rgb(hue, 255, 255, &red, &green, &blue, MAX_BRIGHTNESS); // convert hsv to rgb values
+	SetRGB(led, red, green, blue); // write rgb values
+}
+
 void SetRGB(int32_t group, uint8_t v0, uint8_t v1, uint8_t v2){
 //	if(group<0)
 //		group = RGBS + group;
@@ -866,7 +872,7 @@ void LED_loop(void){
 	Led_loopp++;
 	if (LED_INT_SPEED){
 		count++;
-		xprintf(INFO "LED_INT_SPEED=%d LED_LOOP=%d",count,Led_loopp);FFL_();
+//		xprintf(INFO "LED_L=%d L=%d",count,Led_loopp);FFL_();
 		Led_loopp=0;
 		switch(LED_PATTERN){
 			case 0:
@@ -881,12 +887,13 @@ void LED_loop(void){
 			case 3:
 				simple_all_colors();
 				break;
+			case 5:
+				//raw
+				break;
 			default:
 				LED_time();
 				break;
 		}
-//		TIM_UpdateMatchValue(LPC_TIM2, 0, MILLI_DELAY);
-//		TIM_Cmd(LPC_TIM2,ENABLE);
 		LED_INT_SPEED = 0;
 	}
 }
@@ -894,24 +901,17 @@ void LED_loop(void){
 long colorshift=0;
 
 void Rainbow(void) {
-#ifndef DEV
-	#define LEDDELAY 10
 	int hue;
 	unsigned char red, green, blue;
-//	if(USER_MILLIS>=10){
-//		LED_UPDATE_REQUIRED=0;
-//		USER_MILLIS=0;
-		colorshift+=1;
-		if(colorshift==360)
-			colorshift=0;
-			for(int led=0;led<RGBS;led++){ // loop over all LED's
-				hue = ((led)*360/(RGBS-1)+colorshift)%360;
-				hsv2rgb(hue, 255, 255, &red, &green, &blue, MAX_BRIGHTNESS); // convert hsv to rgb values
-				SetRGB(led, red, green, blue); // write rgb values
-			}
-			calulateLEDMIBAMBits();
-//	}
-#endif
+	colorshift+=1;
+	if(colorshift==360)
+		colorshift=0;
+	for(int led=0;led<RGBS;led++){ // loop over all LED's
+		hue = ((led)*360/(RGBS-1)+colorshift)%360;
+		hsv2rgb(hue, 255, 255, &red, &green, &blue, MAX_BRIGHTNESS); // convert hsv to rgb values
+		SetRGB(led, red, green, blue); // write rgb values
+	}
+	calulateLEDMIBAMBits();
 }
 
 #if 0

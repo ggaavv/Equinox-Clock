@@ -568,6 +568,20 @@ void RTC_print_time(void){
 #endif
 }
 
+void RTC_Set_print(uint32_t unixt){
+	char buffer[100];
+    time_t rawtime = unixt;
+    struct tm * timeinfo = localtime ( &rawtime );
+
+//	time( &rawtime );
+ //   timeinfo = localtime ( &rawtime );
+
+    xprintf(INFO "unixt=%d", unixt);FFL_();
+    xprintf(INFO "%d/%d/%d %d:%d:%d", timeinfo->tm_mday, 1 + timeinfo->tm_mon, 1900 + timeinfo->tm_year, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);FFL_();
+
+    RTC_time_SetTime(1900 + timeinfo->tm_year, 1 + timeinfo->tm_mon, timeinfo->tm_mday, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec, 0);
+}
+
 void unix_to_hh_mm_ss (uint32_t unix_time, uint8_t * hh, uint8_t * mm, uint8_t * ss) {
 	unix_time -= SECONDS_FROM_1970_TO_2000;    // bring to 2000 timestamp from 1970
 	*ss = (uint32_t)(unix_time % 60);

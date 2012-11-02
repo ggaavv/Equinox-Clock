@@ -172,6 +172,7 @@ uint32_t RTC_time_FindUnixtime(uint16_t year, uint8_t month, uint8_t dayOfM, uin
 void DST_check_and_correct(void);
 void RTC_set_default_time_to_compiled(void);
 void RTC_print_time(void);
+void RTC_Set_print(uint32_t unixt);
 void unix_to_hh_mm_ss(uint32_t t, uint8_t * hh, uint8_t * mm, uint8_t * ss);
 uint32_t dst_correction_needed();
 uint32_t dst_correction_needed_t_y(uint32_t t, uint16_t year);

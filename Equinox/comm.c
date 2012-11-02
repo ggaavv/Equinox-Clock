@@ -158,10 +158,10 @@ void exec_cmd(char *cmd){
 			while(!LINE_READY){
 			}
 			l_pattern = atoi (UART_LINE);
-			if(l_pattern<=0x5)
+			if(l_pattern<=0x6)
 				break;
 			else
-				xprintf(ERR "less than 5 please");FFL_();
+				xprintf(ERR "less than 6 please");FFL_();
 		}
 		xprintf(INFO "led pattern set to %d", l_pattern);FFL_();
 		Set_LED_Pattern(l_pattern,250,GetBrightness());
@@ -260,8 +260,9 @@ void exec_cmd(char *cmd){
 				"bl-Resets to bootloader\n"
 				"ct-CAN test\n"
 				"i2c-probei2c\n"
+				"lp-LED set pattern\n"
+				"ls-LED set delay\n"
 				"lt-LED test\n"
-				"ls-LED set pattern\n"
 				"p-pot test\n"
 				"ps-Pot set\n"
 				"rs-Resets board\n"
