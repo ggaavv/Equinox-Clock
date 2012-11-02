@@ -205,7 +205,7 @@ void TIMER1_IRQHandler(void){
 }
 
 void TIMER2_IRQHandler(void){
-//	xprintf("TIMER2_IRQ");
+//	xprintf("TIMER2_IRQ\r\n");
 	if (TIM_GetIntStatus(LPC_TIM2,TIM_MR0_INT)){
 		TIM_ClearIntPending(LPC_TIM2, TIM_MR0_INT);
 		LED_INT_SPEED = 1;
@@ -836,10 +836,20 @@ void calulateLEDMIBAMBits(){
 }
 
 void Set_LED_Pattern(uint8_t no,uint8_t speed, uint8_t bri){
-	LED_PATTERN = no;
-	MILLI_DELAY = speed;
+	if(no!=0)
+		LED_PATTERN = no;
+	else
+		xprintf(INFO "LED pattern not changed (pattern=0)");FFL_();
+	if(speed>0)
+		MILLI_DELAY = speed;
+	else
+		xprintf(INFO "LED delay not changed");FFL_();
 	SetBrightness(bri);
 	TIM_UpdateMatchValue(LPC_TIM2, 0, MILLI_DELAY);
+	TIM_ResetCounter(LPC_TIM2);
+//	TIM_Cmd(LPC_TIM2,DISABLE);
+//	TIM_Cmd(LPC_TIM2,ENABLE);
+	xprintf(INFO "led pattern=%d, MILLI_DELAY=%d ",no,MILLI_DELAY);FFL_();
 }
 
 void Get_LED_Pattern(uint8_t * no,uint8_t * speed, uint8_t * bri){

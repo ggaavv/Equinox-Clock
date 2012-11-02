@@ -149,12 +149,7 @@ void exec_cmd(char *cmd){
 		}
 		xprintf(INFO "end of i2c scan");FFL_();
 	}
-	else if(stricmp(cmd,"lt")==0){
-		xprintf(INFO "led tests running");FFL_();
-		LED_test();
-		xprintf(INFO "led tests finished");FFL_();
-	}
-	else if(stricmp(cmd,"ls")==0){
+	else if(stricmp(cmd,"lp")==0){
 		xprintf(INFO "led set pattern running");FFL_();
 		xprintf(INFO "enter number between 0 and 5");FFL_();
 		uint8_t l_pattern = 0;
@@ -168,8 +163,32 @@ void exec_cmd(char *cmd){
 			else
 				xprintf(ERR "less than 5 please");FFL_();
 		}
-		Set_LED_Pattern(l_pattern,0,GetBrightness());
+		xprintf(INFO "led pattern set to %d", l_pattern);FFL_();
+		Set_LED_Pattern(l_pattern,250,GetBrightness());
 		xprintf(INFO "led pattern finished");FFL_();
+	}
+	else if(stricmp(cmd,"ls")==0){
+		xprintf(INFO "led set DELAY");FFL_();
+		xprintf(INFO "enter number between 1 and 1000");FFL_();
+		uint8_t l_delay = 0;
+		while(1){
+			LINE_READY=0;
+			while(!LINE_READY){
+			}
+			l_delay = atoi (UART_LINE);
+			if(l_delay<=1000)
+				break;
+			else
+				xprintf(ERR "less than 1000 please");FFL_();
+		}
+		xprintf(INFO "led selay set to %d", l_delay);FFL_();
+		Set_LED_Pattern(0,l_delay,GetBrightness());
+		xprintf(INFO "led delay finished");FFL_();
+	}
+	else if(stricmp(cmd,"lt")==0){
+		xprintf(INFO "led tests running");FFL_();
+		LED_test();
+		xprintf(INFO "led tests finished");FFL_();
 	}
 	else if(stricmp(cmd,"p") == 0){
 //		SetRGB(1,0x7f,0x7f,0x7f);
@@ -206,10 +225,10 @@ void exec_cmd(char *cmd){
 			else
 				xprintf(ERR "less than 128 please");FFL_();
 		}
-		xprintf(INFO "setting pot to 0x%x",pot);FFL_();
+		xprintf(INFO "setting pot to 0x%x(%d)",pot,pot);FFL_();
 		if(SetBrightness(pot)==ERROR)
 			xprintf(ERR "Failed to set pot");FFL_();
-		xprintf(INFO "(verify) pot=0x%x",GetBrightness());FFL_();
+		xprintf(INFO "(verify) pot=0x%x(%d)",GetBrightness(),GetBrightness());FFL_();
 	}
 	else if(stricmp(cmd,"q")==0){
 		xprintf(INFO "q");FFL_();
