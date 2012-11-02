@@ -156,7 +156,7 @@ bool home_page(char* URL){
 	}
 
 	// Check if the requested URL matches is LED_Pattern
-	// LED?no=7&speed=7&bri=128
+	// LED?no=7&delay=7&bri=128
 	if (strncmp(URL,"/LED?",5) == 0){
 		uint8_t ed_no = 0, ed_bri = 0;
 		uint16_t ed_delay = 0;

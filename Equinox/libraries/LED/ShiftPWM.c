@@ -648,13 +648,13 @@ void Set_LED_Pattern(uint8_t no, uint16_t delay, uint8_t bri){
 	TIM_UpdateMatchValue(LPC_TIM2, 0, MILLI_DELAY);
 	TIM_ResetCounter(LPC_TIM2);
 //	TIM_Cmd(LPC_TIM2,DISABLE);
-//	TIM_Cmd(LPC_TIM2,ENABLE);
 //	xprintf(INFO "pattern=%d DELAY=%d Bri=%d",no,MILLI_DELAY,bri);FFL_();
 	resetLeds();
 	LED_Loop=0;
 	LED_Loop_v1=0;
 	LED_Loop_v2=0;
 	LED_Loop_v3=0;
+	TIM_Cmd(LPC_TIM2,ENABLE);
 }
 void Get_LED_Pattern(uint8_t * no, uint16_t * delay, uint8_t * bri){
 	*no = (uint32_t)LED_PATTERN;
@@ -881,6 +881,12 @@ void LED_Rainbow(void) {
 	}
 	calulateLEDMIBAMBits();
 }
+void LED_off(void){
+	TIM_Cmd(LPC_TIM0,DISABLE);	// To start timer 0
+	resetLeds();
+	calulateLEDMIBAMBits();
+}
+
 static uint32_t Led_loopp=0;
 static uint32_t count=0;
 void LED_loop(void){
@@ -892,24 +898,27 @@ void LED_loop(void){
 		Led_loopp=0;
 		switch(LED_PATTERN){
 			case 0:
-				LED_time();
+				LED_off();
 				break;
 			case 1:
-				LED_one_by_one();
+				LED_time();
 				break;
 			case 2:
-				LED_Rainbow();
+				LED_one_by_one();
 				break;
 			case 3:
-				LED_simple_all_colors();
+				LED_Rainbow();
 				break;
 			case 4:
-				LED_one_by_one_smooth_all_on_all_off(0);
+				LED_simple_all_colors();
 				break;
 			case 5:
-				LED_one_by_one_smooth_all_on_all_off(1);
+				LED_one_by_one_smooth_all_on_all_off(0);
 				break;
 			case 6:
+				LED_one_by_one_smooth_all_on_all_off(1);
+				break;
+			case 7:
 				LED_one_by_one_smooth_all_on_all_off(2);
 				break;
 			default:

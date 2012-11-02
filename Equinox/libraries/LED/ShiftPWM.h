@@ -9,13 +9,14 @@
 
 #define MAX_DELAY 1024 // delay uses number squared
 
-#define MAX_PATTERNS 7
+#define MAX_PATTERNS 8
 #define MAX_PATTERNS_LETTERS 40
 const char LED_PATTERN_NAME[MAX_PATTERNS][MAX_PATTERNS_LETTERS] = {
+	"All LED's Off"
 	"Clock",
 	"One by one",
 	"Rainbow Rotating",
-	"simple all colors",
+	"Simple all colors",
 	"One by one smooth all on all off red",
 	"One by one smooth all on all off green",
 	"One by one smooth all on all off blue"
