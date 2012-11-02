@@ -108,6 +108,7 @@ volatile uint32_t BufferNo;
 
 volatile uint8_t LED_PATTERN = 0;
 volatile uint16_t MILLI_DELAY = 121; //Milliseconds delay max=255
+volatile uint8_t BRIGHTNESS = 0;
 volatile uint8_t LED_INT_OCCURED = 1;
 volatile int32_t LED_Loop=0;		// Variables for Led Loop
 volatile int32_t LED_Loop_v1=0;		// Variables for inside Led Loops
@@ -654,7 +655,7 @@ void Set_LED_Pattern(uint8_t no, uint16_t delay, uint8_t bri){
 	LED_Loop_v1=0;
 	LED_Loop_v2=0;
 	LED_Loop_v3=0;
-	TIM_Cmd(LPC_TIM2,ENABLE);
+	TIM_Cmd(LPC_TIM0,ENABLE);
 }
 void Get_LED_Pattern(uint8_t * no, uint16_t * delay, uint8_t * bri){
 	*no = (uint32_t)LED_PATTERN;
@@ -663,12 +664,12 @@ void Get_LED_Pattern(uint8_t * no, uint16_t * delay, uint8_t * bri){
 }
 
 uint8_t SetBrightness(uint8_t bri){
-	uint8_t err = setPot(bri);
+	BRIGHTNESS = bri;
+	uint8_t err = setPot(BRIGHTNESS);
 	return err;
 }
 uint8_t GetBrightness(void){
-	uint8_t bri = readPot();
-	return bri;
+	return BRIGHTNESS;
 }
 
 //LED Patterns
@@ -925,8 +926,6 @@ void LED_loop(void){
 				LED_time();
 				break;
 		}
-//		TIM_UpdateMatchValue(LPC_TIM2, 0, MILLI_DELAY);
-//		TIM_Cmd(LPC_TIM2,ENABLE);
 		LED_INT_OCCURED = 0;
 	}
 }

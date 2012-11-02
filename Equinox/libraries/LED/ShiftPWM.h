@@ -12,7 +12,7 @@
 #define MAX_PATTERNS 8
 #define MAX_PATTERNS_LETTERS 40
 const char LED_PATTERN_NAME[MAX_PATTERNS][MAX_PATTERNS_LETTERS] = {
-	"All LED's Off"
+	"All LED's Off",
 	"Clock",
 	"One by one",
 	"Rainbow Rotating",
