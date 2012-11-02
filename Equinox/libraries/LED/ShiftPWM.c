@@ -639,6 +639,7 @@ void calulateLEDMIBAMBits(){
 }
 
 void Set_LED_Pattern(uint8_t no, uint16_t delay, uint8_t bri){
+	LED_PATTERN = no;
 	if(delay>0)
 		MILLI_DELAY = delay;
 	else
