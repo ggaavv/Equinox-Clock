@@ -398,14 +398,14 @@ bool home_page(char* URL){
 		// Brightness
 		WiServer.print(enter_led_brightness);
 		WiServer.print("<select name=bri>\n");
-		for (uint16_t i = 1; i < 128; i++){
+		for (uint16_t i = 1; i*5 < 128; i++){
 			WiServer.print("<option");
-			if (i==bri){
+			if (i*5==bri){
 				WiServer.print(" selected");
 			}
 			WiServer.print(">");
 			char Bri_s[4];
-			sprintf(Bri_s,"%.d",i);
+			sprintf(Bri_s,"%.d",i*5);
 			WiServer.print(Bri_s);
 			WiServer.print("</option>\n");
 		}
