@@ -448,11 +448,11 @@ bool home_page(char* URL){
 			if (i^2==speed){
 				WiServer.print(" selected");
 			}
-			WiServer.print("> ");
+			WiServer.print(">");
 			char i_s[4];
 			sprintf(i_s,"%.d",i^2);
 			WiServer.print(i_s);
-			WiServer.print(" </option>\n");
+			WiServer.print("</option>\n");
 		}
 		WiServer.print("</select>\n");
 		// Brightness

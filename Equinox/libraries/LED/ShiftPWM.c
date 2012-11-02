@@ -107,7 +107,7 @@ volatile uint32_t BufferNo;
 //volatile uint32_t LED_UPDATE_REQUIRED;
 
 volatile uint8_t LED_PATTERN = 0;
-volatile uint8_t MILLI_DELAY = 1; //Milliseconds delay max=255
+volatile uint8_t MILLI_DELAY = 121; //Milliseconds delay max=255
 volatile uint8_t LED_INT_SPEED = 1;
 const uint8_t MAX_BRIGHTNESS = 0x7f;
 
@@ -844,12 +844,14 @@ void calulateLEDMIBAMBits(){
 void Set_LED_Pattern(uint8_t no,uint8_t speed, uint8_t bri){
 	if(no!=0)
 		LED_PATTERN = no;
-	else
+	else{
 		xprintf(INFO "LED pattern not changed (pattern=0)");FFL_();
+	}
 	if(speed>0)
 		MILLI_DELAY = speed;
-	else
+	else{
 		xprintf(INFO "LED delay not changed");FFL_();
+	}
 	SetBrightness(bri);
 	TIM_UpdateMatchValue(LPC_TIM2, 0, MILLI_DELAY);
 	TIM_ResetCounter(LPC_TIM2);
