@@ -278,7 +278,6 @@ inline void LatchIn(void){
 	xprintf("DMS_LE_F:%d ",ticks_at_LE_finish);
 	xprintf("DMS_OE_S:%d\n",ticks_at_OE_start);*/
 }
-
 inline void WaitForSend(void){
 	while(SSP_GetStatus(LED_SPI_CHN,SSP_STAT_BUSY)){
 #if 0
@@ -517,7 +516,7 @@ void LED_init(){
 	xprintf(OK "TIM_Cmd(LPC_TIM0/2,ENABLE);");FFL_();
 
 	// Start LED Pattern
-	uint8_t pot = 64;
+	uint8_t pot = 65;
 	Set_LED_Pattern(1,121,pot);
 	xprintf(OK "LED Pattern Started");FFL_();
 
