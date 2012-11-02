@@ -99,8 +99,9 @@ bool home_page(char* URL){
 	sprintf(dst_s,"%.2d",dst);
 
 	//Get all LED pattern/speed/brightness
-	uint8_t no, speed, bri;
-	Get_LED_Pattern(&no, &speed, &bri);
+	uint8_t no, bri;
+	uint16_t delay;
+	Get_LED_Pattern(&no, &delay, &bri);
 
 
 	// Check if the requested URL matches is enter date
@@ -141,22 +142,23 @@ bool home_page(char* URL){
 	// Check if the requested URL matches is LED_Pattern
 	// LED?no=7&speed=7&bri=128
 	if (strncmp(URL,"/LED?",5) == 0){
-		uint8_t ed_no = 0, ed_speed = 0, ed_bri = 0;
-		uint8_t no_set = 0, speed_set = 0, bri_set = 0;
+		uint8_t ed_no = 0, ed_bri = 0;
+		uint16_t ed_delay = 0;
+		uint8_t no_set = 0, delay_set = 0, bri_set = 0;
 		for (uint8_t i=5;i<100;i++){
 			if (!no_set && strncmp(URL+i,"no",2)==0){
 				ed_no = strtoul (URL+i+3,NULL,10);
 				no_set=1;
-			} else if (!speed_set && strncmp(URL+i,"speed",5)==0){
-				ed_speed = strtoul (URL+i+6,NULL,10);
-				speed_set=1;
+			} else if (!delay_set && strncmp(URL+i,"delay",5)==0){
+				ed_delay = strtoul (URL+i+6,NULL,10);
+				delay_set=1;
 			} else if (!bri_set && strncmp(URL+i,"bri",3)==0){
 				ed_bri = strtoul (URL+i+4,NULL,10);
 				bri_set=1;
 			}
-			if (no_set&&speed_set&&bri_set)break;
+			if (no_set&&delay_set&&bri_set)break;
 		}
-     	Set_LED_Pattern(ed_no, ed_speed, ed_bri);
+     	Set_LED_Pattern(ed_no, ed_delay, ed_bri);
 	}
 
 	// Check if the requested URL matches "/"
@@ -382,15 +384,15 @@ bool home_page(char* URL){
 		WiServer.print("</select>\n");
 		// Speed
 		WiServer.print(enter_led_speed);
-		WiServer.print("<select name=speed>\n");
-		for (uint8_t i = 1; i^2 < MAX_DELAY; i++){
+		WiServer.print("<select name=delay>\n");
+		for (uint16_t i = 1; (i*i) < MAX_DELAY; i++){
 			WiServer.print("<option");
-			if (i^2==speed){
+			if (i*i==delay){
 				WiServer.print(" selected");
 			}
 			WiServer.print("> ");
 			char i_s[4];
-			sprintf(i_s,"%.d",i^2);
+			sprintf(i_s,"%.d",i*i);
 			WiServer.print(i_s);
 			WiServer.print(" </option>\n");
 		}

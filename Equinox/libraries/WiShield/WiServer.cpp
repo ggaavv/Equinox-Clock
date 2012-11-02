@@ -238,7 +238,7 @@ void Server::write(uint8_t b) {
  * Sends the real data in the current connection's virtual buffer
  */
 void send() {
-	FFL();
+//	FFL();
 
 	uip_tcp_appstate_t *app = &(uip_conn->appstate);
 

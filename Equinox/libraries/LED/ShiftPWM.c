@@ -107,14 +107,13 @@ volatile uint32_t BufferNo;
 //volatile uint32_t LED_UPDATE_REQUIRED;
 
 volatile uint8_t LED_PATTERN = 0;
-volatile uint8_t MILLI_DELAY = 1; //Milliseconds delay max=255
-volatile uint8_t LED_INT_SPEED = 1;
+volatile uint16_t MILLI_DELAY = 1; //Milliseconds delay max=255
+volatile uint8_t LED_INT_OCCURED = 1;
+volatile int32_t LED_Loop=0;		// Variables for Led Loop
+volatile int32_t LED_Loop_v1=0;		// Variables for inside Led Loops
+volatile int32_t LED_Loop_v2=0;		// Variables for inside Led Loops
+volatile int32_t LED_Loop_v3=0;		// Variables for inside Led Loops
 const uint8_t MAX_BRIGHTNESS = 0x7f;
-
-extern volatile uint32_t LED_UPDATE_REQUIRED;
-extern volatile uint32_t LED_SEND;
-extern volatile uint32_t USER_MILLIS;
-extern volatile uint32_t SEC_MILLIS;
 
 void TIMER0_IRQHandler(void){
 //	xprintf("TIMER0_IRQ");
@@ -195,7 +194,6 @@ void TIMER0_IRQHandler(void){
 		}*/
 	}
 }
-
 void TIMER1_IRQHandler(void){
 //	xprintf("TIMER1_IRQ");
 	if (TIM_GetIntStatus(LPC_TIM1,TIM_MR0_INT)){
@@ -203,13 +201,51 @@ void TIMER1_IRQHandler(void){
 		LatchIn();
 	}
 }
-
 void TIMER2_IRQHandler(void){
 //	xprintf("TIMER2_IRQ\r\n");
 	if (TIM_GetIntStatus(LPC_TIM2,TIM_MR0_INT)){
 		TIM_ClearIntPending(LPC_TIM2, TIM_MR0_INT);
-		LED_INT_SPEED = 1;
+		LED_INT_OCCURED = 1;
 	}
+}
+void DMA_IRQHandler (void){
+//	xprintf("DMA_IRQ");
+//	ticks_at_DMA_start = ticks;
+	// check GPDMA interrupt on channel 0
+	if (GPDMA_IntGetStatus(GPDMA_STAT_INT, 0)){
+		// Check counter terminal status
+		if(GPDMA_IntGetStatus(GPDMA_STAT_INTTC, 0)){
+			// Clear terminate counter Interrupt pending
+			GPDMA_ClearIntPending (GPDMA_STATCLR_INTTC, 0);
+//			ticks_after_DMA_finish = ticks;
+			TIM_Cmd(LPC_TIM1,ENABLE);
+		}
+		// Check error terminal status
+		if (GPDMA_IntGetStatus(GPDMA_STAT_INTERR, 0)){
+			// Clear error counter Interrupt pending
+			GPDMA_ClearIntPending (GPDMA_STATCLR_INTERR, 0);
+		}
+	}
+#ifdef RxDMA
+	// check GPDMA interrupt on channel 1
+	if (GPDMA_IntGetStatus(GPDMA_STAT_INT, 1)){
+		// Check counter terminal status
+		if(GPDMA_IntGetStatus(GPDMA_STAT_INTTC, 1)){
+			// Clear terminate counter Interrupt pending
+			GPDMA_ClearIntPending (GPDMA_STATCLR_INTTC, 1);
+				Channel1_TC++;
+//				xprintf("ch1_TC:%d\n",Channel0_TC);
+		}
+		// Check error terminal status
+		if (GPDMA_IntGetStatus(GPDMA_STAT_INTERR, 1)){
+			// Clear error counter Interrupt pending
+			GPDMA_ClearIntPending (GPDMA_STATCLR_INTERR, 1);
+			Channel1_Err++;
+//			xprintf("ch1_Err:%d\n",Channel0_Err);
+		}
+	}
+	xprintf("Rx:0x%x ",LED_PRECALC1[0][0]);
+#endif
 }
 
 inline void LatchIn(void){
@@ -251,46 +287,6 @@ inline void WaitForSend(void){
 #endif
 	}
 //	while(!SSP_GetStatus(LED_SPI_CHN,SSP_STAT_TXFIFO_EMPTY));
-}
-
-void DMA_IRQHandler (void){
-//	xprintf("DMA_IRQ");
-//	ticks_at_DMA_start = ticks;
-	// check GPDMA interrupt on channel 0
-	if (GPDMA_IntGetStatus(GPDMA_STAT_INT, 0)){
-		// Check counter terminal status
-		if(GPDMA_IntGetStatus(GPDMA_STAT_INTTC, 0)){
-			// Clear terminate counter Interrupt pending
-			GPDMA_ClearIntPending (GPDMA_STATCLR_INTTC, 0);
-//			ticks_after_DMA_finish = ticks;
-			TIM_Cmd(LPC_TIM1,ENABLE);
-		}
-		// Check error terminal status
-		if (GPDMA_IntGetStatus(GPDMA_STAT_INTERR, 0)){
-			// Clear error counter Interrupt pending
-			GPDMA_ClearIntPending (GPDMA_STATCLR_INTERR, 0);
-		}
-	}
-#ifdef RxDMA
-	// check GPDMA interrupt on channel 1
-	if (GPDMA_IntGetStatus(GPDMA_STAT_INT, 1)){
-		// Check counter terminal status
-		if(GPDMA_IntGetStatus(GPDMA_STAT_INTTC, 1)){
-			// Clear terminate counter Interrupt pending
-			GPDMA_ClearIntPending (GPDMA_STATCLR_INTTC, 1);
-				Channel1_TC++;
-//				xprintf("ch1_TC:%d\n",Channel0_TC);
-		}
-		// Check error terminal status
-		if (GPDMA_IntGetStatus(GPDMA_STAT_INTERR, 1)){
-			// Clear error counter Interrupt pending
-			GPDMA_ClearIntPending (GPDMA_STATCLR_INTERR, 1);
-			Channel1_Err++;
-//			xprintf("ch1_Err:%d\n",Channel0_Err);
-		}
-	}
-	xprintf("Rx:0x%x ",LED_PRECALC1[0][0]);
-#endif
 }
 
 void LED_init(){
@@ -520,8 +516,8 @@ void LED_init(){
 	xprintf(OK "TIM_Cmd(LPC_TIM0/2,ENABLE);");FFL_();
 
 	// Start LED Pattern
-	uint8_t pot = 0x40;
-	Set_LED_Pattern(0,121, pot);
+	uint8_t pot = 64;
+	Set_LED_Pattern(0,121,pot);
 	xprintf(OK "LED Pattern Started");FFL_();
 
 #endif
@@ -544,205 +540,6 @@ void LED_init(){
 //	SSP_DMACmd (LED_SPI_CHN, SSP_DMA_RX, ENABLE);	// Enable Tx DMA on SSP0
 //	GPDMA_ChannelCmd(1, ENABLE);	// Enable GPDMA channel 0
 #endif
-}
-
-void LED_time(){
-	resetLeds();
-	uint8_t HH = GetHH();
-	uint8_t MM = GetMM();
-	uint8_t SS = GetSS();
-	HH>11 ? HH-=12 : 0;
-
-	// Remove the tails
-	SS<5 ? SetLED((SS+60)*3-13,0) : SetLED(SS*3-13,0);
-	MM<4 ? SetLED((MM+60)*3-11,0) : SetLED(MM*3-11,0);
-	HH<2 ? SetLED((HH+11)*3*5,0) : SetLED((HH-1)*3*5,0);
-	HH<2 ? SetLED((HH+11)*3*5-3,0) : SetLED((HH-1)*3*5-3,0);
-	HH<2 ? SetLED((HH+11)*3*5-6,0) : SetLED((HH-1)*3*5-6,0);
-
-	// Seconds Blue
-//	for (SS=0;SS<60;SS++){
-		SetLED(SS*3+2,0xff);
-		SS<1 ? SetLED((SS+60)*3-1,0x66/5*4) : SetLED(SS*3-1,0x66/5*4);
-		SS<2 ? SetLED((SS+60)*3-4,0x4c/5*3) : SetLED(SS*3-4,0x4c/5*3);
-		SS<3 ? SetLED((SS+60)*3-7,0x33/5*2) : SetLED(SS*3-7,0x33/5*2);
-		SS<4 ? SetLED((SS+60)*3-10,0x19/5) : SetLED(SS*3-10,0x19/5);
-//		calulateLEDMIBAMBits();
-//		delay_ms(100);
-//		SetLED(SS*3+2,0);
-//		SS<1 ? SetLED((SS+60)*3-1,0) : SetLED(SS*3-1,0);
-//		SS<2 ? SetLED((SS+60)*3-4,0) : SetLED(SS*3-4,0);
-//		SS<3 ? SetLED((SS+60)*3-7,0) : SetLED(SS*3-7,0);
-//		SS<4 ? SetLED((SS+60)*3-10,0) : SetLED(SS*3-10,0);
-//		calulateLEDMIBAMBits();
-//	}
-	// Minutes Green
-//	for (MM=0;MM<60;MM++){
-		SetLED(MM*3+1,0xff);
-		MM<1 ? SetLED((MM+60)*3-2,0x66/5*4) : SetLED(MM*3-2,0x66/5*4);
-		MM<2 ? SetLED((MM+60)*3-5,0x4c/5*3) : SetLED(MM*3-5,0x4c/5*3);
-		MM<3 ? SetLED((MM+60)*3-8,0x33/5*2) : SetLED(MM*3-8,0x33/5*2);
-//		MM<4 ? SetLED((MM+60)*3-11,0x19/5) : SetLED(MM*3-11,0x19/5);
-//		calulateLEDMIBAMBits();
-//		delay_ms(100);
-//		SetLED(MM*3+1,0);
-//		MM<1 ? SetLED((MM+60)*3-2,0) : SetLED(MM*3-2,0);
-//		MM<2 ? SetLED((MM+60)*3-5,0) : SetLED(MM*3-5,0);
-//		MM<3 ? SetLED((MM+60)*3-8,0) : SetLED(MM*3-8,0);
-//		MM<4 ? SetLED((MM+60)*3-11,0) : SetLED(MM*3-11,0);
-//		calulateLEDMIBAMBits();
-//	}
-	//Hours red
-//	for (HH=0;HH<12;HH++){
-		SetLED(HH*3*5,0xff);
-		HH<1 ? SetLED((HH+12)*3*5-3,0x66/5*4) : SetLED(HH*3*5-3,0x66/5*4);
-		HH<1 ? SetLED((HH+12)*3*5-6,0x4c/5*3) : SetLED(HH*3*5-6,0x4c/5*3);
-//		HH<1 ? SetLED((HH+12)*3*5-9,0x33/5*2) : SetLED(HH*3*5-9,0x33/5*2);
-//		HH<1 ? SetLED((HH+12)*3*5-12,0x19/5) : SetLED(HH*3*5-12,0x19/5);
-//		calulateLEDMIBAMBits();
-//		delay_ms(1000);
-//		SetLED(HH*3*5,0);
-//		HH<1 ? SetLED((HH+12)*3*5-3,0) : SetLED(HH*3*5-3,0);
-//		HH<1 ? SetLED((HH+12)*3*5-6,0) : SetLED(HH*3*5-6,0);
-//		HH<1 ? SetLED((HH+12)*3*5-9,0) : SetLED(HH*3*5-9,0);
-//		HH<1 ? SetLED((HH+12)*3*5-12,0) : SetLED(HH*3*5-12,0);
-//	}
-	calulateLEDMIBAMBits();
-}
-
-void LED_test(){
-#if 1 // Turn on then off every LED
-	for(uint8_t led=0; led<LEDS;led++){
-		SetLED(led,0x7f);
-		calulateLEDMIBAMBits();
-		delay_ms(100);
-		SetLED(led,0x00);
-	}
-#endif
-#if 0 // All smooth on then all smooth off
-/*	SetLED(173,0x60);
-	SetLED(176,0x60);
-	SetLED(179,0x60);
-	SetLED(170,0x40);
-	SetLED(167,0x40);
-	SetLED(164,0x40);
-	SetLED(161,0x20);
-	SetLED(158,0x20);
-	SetLED(155,0x20);
-	SetLED(152,0x10);
-	SetLED(149,0x10);
-	SetLED(146,0x10);*/
-
-	//all leds off
-	for(uint8_t led=LEDS;LEDS>0;led--){
-		SetLED(led,0);
-		calulateLEDMIBAMBits();
-	}
-	for(uint8_t led=0;led<LEDS;led+=3){
-		for(int16_t b=0;b<=0x7f;b++){
-			SetLED(led,b);
-			calulateLEDMIBAMBits();
-			delay_ms(100);
-		}
-	}
-	for(uint8_t led=0;led<LEDS;led+=3){
-		for(int16_t b=0x7f;b>=0;b--){
-			SetLED(led,b);
-			calulateLEDMIBAMBits();
-			delay_ms(100);
-		}
-	}
-#endif
-#if 0 // All smooth on then all smooth off
-	for(uint8_t led=0,bri=0;led<LEDS;led+=3,bri++){
-		SetLED(led,bri);
-		calulateLEDMIBAMBits();
-		delay_ms(10);
-	}
-#endif
-}
-
-void simple_all_colors(){ //simple all colors
-	TIM_Cmd(LPC_TIM0,DISABLE);	// To start timer 0
-//	while(1){
-	for (uint8_t i=0;i<16;i++){
-//		xprintf(OK "%d",i+1);FFL_();
-		GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
-		for (uint8_t j=0;j<11;j++){
-			SSP_SendData(LED_SPI_CHN, 0x0000);
-			while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
-		}
-//		SSP_SendData(LED_SPI_CHN, 0x0001<<i);
-		SSP_SendData(LED_SPI_CHN, 0x1249);
-		while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
-		for (uint8_t k=0;k<0;k++){
-			SSP_SendData(LED_SPI_CHN, 0x0000);
-			while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
-		}
-		GPIO_SetValue(LED_LE_PORT, LED_LE_BIT);
-		GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
-		GPIO_ClearValue(LED_OE_PORT, LED_OE_BIT);//LED's on. active low
-		delay_ms(150);
-	};
-	for (uint8_t i=0;i<16;i++){
-//		xprintf(OK "%d",i+1);FFL_();
-		GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
-		for (uint8_t j=0;j<11;j++){
-			SSP_SendData(LED_SPI_CHN, 0x0000);
-			while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
-		}
-//		SSP_SendData(LED_SPI_CHN, 0x0001<<i);
-		SSP_SendData(LED_SPI_CHN, 0x2492);
-		while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
-		for (uint8_t k=0;k<0;k++){
-			SSP_SendData(LED_SPI_CHN, 0x0000);
-			while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
-		}
-		GPIO_SetValue(LED_LE_PORT, LED_LE_BIT);
-		GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
-		GPIO_ClearValue(LED_OE_PORT, LED_OE_BIT);//LED's on. active low
-		delay_ms(150);
-	};
-	for (uint8_t i=0;i<16;i++){
-	xprintf(OK "%d",i+1);FFL_();
-	GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
-	for (uint8_t j=0;j<11;j++){
-		SSP_SendData(LED_SPI_CHN, 0x0000);
-		while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
-	}
-//	SSP_SendData(LED_SPI_CHN, 0x0001<<i);
-	SSP_SendData(LED_SPI_CHN, 0x4924);
-	while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
-	for (uint8_t k=0;k<0;k++){
-		SSP_SendData(LED_SPI_CHN, 0x0000);
-		while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
-	}
-	GPIO_SetValue(LED_LE_PORT, LED_LE_BIT);
-	GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
-	GPIO_ClearValue(LED_OE_PORT, LED_OE_BIT);//LED's on. active low
-	delay_ms(150);
-	};
-	for (uint8_t i=0;i<16;i++){
-//		xprintf(OK "%d",i+1);FFL_();
-		GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
-		for (uint8_t j=0;j<11;j++){
-			SSP_SendData(LED_SPI_CHN, 0x0000);
-			while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
-		}
-//		SSP_SendData(LED_SPI_CHN, 0x0001<<i);
-		SSP_SendData(LED_SPI_CHN, 0xffff);
-		while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
-		for (uint8_t k=0;k<0;k++){
-			SSP_SendData(LED_SPI_CHN, 0x0000);
-			while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
-		}
-		GPIO_SetValue(LED_LE_PORT, LED_LE_BIT);
-		GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
-		GPIO_ClearValue(LED_OE_PORT, LED_OE_BIT);//LED's on. active low
-		delay_ms(150);
-	};
-//	};
-	TIM_Cmd(LPC_TIM0,ENABLE);	// To start timer 0
 }
 
 void SetRGB(int32_t group, uint8_t v0, uint8_t v1, uint8_t v2){
@@ -835,13 +632,9 @@ void calulateLEDMIBAMBits(){
 //	_DBG("[INFO]-MIBAM Precal time = ");_DBD32(end-start);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 }
 
-void Set_LED_Pattern(uint8_t no,uint8_t speed, uint8_t bri){
-	if(no!=0)
-		LED_PATTERN = no;
-	else
-		xprintf(INFO "LED pattern not changed (pattern=0)");FFL_();
-	if(speed>0)
-		MILLI_DELAY = speed;
+void Set_LED_Pattern(uint8_t no, uint16_t delay, uint8_t bri){
+	if(delay>0)
+		MILLI_DELAY = delay;
 	else
 		xprintf(INFO "LED delay not changed");FFL_();
 	SetBrightness(bri);
@@ -849,52 +642,227 @@ void Set_LED_Pattern(uint8_t no,uint8_t speed, uint8_t bri){
 	TIM_ResetCounter(LPC_TIM2);
 //	TIM_Cmd(LPC_TIM2,DISABLE);
 //	TIM_Cmd(LPC_TIM2,ENABLE);
-	xprintf(INFO "led pattern=%d, MILLI_DELAY=%d ",no,MILLI_DELAY);FFL_();
+//	xprintf(INFO "pattern=%d DELAY=%d Bri=%d",no,MILLI_DELAY,bri);FFL_();
+	resetLeds();
+	LED_Loop=0;
+	LED_Loop_v1=0;
+	LED_Loop_v2=0;
+	LED_Loop_v3=0;
 }
-
-void Get_LED_Pattern(uint8_t * no,uint8_t * speed, uint8_t * bri){
+void Get_LED_Pattern(uint8_t * no, uint16_t * delay, uint8_t * bri){
 	*no = (uint32_t)LED_PATTERN;
-	*speed = (uint32_t)MILLI_DELAY;
+	*delay = (uint32_t)MILLI_DELAY;
 	*bri = (uint32_t)GetBrightness();
 }
 
-static uint32_t Led_loopp=0;
-static uint32_t count=0;
-
-void LED_loop(void){
-//	xprintf(INFO "LED_loop(void)");FFL_();
-	Led_loopp++;
-	if (LED_INT_SPEED){
-		count++;
-		xprintf(INFO "LED_INT_SPEED=%d LED_LOOP=%d",count,Led_loopp);FFL_();
-		Led_loopp=0;
-		switch(LED_PATTERN){
-			case 0:
-				LED_time();
-				break;
-			case 1:
-				LED_test();
-				break;
-			case 2:
-				Rainbow();
-				break;
-			case 3:
-				simple_all_colors();
-				break;
-			default:
-				LED_time();
-				break;
-		}
-//		TIM_UpdateMatchValue(LPC_TIM2, 0, MILLI_DELAY);
-//		TIM_Cmd(LPC_TIM2,ENABLE);
-		LED_INT_SPEED = 0;
-	}
+uint8_t SetBrightness(uint8_t bri){
+	uint8_t err = setPot(bri);
+	return err;
+}
+uint8_t GetBrightness(void){
+	uint8_t bri = readPot();
+	return bri;
 }
 
-long colorshift=0;
+//LED Patterns
+void LED_time(){
+	resetLeds();
+	uint8_t HH = GetHH();
+	uint8_t MM = GetMM();
+	uint8_t SS = GetSS();
+	HH>11 ? HH-=12 : 0;
 
-void Rainbow(void) {
-#ifndef DEV
+	// Remove the tails
+	SS<5 ? SetLED((SS+60)*3-13,0) : SetLED(SS*3-13,0);
+	MM<4 ? SetLED((MM+60)*3-11,0) : SetLED(MM*3-11,0);
+	HH<2 ? SetLED((HH+11)*3*5,0) : SetLED((HH-1)*3*5,0);
+	HH<2 ? SetLED((HH+11)*3*5-3,0) : SetLED((HH-1)*3*5-3,0);
+	HH<2 ? SetLED((HH+11)*3*5-6,0) : SetLED((HH-1)*3*5-6,0);
+
+	// Seconds Blue
+//	for (SS=0;SS<60;SS++){
+		SetLED(SS*3+2,0xff);
+		SS<1 ? SetLED((SS+60)*3-1,0x66/5*4) : SetLED(SS*3-1,0x66/5*4);
+		SS<2 ? SetLED((SS+60)*3-4,0x4c/5*3) : SetLED(SS*3-4,0x4c/5*3);
+		SS<3 ? SetLED((SS+60)*3-7,0x33/5*2) : SetLED(SS*3-7,0x33/5*2);
+		SS<4 ? SetLED((SS+60)*3-10,0x19/5) : SetLED(SS*3-10,0x19/5);
+//		calulateLEDMIBAMBits();
+//		delay_ms(100);
+//		SetLED(SS*3+2,0);
+//		SS<1 ? SetLED((SS+60)*3-1,0) : SetLED(SS*3-1,0);
+//		SS<2 ? SetLED((SS+60)*3-4,0) : SetLED(SS*3-4,0);
+//		SS<3 ? SetLED((SS+60)*3-7,0) : SetLED(SS*3-7,0);
+//		SS<4 ? SetLED((SS+60)*3-10,0) : SetLED(SS*3-10,0);
+//		calulateLEDMIBAMBits();
+//	}
+	// Minutes Green
+//	for (MM=0;MM<60;MM++){
+		SetLED(MM*3+1,0xff);
+		MM<1 ? SetLED((MM+60)*3-2,0x66/5*4) : SetLED(MM*3-2,0x66/5*4);
+		MM<2 ? SetLED((MM+60)*3-5,0x4c/5*3) : SetLED(MM*3-5,0x4c/5*3);
+		MM<3 ? SetLED((MM+60)*3-8,0x33/5*2) : SetLED(MM*3-8,0x33/5*2);
+//		MM<4 ? SetLED((MM+60)*3-11,0x19/5) : SetLED(MM*3-11,0x19/5);
+//		calulateLEDMIBAMBits();
+//		delay_ms(100);
+//		SetLED(MM*3+1,0);
+//		MM<1 ? SetLED((MM+60)*3-2,0) : SetLED(MM*3-2,0);
+//		MM<2 ? SetLED((MM+60)*3-5,0) : SetLED(MM*3-5,0);
+//		MM<3 ? SetLED((MM+60)*3-8,0) : SetLED(MM*3-8,0);
+//		MM<4 ? SetLED((MM+60)*3-11,0) : SetLED(MM*3-11,0);
+//		calulateLEDMIBAMBits();
+//	}
+	//Hours red
+//	for (HH=0;HH<12;HH++){
+		SetLED(HH*3*5,0xff);
+		HH<1 ? SetLED((HH+12)*3*5-3,0x66/5*4) : SetLED(HH*3*5-3,0x66/5*4);
+		HH<1 ? SetLED((HH+12)*3*5-6,0x4c/5*3) : SetLED(HH*3*5-6,0x4c/5*3);
+//		HH<1 ? SetLED((HH+12)*3*5-9,0x33/5*2) : SetLED(HH*3*5-9,0x33/5*2);
+//		HH<1 ? SetLED((HH+12)*3*5-12,0x19/5) : SetLED(HH*3*5-12,0x19/5);
+//		calulateLEDMIBAMBits();
+//		delay_ms(1000);
+//		SetLED(HH*3*5,0);
+//		HH<1 ? SetLED((HH+12)*3*5-3,0) : SetLED(HH*3*5-3,0);
+//		HH<1 ? SetLED((HH+12)*3*5-6,0) : SetLED(HH*3*5-6,0);
+//		HH<1 ? SetLED((HH+12)*3*5-9,0) : SetLED(HH*3*5-9,0);
+//		HH<1 ? SetLED((HH+12)*3*5-12,0) : SetLED(HH*3*5-12,0);
+//	}
+	calulateLEDMIBAMBits();
+}
+void LED_one_by_one(){
+// Turn on then off every LED
+	SetLED(LED_Loop,0x7f);
+	calulateLEDMIBAMBits();
+	SetLED(LED_Loop,0x00);
+	LED_Loop++;
+	if(LED_Loop>LEDS)
+		LED_Loop=0;
+}
+void LED_one_by_one_smooth_all_on_all_off(uint8_t colour){
+// All smooth on then all smooth off
+	// red = 0
+	// green = 1
+	// blue = 2
+	// LED_Loop = led no
+	// LED_Loop_v1 = (0 = getting brigher)
+	//				(1 = getting duller)
+	//getting brighter
+	if( ((LED_Loop%3)==0) && (LED_Loop_v1==0) ){
+		SetLED(LED_Loop+colour,LED_Loop_v2);
+		calulateLEDMIBAMBits();
+		LED_Loop_v2++;
+		if(LED_Loop_v2>MAX_BRIGHTNESS){
+			LED_Loop_v2=0;
+			LED_Loop+=3;
+		}
+		if(LED_Loop>LEDS){
+			LED_Loop_v1=1;
+			LED_Loop_v2=MAX_BRIGHTNESS;
+			LED_Loop=0;
+		}
+	}
+	//getting duller
+	if( ((LED_Loop%3)==0) && (LED_Loop_v1==1) ){
+		SetLED(LED_Loop+colour,LED_Loop_v2);
+		calulateLEDMIBAMBits();
+		LED_Loop_v2--;
+		if(LED_Loop_v2<0){
+			LED_Loop_v2=MAX_BRIGHTNESS;
+			LED_Loop+=3;
+		}
+		if(LED_Loop>LEDS){
+			LED_Loop=0;
+			LED_Loop_v1=0;
+			LED_Loop_v2=0;
+			LED_Loop_v3=0;
+		}
+	}
+}
+void LED_simple_all_colors(){ //simple all colors
+	TIM_Cmd(LPC_TIM0,DISABLE);	// To start timer 0
+//	while(1){
+	for (uint8_t i=0;i<16;i++){
+//		xprintf(OK "%d",i+1);FFL_();
+		GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
+		for (uint8_t j=0;j<11;j++){
+			SSP_SendData(LED_SPI_CHN, 0x0000);
+			while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+		}
+//		SSP_SendData(LED_SPI_CHN, 0x0001<<i);
+		SSP_SendData(LED_SPI_CHN, 0x1249);
+		while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+		for (uint8_t k=0;k<0;k++){
+			SSP_SendData(LED_SPI_CHN, 0x0000);
+			while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+		}
+		GPIO_SetValue(LED_LE_PORT, LED_LE_BIT);
+		GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
+		GPIO_ClearValue(LED_OE_PORT, LED_OE_BIT);//LED's on. active low
+		delay_ms(150);
+	};
+	for (uint8_t i=0;i<16;i++){
+//		xprintf(OK "%d",i+1);FFL_();
+		GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
+		for (uint8_t j=0;j<11;j++){
+			SSP_SendData(LED_SPI_CHN, 0x0000);
+			while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+		}
+//		SSP_SendData(LED_SPI_CHN, 0x0001<<i);
+		SSP_SendData(LED_SPI_CHN, 0x2492);
+		while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+		for (uint8_t k=0;k<0;k++){
+			SSP_SendData(LED_SPI_CHN, 0x0000);
+			while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+		}
+		GPIO_SetValue(LED_LE_PORT, LED_LE_BIT);
+		GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
+		GPIO_ClearValue(LED_OE_PORT, LED_OE_BIT);//LED's on. active low
+		delay_ms(150);
+	};
+	for (uint8_t i=0;i<16;i++){
+	xprintf(OK "%d",i+1);FFL_();
+	GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
+	for (uint8_t j=0;j<11;j++){
+		SSP_SendData(LED_SPI_CHN, 0x0000);
+		while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+	}
+//	SSP_SendData(LED_SPI_CHN, 0x0001<<i);
+	SSP_SendData(LED_SPI_CHN, 0x4924);
+	while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+	for (uint8_t k=0;k<0;k++){
+		SSP_SendData(LED_SPI_CHN, 0x0000);
+		while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+	}
+	GPIO_SetValue(LED_LE_PORT, LED_LE_BIT);
+	GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
+	GPIO_ClearValue(LED_OE_PORT, LED_OE_BIT);//LED's on. active low
+	delay_ms(150);
+	};
+	for (uint8_t i=0;i<16;i++){
+//		xprintf(OK "%d",i+1);FFL_();
+		GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
+		for (uint8_t j=0;j<11;j++){
+			SSP_SendData(LED_SPI_CHN, 0x0000);
+			while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+		}
+//		SSP_SendData(LED_SPI_CHN, 0x0001<<i);
+		SSP_SendData(LED_SPI_CHN, 0xffff);
+		while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+		for (uint8_t k=0;k<0;k++){
+			SSP_SendData(LED_SPI_CHN, 0x0000);
+			while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+		}
+		GPIO_SetValue(LED_LE_PORT, LED_LE_BIT);
+		GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
+		GPIO_ClearValue(LED_OE_PORT, LED_OE_BIT);//LED's on. active low
+		delay_ms(150);
+	};
+//	};
+	TIM_Cmd(LPC_TIM0,ENABLE);	// To start timer 0
+	LED_PATTERN=0;
+}
+long colorshift=0;
+void LED_Rainbow(void) {
+#if 1
 	#define LEDDELAY 10
 	int hue;
 	unsigned char red, green, blue;
@@ -911,10 +879,7 @@ void Rainbow(void) {
 			}
 			calulateLEDMIBAMBits();
 //	}
-#endif
-}
-
-#if 0
+#else
 		if(timeUpdate()) {
 			resetLeds();
 	//	colourToRGBled(time_now.hour12()*5,RED1,RED2,RED3,false,0);
@@ -951,15 +916,47 @@ void Rainbow(void) {
 	//		delay(100);
 		}
 #endif
-
-uint8_t  SetBrightness(uint8_t bri){
-	uint8_t err = setPot(bri);
-	return err;
 }
 
-uint8_t GetBrightness(void){
-	uint8_t bri = readPot();
-	return bri;
+static uint32_t Led_loopp=0;
+static uint32_t count=0;
+void LED_loop(void){
+//	xprintf(INFO "LED_loop(void)");FFL_();
+	Led_loopp++;
+	if (LED_INT_OCCURED){
+		count++;
+//		xprintf(INFO "LED_INT_OCCURED=%d LED_LOOP=%d",count,Led_loopp);FFL_();
+		Led_loopp=0;
+		switch(LED_PATTERN){
+			case 0:
+				LED_time();
+				break;
+			case 1:
+				LED_one_by_one();
+				break;
+			case 2:
+				LED_Rainbow();
+				break;
+			case 3:
+				LED_simple_all_colors();
+				break;
+			case 4:
+				LED_one_by_one_smooth_all_on_all_off(0);
+				break;
+			case 5:
+				LED_one_by_one_smooth_all_on_all_off(1);
+				break;
+			case 6:
+				LED_one_by_one_smooth_all_on_all_off(2);
+				break;
+			default:
+				LED_time();
+				break;
+		}
+//		TIM_UpdateMatchValue(LPC_TIM2, 0, MILLI_DELAY);
+//		TIM_Cmd(LPC_TIM2,ENABLE);
+		LED_INT_OCCURED = 0;
+	}
 }
 
 /*

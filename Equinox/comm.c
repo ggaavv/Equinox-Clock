@@ -187,7 +187,7 @@ void exec_cmd(char *cmd){
 	}
 	else if(stricmp(cmd,"lt")==0){
 		xprintf(INFO "led tests running");FFL_();
-		LED_test();
+		LED_simple_all_colors();
 		xprintf(INFO "led tests finished");FFL_();
 	}
 	else if(stricmp(cmd,"p") == 0){

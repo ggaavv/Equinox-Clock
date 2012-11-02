@@ -269,9 +269,8 @@ int main(void){
 
 
 	// main loop
-	long timer1, steptimeout, count1, tcount=Getunix();
 	for (;;){
-		//Reset Watchdog timer (30sec)
+//		Reset Watchdog timer (30sec)
 //		WDT_UpdateTimeOut(30);
 
 #ifndef DEV
@@ -287,12 +286,10 @@ int main(void){
 //		RTC_print_time();
 		LED_loop();
 
-		/* Power save - Do every 5000ms */
-		#define DELAY 20
-//		_DBD16(tcount);
 #if 1
-		if(tcount<=Getunix()){
-			tcount=DELAY+Getunix();
+		uint32_t unix;
+		if(Getunix()%20==0 && !(Getunix()==unix)){ // % is modulo of the number (remainder after devision)
+			unix = Getunix();
 //			xprintf(INFO "for (;;) %d",Getunix());FFL_();
 #ifndef DEV
 			tmp100_gettemp();
@@ -307,33 +304,12 @@ int main(void){
 //			RTC_print_time();
 		}
 #endif
-#if 1
+		// Com Loop
 		if(LINE_READY){
 			exec_cmd(UART_LINE);
 			LINE_READY=0;
 		}
-#endif
-
-/*
-		if (timer1 < sys_millis()){
-			timer1 = sys_millis() + 100;
-			count1++;
-//			xprintf(INFO "count=",count1);FFL_();
-
-
-			// If there are no activity during 30 seconds, power off the machine
-			if (steptimeout > (30*1000/100))
-				{
-//					power_off();
-				}
-			else
-				{
-					steptimeout=0;
-				}
-		}
-*/
 	}
-
 	/* should never get here */
 	while(1) ;
 }
