@@ -156,6 +156,7 @@ void exec_cmd(char *cmd){
 	}
 	else if(stricmp(cmd,"ls")==0){
 		xprintf(INFO "led set pattern running");FFL_();
+		xprintf(INFO "enter number between 0 and 5");FFL_();
 		uint8_t l_pattern = 0;
 		while(1){
 			LINE_READY=0;

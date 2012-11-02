@@ -108,7 +108,9 @@ volatile uint32_t BufferNo;
 
 volatile uint8_t LED_PATTERN = 0;
 volatile uint8_t LED_SPEED = 1; //Milliseconds delay max=255
+volatile uint8_t LAST_LED_SPEED = 1; //Milliseconds delay max=255
 volatile uint8_t LED_INT_SPEED = 1;
+const uint8_t MAX_BRIGHTNESS = 0x7f;
 
 extern volatile uint32_t LED_UPDATE_REQUIRED;
 extern volatile uint32_t LED_SEND;
@@ -662,20 +664,23 @@ void LED_test(){
 }
 
 void simple_all_colors(){ //simple all colors
+	TIM_Cmd(LPC_TIM0,DISABLE);	// To start timer 0
 	// while(1){
 	for (uint8_t i=0;i<16;i++){
 //		xprintf(OK "%d",i+1);FFL_();
 		GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
 		for (uint8_t j=0;j<11;j++){
 			SSP_SendData(LED_SPI_CHN, 0x0000);
-			while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+			while(LED_SPI_CHN->SR & SSP_STAT_BUSY)
+				;
 		}
 //		SSP_SendData(LED_SPI_CHN, 0x0001<<i);
 		SSP_SendData(LED_SPI_CHN, 0x1249);
 		while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
 		for (uint8_t k=0;k<0;k++){
 			SSP_SendData(LED_SPI_CHN, 0x0000);
-			while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+			while(LED_SPI_CHN->SR & SSP_STAT_BUSY)
+				;
 		}
 		GPIO_SetValue(LED_LE_PORT, LED_LE_BIT);
 		GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
@@ -687,14 +692,16 @@ void simple_all_colors(){ //simple all colors
 		GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
 		for (uint8_t j=0;j<11;j++){
 			SSP_SendData(LED_SPI_CHN, 0x0000);
-			while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+			while(LED_SPI_CHN->SR & SSP_STAT_BUSY)
+				;
 		}
 //		SSP_SendData(LED_SPI_CHN, 0x0001<<i);
 		SSP_SendData(LED_SPI_CHN, 0x2492);
 		while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
 		for (uint8_t k=0;k<0;k++){
 			SSP_SendData(LED_SPI_CHN, 0x0000);
-			while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+			while(LED_SPI_CHN->SR & SSP_STAT_BUSY)
+				;
 		}
 		GPIO_SetValue(LED_LE_PORT, LED_LE_BIT);
 		GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
@@ -706,11 +713,13 @@ void simple_all_colors(){ //simple all colors
 	GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
 	for (uint8_t j=0;j<11;j++){
 		SSP_SendData(LED_SPI_CHN, 0x0000);
-		while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+		while(LED_SPI_CHN->SR & SSP_STAT_BUSY)
+			;
 	}
 //	SSP_SendData(LED_SPI_CHN, 0x0001<<i);
 	SSP_SendData(LED_SPI_CHN, 0x4924);
-	while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
+	while(LED_SPI_CHN->SR & SSP_STAT_BUSY)
+		;
 	for (uint8_t k=0;k<0;k++){
 		SSP_SendData(LED_SPI_CHN, 0x0000);
 		while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
@@ -734,11 +743,12 @@ void simple_all_colors(){ //simple all colors
 			SSP_SendData(LED_SPI_CHN, 0x0000);
 			while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
 		}
-	GPIO_SetValue(LED_LE_PORT, LED_LE_BIT);
-	GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
-	GPIO_ClearValue(LED_OE_PORT, LED_OE_BIT);//LED's on. active low
-	delay_ms(150);
+		GPIO_SetValue(LED_LE_PORT, LED_LE_BIT);
+		GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
+		GPIO_ClearValue(LED_OE_PORT, LED_OE_BIT);//LED's on. active low
+		delay_ms(150);
 	};
+	TIM_Cmd(LPC_TIM0,ENABLE);	// To start timer 0
 }
 
 void SetRGB(int32_t group, uint8_t v0, uint8_t v1, uint8_t v2){
@@ -833,6 +843,7 @@ void calulateLEDMIBAMBits(){
 
 void Set_LED_Pattern(uint8_t no,uint8_t speed, uint8_t bri){
 	LED_PATTERN = no;
+	LAST_LED_SPEED = LED_SPEED;
 	LED_SPEED = speed;
 	SetBrightness(bri);
 }
@@ -863,10 +874,13 @@ void LED_loop(void){
 				LED_time();
 				break;
 		}
-		LED_INT_SPEED = 0;
-//		TIM_UpdateMatchValue(LPC_TIM2, 0, LED_SPEED*1000-256000);
-//		TIM_Cmd(LPC_TIM2,ENABLE);
+		if(LAST_LED_SPEED != LED_SPEED){
+			//TIM_UpdateMatchValue(LPC_TIM2, 0, LED_SPEED*1000-256000);
+			TIM_UpdateMatchValue(LPC_TIM2, 0, LED_SPEED*1000);
+			//TIM_Cmd(LPC_TIM2,ENABLE);
+		}
 	}
+	LED_INT_SPEED = 0;
 }
 
 
@@ -875,29 +889,21 @@ long colorshift=0;
 void Rainbow(void) {
 #ifndef DEV
 	#define LEDDELAY 10
-	int hue, sat, val;
+	int hue;
 	unsigned char red, green, blue;
-	if(USER_MILLIS>=10){
-//	if(LED_UPDATE_REQUIRED){
-		LED_UPDATE_REQUIRED=0;
-		USER_MILLIS=0;
+//	if(USER_MILLIS>=10){
+//		LED_UPDATE_REQUIRED=0;
+//		USER_MILLIS=0;
 		colorshift+=1;
 		if(colorshift==360)
 			colorshift=0;
-		// TODO move hue to calulateLEDMIBAMBits();!!!!!!!!
-//		for(int cycle=0;cycle<numCycles;cycle++){ // shift the raibom numCycles times
 			for(int led=0;led<RGBS;led++){ // loop over all LED's
-//			for(int led=0;led<1;led++){ // loop over all LED's
-				hue = ((led*1)*360/1+colorshift)%360; // Set hue from 0 to 360 from first to last led and shift the hue
-				sat = 255;
-				val = 255;
-//				hsv2rgb(hue, sat, val, &red, &green, &blue, maxBrightness); // convert hsv to rgb values
-				hsv2rgb(hue, sat, val, &red, &green, &blue, 0x7f); // convert hsv to rgb values
+				hue = ((led)*360/(RGBS-1)+colorshift)%360;
+				hsv2rgb(hue, 255, 255, &red, &green, &blue, MAX_BRIGHTNESS); // convert hsv to rgb values
 				SetRGB(led, red, green, blue); // write rgb values
 			}
 			calulateLEDMIBAMBits();
-//		}
-	}
+//	}
 #endif
 }
 
