@@ -44,9 +44,9 @@ const char head_close[] = "</HEAD>\n";
 const char title[] = "<title>--==Equinox Clock==-- by Gavin and Jamie Clarke</title>\n";
 const char enter_date_format[] = " Enter Date: \n";
 const char enter_time_format[] = " Enter Time: \n";
-const char enter_led_pattern[] = " Choose Pattern: \n";
-const char enter_led_speed[] = " Choose Speed: \n";
-const char enter_led_brightness[] = " Choose Brightness: \n";
+const char enter_led_pattern[] = " Pattern: \n";
+const char enter_led_speed[] = " Delay between update: \n";
+const char enter_led_brightness[] = " Brightness: \n";
 const char enter_DST_format[] = " Summertime (not yet implimented) \n";
 const char enter_UTC_format[] = " Timezone   Summertime \n";
 const char date_submit_reset_buttons[] = "<input type=\"submit\" value=\"Send Date\" />\n<input type=\"reset\" value=\"Reset\" />\n";
@@ -383,14 +383,14 @@ bool home_page(char* URL){
 		// Speed
 		WiServer.print(enter_led_speed);
 		WiServer.print("<select name=speed>\n");
-		for (uint8_t i = 1; i < MAX_SPEED; i++){
+		for (uint8_t i = 1; i^2 < MAX_DELAY; i++){
 			WiServer.print("<option");
-			if (i==speed){
+			if (i^2==speed){
 				WiServer.print(" selected");
 			}
 			WiServer.print("> ");
 			char i_s[4];
-			sprintf(i_s,"%.d",i);
+			sprintf(i_s,"%.d",i^2);
 			WiServer.print(i_s);
 			WiServer.print(" </option>\n");
 		}

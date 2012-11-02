@@ -7,7 +7,7 @@
 
 #include "lpc_types.h"
 
-#define MAX_SPEED 255
+#define MAX_DELAY 1024 // delay uses number squared
 
 #define MAX_PATTERNS 4
 #define MAX_PATTERNS_LETTERS 20

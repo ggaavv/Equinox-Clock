@@ -107,8 +107,7 @@ volatile uint32_t BufferNo;
 //volatile uint32_t LED_UPDATE_REQUIRED;
 
 volatile uint8_t LED_PATTERN = 0;
-volatile uint8_t LED_SPEED = 1; //Milliseconds delay max=255
-volatile uint8_t LAST_LED_SPEED = 1; //Milliseconds delay max=255
+volatile uint8_t MILLI_DELAY = 1; //Milliseconds delay max=255
 volatile uint8_t LED_INT_SPEED = 1;
 const uint8_t MAX_BRIGHTNESS = 0x7f;
 
@@ -427,13 +426,13 @@ void LED_init(){
 	TIM_TIMERCFG_Type TIM2_ConfigStruct;
 	TIM_MATCHCFG_Type TIM2_MatchConfigStruct;
 	TIM2_ConfigStruct.PrescaleOption = TIM_PRESCALE_USVAL;	// Initialize timer 0, prescale count time of 1us //1000000uS = 1S
-	TIM2_ConfigStruct.PrescaleValue	= 1;
+	TIM2_ConfigStruct.PrescaleValue	= 1000;
 	TIM2_MatchConfigStruct.MatchChannel = 0;	// use channel 0, MR0
 	TIM2_MatchConfigStruct.IntOnMatch   = TRUE;	// Enable interrupt when MR0 matches the value in TC register
 	TIM2_MatchConfigStruct.ResetOnMatch = TRUE;	//Enable reset on MR0: TIMER will reset if MR0 matches it
 	TIM2_MatchConfigStruct.StopOnMatch  = FALSE;	//Stop on MR0 if MR0 matches it
 	TIM2_MatchConfigStruct.ExtMatchOutputType = TIM_EXTMATCH_NOTHING;
-	TIM2_MatchConfigStruct.MatchValue   = 256000;		// Set Match value, count value of 1000000 (1000000 * 1uS = 1000000us = 1s --> 1 Hz)
+	TIM2_MatchConfigStruct.MatchValue   = 256;		// Set Match value, count value of 1000000 (1000000 * 1uS = 1000000us = 1s --> 1 Hz)
 	TIM_Init(LPC_TIM2, TIM_TIMER_MODE,&TIM2_ConfigStruct);	// Set configuration for Tim_config and Tim_MatchConfig
 	TIM_ConfigMatch(LPC_TIM2,&TIM2_MatchConfigStruct);
 	NVIC_SetPriority(TIMER2_IRQn, 0);
@@ -522,7 +521,7 @@ void LED_init(){
 
 	// Start LED Pattern
 	uint8_t pot = 0x40;
-	Set_LED_Pattern(0,128, pot);
+	Set_LED_Pattern(0,121, pot);
 	xprintf(OK "LED Pattern Started");FFL_();
 
 #endif
@@ -665,22 +664,20 @@ void LED_test(){
 
 void simple_all_colors(){ //simple all colors
 	TIM_Cmd(LPC_TIM0,DISABLE);	// To start timer 0
-	// while(1){
+//	while(1){
 	for (uint8_t i=0;i<16;i++){
 //		xprintf(OK "%d",i+1);FFL_();
 		GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
 		for (uint8_t j=0;j<11;j++){
 			SSP_SendData(LED_SPI_CHN, 0x0000);
-			while(LED_SPI_CHN->SR & SSP_STAT_BUSY)
-				;
+			while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
 		}
 //		SSP_SendData(LED_SPI_CHN, 0x0001<<i);
 		SSP_SendData(LED_SPI_CHN, 0x1249);
 		while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
 		for (uint8_t k=0;k<0;k++){
 			SSP_SendData(LED_SPI_CHN, 0x0000);
-			while(LED_SPI_CHN->SR & SSP_STAT_BUSY)
-				;
+			while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
 		}
 		GPIO_SetValue(LED_LE_PORT, LED_LE_BIT);
 		GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
@@ -692,16 +689,14 @@ void simple_all_colors(){ //simple all colors
 		GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
 		for (uint8_t j=0;j<11;j++){
 			SSP_SendData(LED_SPI_CHN, 0x0000);
-			while(LED_SPI_CHN->SR & SSP_STAT_BUSY)
-				;
+			while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
 		}
 //		SSP_SendData(LED_SPI_CHN, 0x0001<<i);
 		SSP_SendData(LED_SPI_CHN, 0x2492);
 		while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
 		for (uint8_t k=0;k<0;k++){
 			SSP_SendData(LED_SPI_CHN, 0x0000);
-			while(LED_SPI_CHN->SR & SSP_STAT_BUSY)
-				;
+			while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
 		}
 		GPIO_SetValue(LED_LE_PORT, LED_LE_BIT);
 		GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
@@ -713,13 +708,11 @@ void simple_all_colors(){ //simple all colors
 	GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
 	for (uint8_t j=0;j<11;j++){
 		SSP_SendData(LED_SPI_CHN, 0x0000);
-		while(LED_SPI_CHN->SR & SSP_STAT_BUSY)
-			;
+		while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
 	}
 //	SSP_SendData(LED_SPI_CHN, 0x0001<<i);
 	SSP_SendData(LED_SPI_CHN, 0x4924);
-	while(LED_SPI_CHN->SR & SSP_STAT_BUSY)
-		;
+	while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
 	for (uint8_t k=0;k<0;k++){
 		SSP_SendData(LED_SPI_CHN, 0x0000);
 		while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
@@ -748,6 +741,7 @@ void simple_all_colors(){ //simple all colors
 		GPIO_ClearValue(LED_OE_PORT, LED_OE_BIT);//LED's on. active low
 		delay_ms(150);
 	};
+//	};
 	TIM_Cmd(LPC_TIM0,ENABLE);	// To start timer 0
 }
 
@@ -843,15 +837,14 @@ void calulateLEDMIBAMBits(){
 
 void Set_LED_Pattern(uint8_t no,uint8_t speed, uint8_t bri){
 	LED_PATTERN = no;
-	LAST_LED_SPEED = LED_SPEED;
-	LED_SPEED = speed;
+	MILLI_DELAY = speed;
 	SetBrightness(bri);
-	TIM_UpdateMatchValue(LPC_TIM2, 0, 256000-LED_SPEED*1000);
+	TIM_UpdateMatchValue(LPC_TIM2, 0, MILLI_DELAY);
 }
 
 void Get_LED_Pattern(uint8_t * no,uint8_t * speed, uint8_t * bri){
 	*no = (uint32_t)LED_PATTERN;
-	*speed = (uint32_t)LED_SPEED;
+	*speed = (uint32_t)MILLI_DELAY;
 	*bri = (uint32_t)GetBrightness();
 }
 
@@ -882,13 +875,10 @@ void LED_loop(void){
 				LED_time();
 				break;
 		}
-		if(LAST_LED_SPEED != LED_SPEED){
-			//TIM_UpdateMatchValue(LPC_TIM2, 0, LED_SPEED*1000-256000);
-			TIM_UpdateMatchValue(LPC_TIM2, 0, LED_SPEED*1000);
-			//TIM_Cmd(LPC_TIM2,ENABLE);
-		}
+//		TIM_UpdateMatchValue(LPC_TIM2, 0, MILLI_DELAY);
+//		TIM_Cmd(LPC_TIM2,ENABLE);
+		LED_INT_SPEED = 0;
 	}
-	LED_INT_SPEED = 0;
 }
 
 long colorshift=0;
