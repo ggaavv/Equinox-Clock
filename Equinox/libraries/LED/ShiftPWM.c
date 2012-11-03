@@ -46,11 +46,12 @@
 
 // for single board led 30 is led 1
 #define RGBS 60
-#define REGS RGBS/5
-#define LEDS RGBS*3
-#define LEDS16 REGS*16
+#define REGS (RGBS/5)
+#define LEDS (RGBS*3)
+#define LEDS16 (REGS*16)
+#define LEDS_P_REG (LEDS/REGS)
 #define BITS 8
-#define MAX_BRIGHTNESS ((2^BITS)-1)
+#define MAX_BRIGHTNESS 0xff
 uint16_t SEQ_BIT[16];
 uint32_t SEQ_TIME[16];
 
@@ -64,10 +65,12 @@ uint32_t volatile ticks_at_LE_start = 0;
 uint32_t volatile ticks_at_LE_finish = 0;
 uint32_t volatile ticks_at_OE_start = 0;
 
-const uint8_t BITORDER[] = { 0,1,2,3,4,5,6,7,7,6,5,4,3,2,1,0 };		// which of the 8 bits to send
+//const uint8_t BITORDER[] = { 0,1,2,3,4,5,6,7,7,6,5,4,3,2,1,0 };		// which of the 8 bits to send
+const uint8_t BITORDER[] = { 0,1,2,3,4,5,6,7,0,1,2,3,4,5,6,7 };
 //const uint8_t BITORDER[] = { 0,7,2,5,4,3,6,1,1,6,3,4,5,2,7,0 };
 //const uint8_t BITORDER[] = { 5,3,1,7,2,4,6,0,5,3,1,7,2,4,6 };
 
+//#define START_TIME 65536	// debug
 //#define START_TIME 16384	// too high
 //#define START_TIME 8192	// slight flicker
 //#define START_TIME 4096
@@ -131,30 +134,32 @@ void TIMER0_IRQHandler(void){
 //		TIM_ClearIntPending(LPC_TIM0, TIM_MR0_INT);
 //		return;
 #endif
-//		xprintf(INFO "RIT N=%d B=%x NXT_T=%6d TX=%03b\n",SENDSEQ,SEND_BIT,DELAY_TIME,LED_PRECALC[0][SEND_BIT]);
-
-		//Set bit/time
-		DELAY_TIME=NEXT_DELAY_TIME;
-		SEND_BIT=NEXT_SEND_BIT;
-
-		//Retart sequence if required
-		SENDSEQ+=1;
-		SENDSEQ>=MAX_BAM_BITS ? SENDSEQ=0 : 0;
+//		xprintf(INFO "RIT N=%d B=%x NXT_T=%d TX=%x\n",SENDSEQ,SEND_BIT,DELAY_TIME,LED_PRECALC[0][SEND_BIT]);
 
 		//Setup new timing for next Timer
 		NEXT_DELAY_TIME=SEQ_TIME[SENDSEQ];
 		NEXT_SEND_BIT=SEQ_BIT[SENDSEQ];
 
-		TIM_UpdateMatchValue(LPC_TIM0,0,NEXT_DELAY_TIME);
-		FIO_SetValue(LED_OE_PORT, LED_OE_BIT);
+		//Retart sequence if required
+		SENDSEQ++;
+		SENDSEQ>=MAX_BAM_BITS ? SENDSEQ=0 : 0;
+
+		//Set next bit/time
+		DELAY_TIME=NEXT_DELAY_TIME;
+		SEND_BIT=NEXT_SEND_BIT;
+
 #ifdef DMA
+//		xprintf("SEND_BIT:%d\n",SEND_BIT);
+//		xprintf("NEXT_DELAY_TIME:%d\n",NEXT_DELAY_TIME);
 		GPDMACfg.DMALLI = (uint32_t) &LinkerList[0][SEND_BIT][BufferNo];
 		GPDMA_Setup(&GPDMACfg);
 		GPDMA_ChannelCmd(0, ENABLE);
+#endif
+
+		TIM_UpdateMatchValue(LPC_TIM0,0,NEXT_DELAY_TIME);
+		FIO_SetValue(LED_OE_PORT, LED_OE_BIT);
 #ifdef RxDMA
 		GPDMA_ChannelCmd(1, ENABLE);
-#endif
-#else
 		uint8_t reg;
 		for(reg=6; 0<reg;reg--){
 			xprintf("%d ",reg-1);
@@ -437,7 +442,6 @@ void LED_init(){
 	NVIC_DisableIRQ (DMA_IRQn);	// Disable interrupt for DMA
 	NVIC_SetPriority(DMA_IRQn, 0);	// set according to main.c
 
-	uint8_t reg, bit, linkerListNo, buf;
 	GPDMACfg.ChannelNum = 0;	// DMA Channel 0
 	GPDMACfg.SrcMemAddr = 0;	// Source memory - not used - will be sent in interrupt so independent bit Linker Lists can be chosen
 	GPDMACfg.DstMemAddr = 0;	// Destination memory - not used - only used when destination is memory
@@ -446,7 +450,7 @@ void LED_init(){
 	GPDMACfg.TransferType = GPDMA_TRANSFERTYPE_M2P;	// Transfer type
 	GPDMACfg.SrcConn = 0;		// Source connection - not used
 	GPDMACfg.DstConn = GPDMA_CONN_SSP0_Tx;	// Destination connection - not used
-	GPDMACfg.DMALLI = (uint32_t) &LinkerList[0][0];	// Linker List Item - Pointer to linker list
+	GPDMACfg.DMALLI = (uint32_t) &LinkerList[0][0][0];	// Linker List Item - Pointer to linker list
 	GPDMA_Setup(&GPDMACfg);		// Setup channel with given parameter
 
 	// Linker list 32bit Control
@@ -458,42 +462,43 @@ void LED_init(){
 						| GPDMA_DMACCxControl_DWidth((uint32_t)GPDMACfg.TransferWidth) \
 						| GPDMA_DMACCxControl_SI;
 
+	uint8_t reg, bit, linkerListNo, buf;
 	for (buf=0;buf<BUFFERS;buf++){
 		for (bit=0;bit<BITS;bit++){
 			linkerListNo=0;
 			for (reg=5; 0<reg;reg--,linkerListNo++){
-//				xprintf("bit:%d reg:%d SrcAddr:0x%x DstAddr:0x%x NextLLI:0x%x linkerListNo:0x%x\n",bit,reg,(uint32_t) &LED_PRECALC[reg][bit],(uint32_t) &LPC_SSP0->DR,(uint32_t) &LinkerList[linkerListNo+1][bit],linkerListNo);
+//				xprintf("bit:%d reg:%d SrcAddr:0x%x DstAddr:0x%x NextLLI:0x%x linkerListNo:0x%x\n",bit,reg,(uint32_t) &LED_PRECALC[reg][bit][buf],(uint32_t) &LPC_SSP0->DR,(uint32_t) &LinkerList[linkerListNo+1][bit][buf],linkerListNo);
 				LinkerList[linkerListNo][bit][buf].SrcAddr = (uint32_t) &LED_PRECALC[reg][bit][buf];	/**< Source Address */
 				LinkerList[linkerListNo][bit][buf].DstAddr = (uint32_t) &LPC_SSP0->DR;			/**< Destination address */
 				LinkerList[linkerListNo][bit][buf].NextLLI = (uint32_t) &LinkerList[linkerListNo+1][bit][buf];	/**< Next LLI address, otherwise set to '0' */
 				LinkerList[linkerListNo][bit][buf].Control = LinkerListControl;
-//				xprintf("SrcAddr:0x%x DstAddr:0x%x NextLLI:0x%x\n",(uint32_t) &LinkerList[linkerListNo][bit].SrcAddr,(uint32_t) &LinkerList[linkerListNo][bit].DstAddr,(uint32_t) &LinkerList[linkerListNo][bit].NextLLI,(uint32_t) &LinkerList[linkerListNo][bit].Control);
+//				xprintf("SrcAddr:0x%x DstAddr:0x%x NextLLI:0x%x\n",(uint32_t) &LinkerList[linkerListNo][bit][buf].SrcAddr,(uint32_t) &LinkerList[linkerListNo][bit][buf].DstAddr,(uint32_t) &LinkerList[linkerListNo][bit][buf].NextLLI,(uint32_t) &LinkerList[linkerListNo][bit][buf].Control);
 			}
 //			if (reg==0){
-//			xprintf("bit:%d reg:%d SrcAddr:0x%x DstAddr:0x%x NextLLI:0x%x linkerListNo:0x%x\n",bit,reg,(uint32_t) &LED_PRECALC[reg][bit],(uint32_t) &LPC_SSP0->DR,(uint32_t) &LinkerList[linkerListNo+1][bit],linkerListNo);
+//			xprintf("bit:%d reg:%d SrcAddr:0x%x DstAddr:0x%x NextLLI:0x%x linkerListNo:0x%x\n",bit,reg,(uint32_t) &LED_PRECALC[reg][bit][buf],(uint32_t) &LPC_SSP0->DR,(uint32_t) &LinkerList[linkerListNo+1][bit][buf],linkerListNo);
 			LinkerList[linkerListNo][bit][buf].SrcAddr = (uint32_t) &LED_PRECALC[reg][bit][buf];	/**< Source Address */
 			LinkerList[linkerListNo][bit][buf].DstAddr = (uint32_t) &LPC_SSP0->DR;			/**< Destination address */
 			LinkerList[linkerListNo][bit][buf].NextLLI = (uint32_t) &LinkerList[linkerListNo+1][bit][buf];/**< Next LLI address, otherwise set to '0' */
 			LinkerList[linkerListNo][bit][buf].Control = LinkerListControl;
 			linkerListNo++;
-//			xprintf("SrcAddr:0x%x DstAddr:0x%x NextLLI:0x%x\n",(uint32_t) &LinkerList[linkerListNo][bit].SrcAddr,(uint32_t) &LinkerList[linkerListNo][bit].DstAddr,(uint32_t) &LinkerList[linkerListNo][bit].NextLLI,(uint32_t) &LinkerList[linkerListNo][bit].Control);
+//			xprintf("SrcAddr:0x%x DstAddr:0x%x NextLLI:0x%x\n",(uint32_t) &LinkerList[linkerListNo][bit][buf].SrcAddr,(uint32_t) &LinkerList[linkerListNo][bit][buf].DstAddr,(uint32_t) &LinkerList[linkerListNo][bit][buf].NextLLI,(uint32_t) &LinkerList[linkerListNo][bit][buf].Control);
 //			}
 			for (reg=11; reg>6;reg--,linkerListNo++){
-//				xprintf("bit:%d reg:%d SrcAddr:0x%x DstAddr:0x%x NextLLI:0x%x linkerListNo:0x%x\n",bit,reg,(uint32_t) &LED_PRECALC[reg][bit],(uint32_t) &LPC_SSP0->DR,(uint32_t) &LinkerList[linkerListNo+1][bit],linkerListNo);
+//				xprintf("bit:%d reg:%d SrcAddr:0x%x DstAddr:0x%x NextLLI:0x%x linkerListNo:0x%x\n",bit,reg,(uint32_t) &LED_PRECALC[reg][bit][buf],(uint32_t) &LPC_SSP0->DR,(uint32_t) &LinkerList[linkerListNo+1][bit][buf],linkerListNo);
 				LinkerList[linkerListNo][bit][buf].SrcAddr = (uint32_t) &LED_PRECALC[reg][bit][buf];	/**< Source Address */
 				LinkerList[linkerListNo][bit][buf].DstAddr = (uint32_t) &LPC_SSP0->DR;			/**< Destination address */
 				LinkerList[linkerListNo][bit][buf].NextLLI = (uint32_t) &LinkerList[linkerListNo+1][bit][buf];	/**< Next LLI address, otherwise set to '0' */
 				LinkerList[linkerListNo][bit][buf].Control = LinkerListControl;
-//				xprintf("SrcAddr:0x%x DstAddr:0x%x NextLLI:0x%x\n",(uint32_t) &LinkerList[linkerListNo][bit].SrcAddr,(uint32_t) &LinkerList[linkerListNo][bit].DstAddr,(uint32_t) &LinkerList[linkerListNo][bit].NextLLI,(uint32_t) &LinkerList[linkerListNo][bit].Control);
+//				xprintf("SrcAddr:0x%x DstAddr:0x%x NextLLI:0x%x\n",(uint32_t) &LinkerList[linkerListNo][bit][buf].SrcAddr,(uint32_t) &LinkerList[linkerListNo][bit][buf].DstAddr,(uint32_t) &LinkerList[linkerListNo][bit][buf].NextLLI,(uint32_t) &LinkerList[linkerListNo][bit][buf].Control);
 			}
 //			if (reg==7){
-//			xprintf("bit:%d reg:%d SrcAddr:0x%x DstAddr:0x%x NextLLI:0x%x linkerListNo:0x%x\n",bit,reg,(uint32_t) &LED_PRECALC[reg][bit],(uint32_t) &LPC_SSP0->DR,(uint32_t) &LinkerList[linkerListNo+1][bit],linkerListNo);
-			LinkerList[linkerListNo][bit][buf].SrcAddr = (uint32_t) &LED_PRECALC[reg][bit][buf];	/**< Source Address */
-			LinkerList[linkerListNo][bit][buf].DstAddr = (uint32_t) &LPC_SSP0->DR;			/**< Destination address */
-			LinkerList[linkerListNo][bit][buf].NextLLI = 0;									/**< Next LLI address, otherwise set to '0' */
-			LinkerList[linkerListNo][bit][buf].Control = LinkerListControl;
-			linkerListNo++;
-//			xprintf("SrcAddr:0x%x DstAddr:0x%x NextLLI:0x%x NextLLI_V:0x%x\n",(uint32_t) &LinkerList[linkerListNo][bit].SrcAddr,(uint32_t) &LinkerList[linkerListNo][bit].DstAddr,(uint32_t) &LinkerList[linkerListNo][bit].NextLLI,LinkerList[linkerListNo][bit].NextLLI);
+//				xprintf("bit:%d reg:%d SrcAddr:0x%x DstAddr:0x%x NextLLI:0x%x linkerListNo:0x%x\n",bit,reg,(uint32_t) &LED_PRECALC[reg][bit][buf],(uint32_t) &LPC_SSP0->DR,(uint32_t) &LinkerList[linkerListNo+1][bit][buf],linkerListNo);
+				LinkerList[linkerListNo][bit][buf].SrcAddr = (uint32_t) &LED_PRECALC[reg][bit][buf];	/**< Source Address */
+				LinkerList[linkerListNo][bit][buf].DstAddr = (uint32_t) &LPC_SSP0->DR;			/**< Destination address */
+				LinkerList[linkerListNo][bit][buf].NextLLI = 0;									/**< Next LLI address, otherwise set to '0' */
+				LinkerList[linkerListNo][bit][buf].Control = LinkerListControl;
+				linkerListNo++;
+//			xprintf("SrcAddr:0x%x DstAddr:0x%x NextLLI:0x%x NextLLI_V:0x%x\n",(uint32_t) &LinkerList[linkerListNo][bit][buf].SrcAddr,(uint32_t) &LinkerList[linkerListNo][bit][buf].DstAddr,(uint32_t) &LinkerList[linkerListNo][bit][buf].NextLLI,LinkerList[linkerListNo][bit][buf].NextLLI);
 //			}
 		}
 	}
@@ -565,6 +570,7 @@ void SetRGB(int32_t group, uint8_t v0, uint8_t v1, uint8_t v2){
 }
 void SetLED(uint8_t led, uint8_t v0){
 	LED_RAW[led]=v0 & MAX_BRIGHTNESS;
+//	xprintf("%d\n",LED_RAW[led]);
 }
 
 void resetLeds(void){
@@ -577,7 +583,7 @@ void resetLeds(void){
 
 void calulateLEDMIBAMBits(){
 //	xprintf(INFO "calulateLEDMIBAMBits()");
-	uint8_t led,bitinreg;
+	uint8_t led,bitinreg,count;
 //	xprintf("bit reg LED_PRECALC[bit][reg]\n");
 	for(uint8_t bit=0; bit<BITS; bit++){
 		led=0;
@@ -603,12 +609,20 @@ void calulateLEDMIBAMBits(){
 			_DBG("[INFO]-(LED_RAW[led++]<<bitinreg)&bitinreg++= ");_DBH16((LED_RAW[led++]<<bitinreg)&(1<<bitinreg++));_DBG("\r\n");//;_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 */
 			uint16_t tt[16],l;
-			for(uint8_t t=0;t<15;t++,led++){
+			for(uint8_t t=14;t<LEDS_P_REG;t--,led++){
 				l=LED_RAW[led]>>(bit);
 				tt[t] = (l<<bitinreg)&(1<<bitinreg);
-				tt[15] = 0;
+				if(led==0){
+					count++;
+//					xprintf("%x ",(l<<bitinreg)&(1<<bitinreg));
+				}
+				if(count==8){
+					count=0;
+//					xprintf("\n");
+				}
 				bitinreg++;
 			}
+			tt[15] = 0;
 			LED_PRECALC[reg][bit][0] =
 				tt[0] |
 				tt[1] |
@@ -628,6 +642,12 @@ void calulateLEDMIBAMBits(){
 				tt[15];
 		}
 	}
+//	uint8_t regulator=0;
+//	xprintf("Bits\n");
+//	for(uint8_t i=0;i<BITS;i++){
+//		xprintf("%x ",LED_PRECALC[regulator][i][0]);
+//	}
+//	xprintf("\n");
 	//	UPDATE_REQUIRED=true;
 //	_DBG("[INFO]-MIBAM Precal time = ");_DBD32(end-start);_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 }
@@ -700,11 +720,11 @@ void LED_time(){
 
 	// Seconds Blue
 //	for (SS=0;SS<60;SS++){
-		SetLED(SS*3+2,0xff);
-		SS<1 ? SetLED((SS+60)*3-1,0x66/5*4) : SetLED(SS*3-1,0x66/5*4);
-		SS<2 ? SetLED((SS+60)*3-4,0x4c/5*3) : SetLED(SS*3-4,0x4c/5*3);
-		SS<3 ? SetLED((SS+60)*3-7,0x33/5*2) : SetLED(SS*3-7,0x33/5*2);
-		SS<4 ? SetLED((SS+60)*3-10,0x19/5) : SetLED(SS*3-10,0x19/5);
+		SetLED(SS*3+2,MAX_BRIGHTNESS);
+		SS<1 ? SetLED((SS+60)*3-1,MAX_BRIGHTNESS/5*4) : SetLED(SS*3-1,MAX_BRIGHTNESS/5*4);
+		SS<2 ? SetLED((SS+60)*3-4,MAX_BRIGHTNESS/5*3) : SetLED(SS*3-4,MAX_BRIGHTNESS/5*3);
+		SS<3 ? SetLED((SS+60)*3-7,MAX_BRIGHTNESS/5*2) : SetLED(SS*3-7,MAX_BRIGHTNESS/5*2);
+		SS<4 ? SetLED((SS+60)*3-10,MAX_BRIGHTNESS/5) : SetLED(SS*3-10,MAX_BRIGHTNESS/5);
 //		calulateLEDMIBAMBits();
 //		delay_ms(100);
 //		SetLED(SS*3+2,0);
@@ -716,10 +736,10 @@ void LED_time(){
 //	}
 	// Minutes Green
 //	for (MM=0;MM<60;MM++){
-		SetLED(MM*3+1,0xff);
-		MM<1 ? SetLED((MM+60)*3-2,0x66/5*4) : SetLED(MM*3-2,0x66/5*4);
-		MM<2 ? SetLED((MM+60)*3-5,0x4c/5*3) : SetLED(MM*3-5,0x4c/5*3);
-		MM<3 ? SetLED((MM+60)*3-8,0x33/5*2) : SetLED(MM*3-8,0x33/5*2);
+		SetLED(MM*3+1,MAX_BRIGHTNESS);
+		MM<1 ? SetLED((MM+60)*3-2,MAX_BRIGHTNESS/4*3) : SetLED(MM*3-2,MAX_BRIGHTNESS/4*3);
+		MM<2 ? SetLED((MM+60)*3-5,MAX_BRIGHTNESS/4*2) : SetLED(MM*3-5,MAX_BRIGHTNESS/4*2);
+		MM<3 ? SetLED((MM+60)*3-8,MAX_BRIGHTNESS/4*1) : SetLED(MM*3-8,MAX_BRIGHTNESS/4*1);
 //		MM<4 ? SetLED((MM+60)*3-11,0x19/5) : SetLED(MM*3-11,0x19/5);
 //		calulateLEDMIBAMBits();
 //		delay_ms(100);
@@ -732,9 +752,9 @@ void LED_time(){
 //	}
 	//Hours red
 //	for (HH=0;HH<12;HH++){
-		SetLED(HH*3*5,0xff);
-		HH<1 ? SetLED((HH+12)*3*5-3,0x66/5*4) : SetLED(HH*3*5-3,0x66/5*4);
-		HH<1 ? SetLED((HH+12)*3*5-6,0x4c/5*3) : SetLED(HH*3*5-6,0x4c/5*3);
+		SetLED(HH*3*5,MAX_BRIGHTNESS);
+		HH<1 ? SetLED((HH+12)*3*5-3,MAX_BRIGHTNESS/3*2) : SetLED(HH*3*5-3,MAX_BRIGHTNESS/3*2);
+		HH<1 ? SetLED((HH+12)*3*5-6,MAX_BRIGHTNESS/3*1) : SetLED(HH*3*5-6,MAX_BRIGHTNESS/3*1);
 //		HH<1 ? SetLED((HH+12)*3*5-9,0x33/5*2) : SetLED(HH*3*5-9,0x33/5*2);
 //		HH<1 ? SetLED((HH+12)*3*5-12,0x19/5) : SetLED(HH*3*5-12,0x19/5);
 //		calulateLEDMIBAMBits();
