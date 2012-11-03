@@ -93,6 +93,7 @@ const uint32_t BITTIME[] = {
 #define LEDS RGBS*3
 #define LEDS16 REGS*16
 #define BITS 8
+#define MAX_BRIGHTNESS ((2^BITS)-1)
 uint16_t SEQ_BIT[16];
 uint32_t SEQ_TIME[16];
 
@@ -115,7 +116,6 @@ volatile int32_t LED_Loop=0;		// Variables for Led Loop
 volatile int32_t LED_Loop_v1=0;		// Variables for inside Led Loops
 volatile int32_t LED_Loop_v2=0;		// Variables for inside Led Loops
 volatile int32_t LED_Loop_v3=0;		// Variables for inside Led Loops
-const uint8_t MAX_BRIGHTNESS = 0xff;
 
 void TIMER0_IRQHandler(void){
 //	xprintf("TIMER0_IRQ");
