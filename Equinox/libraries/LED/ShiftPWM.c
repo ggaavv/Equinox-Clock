@@ -44,8 +44,17 @@
 #define DMA
 //#define RxDMA
 
-//#define MAX_BAM_BITS 16
-#define MAX_BAM_BITS 8		// number of BITORDER bits to cycle through
+// for single board led 30 is led 1
+#define RGBS 60
+#define REGS RGBS/5
+#define LEDS RGBS*3
+#define LEDS16 REGS*16
+#define BITS 8
+#define MAX_BRIGHTNESS ((2^BITS)-1)
+uint16_t SEQ_BIT[16];
+uint32_t SEQ_TIME[16];
+
+#define MAX_BAM_BITS BITS		// number of BITORDER bits to cycle through
 #define SSP_SPEED 30000000
 #define DelayLatchIn 350*(30000000/SSP_SPEED)	// delay before chip select is toggled
 uint32_t volatile ticks = 0;
@@ -86,16 +95,6 @@ const uint32_t BITTIME[] = {
 		START_TIME/2, //Bit 6 time
 		START_TIME //Bit 7 time (MSB)
 };
-
-// for single board led 30 is led 1
-#define RGBS 60
-#define REGS RGBS/5
-#define LEDS RGBS*3
-#define LEDS16 REGS*16
-#define BITS 8
-#define MAX_BRIGHTNESS ((2^BITS)-1)
-uint16_t SEQ_BIT[16];
-uint32_t SEQ_TIME[16];
 
 #define BUFFERS 1									// Number of buffers
 volatile uint8_t LED_RAW[LEDS];						// 8bit brightness
@@ -323,6 +322,7 @@ void LED_init(){
 			}
 		}
 	}
+	resetLeds();
 	calulateLEDMIBAMBits();
 
 	// Initialize SPI pin connect
@@ -374,13 +374,6 @@ void LED_init(){
 	SSP_ConfigStruct.Mode = SSP_MASTER_MODE;
 	SSP_Init(LED_SPI_CHN, &SSP_ConfigStruct);
 	SSP_Cmd(LED_SPI_CHN, ENABLE);	// Enable SSP peripheral
-
-	// Turn all LEDS off
-	for (uint8_t i=0;i<REGS;i++){
-		while(LED_SPI_CHN->SR & SSP_STAT_BUSY);
-		SSP_SendData(LED_SPI_CHN, 0x0000);
-	};
-	LatchIn();
 
 	// Setup LED interupt
 //	xprintf(INFO "LED TIM0_ConfigMatch");FFL_();
@@ -756,9 +749,9 @@ void LED_time(){
 }
 void LED_one_by_one(){
 // Turn on then off every LED
-	SetLED(LED_Loop,0x7f);
+	SetLED(LED_Loop,MAX_BRIGHTNESS);
 	calulateLEDMIBAMBits();
-	SetLED(LED_Loop,0x00);
+	SetLED(LED_Loop,0);
 	LED_Loop++;
 	if(LED_Loop>LEDS)
 		LED_Loop=0;
