@@ -39,7 +39,8 @@ void Set_LED_Pattern(uint8_t no, uint16_t delay, uint8_t bri);
 void Get_LED_Pattern(uint8_t * no, uint16_t * delay, uint8_t * bri);
 uint8_t SetBrightness(uint8_t bri);
 uint8_t GetBrightness(void);
+void LED_off(void);
+void LED_on(void);
 void LED_loop(void);
-void LED_simple_all_colors(void);
 
 #endif
