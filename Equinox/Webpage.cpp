@@ -72,19 +72,22 @@ bool home_page(char* URL){
 			if(l&&h)break;
 		}
 		SetHue(l, h);
+		return true;
 	}
 
 	// Check if the requested URL matches is enter date
 	// calc?
 	if (strncmp(URL,"/calc?",6) == 0){
 		calulateLEDMIBAMBits();
+		return true;
 	}
 
 	// Check if the requested URL matches is enter date
 	// off? turn off all leds but dont calulate LED MIBAM Bits
 	if (strncmp(URL,"/off?",5) == 0){
 		resetLeds();
-		Set_LED_Pattern(5, 1 , 50); //raw
+		Set_LED_Pattern(8, 1 , 50); //raw
+		return true;
 	}
 
 	// Check if the requested URL matches is enter date
@@ -120,6 +123,7 @@ bool home_page(char* URL){
 			if (dom_set&&m_set&&y_set&&hh_set&&mm_set&&ss_set&&st_set)break;
 		}
      	RTC_time_SetTime(ed_year, ed_month, ed_dom, ed_hh, ed_mm, ed_ss, ed_st);
+//needs to drop to page		return true;
 	}
 	// Check if the requested URL matches is enter date
 	// colour?hc=hsv&mc=hsv&sc=hsv   (hsv colour)
@@ -138,6 +142,7 @@ bool home_page(char* URL){
 			}
 //			if (unix_set)break;
 		}
+		return true;
 	}
 
 	// Check if the requested URL matches is enter date
@@ -153,6 +158,7 @@ bool home_page(char* URL){
 		}
 		RTC_Set_print(unixt);
 //     	RTC_time_SetTime(ed_year, ed_month, ed_dom, ed_hh, ed_mm, ed_ss, ed_st);
+		return true;
 	}
 
 	// Check if the requested URL matches is LED_Pattern
@@ -175,6 +181,7 @@ bool home_page(char* URL){
 			if (no_set&&delay_set&&bri_set)break;
 		}
      	Set_LED_Pattern(ed_no, ed_delay, ed_bri);
+//needs to drop to page		return true;
 	}
 
 	// Get all Date/Times

@@ -640,13 +640,21 @@ void calulateLEDMIBAMBits(){
 
 void Set_LED_Pattern(uint8_t no, uint16_t delay, uint8_t bri){
 	LED_PATTERN = no;
-	if(delay>0)
+
+	if(delay!=0){
 		MILLI_DELAY = delay;
-	else
+		TIM_UpdateMatchValue(LPC_TIM2, 0, MILLI_DELAY);
+		TIM_ResetCounter(LPC_TIM2);
+	}
+	else{
 		xprintf(INFO "LED delay not changed");FFL_();
-	SetBrightness(bri);
-	TIM_UpdateMatchValue(LPC_TIM2, 0, MILLI_DELAY);
-	TIM_ResetCounter(LPC_TIM2);
+	}
+	if(bri!=0)
+		SetBrightness(bri);
+	else{
+		xprintf(INFO "Brightness not changed");FFL_();
+	}
+
 //	TIM_Cmd(LPC_TIM2,DISABLE);
 //	xprintf(INFO "pattern=%d DELAY=%d Bri=%d",no,MILLI_DELAY,bri);FFL_();
 	resetLeds();
@@ -886,6 +894,11 @@ void LED_off(void){
 	resetLeds();
 	calulateLEDMIBAMBits();
 }
+void LED_on(void){
+	TIM_Cmd(LPC_TIM0,ENABLE);	// To start timer 0
+	resetLeds();
+	calulateLEDMIBAMBits();
+}
 
 static uint32_t Led_loopp=0;
 static uint32_t count=0;
@@ -920,6 +933,9 @@ void LED_loop(void){
 				break;
 			case 7:
 				LED_one_by_one_smooth_all_on_all_off(2);
+				break;
+			case 8:
+				//raw  dont remove!!
 				break;
 			default:
 				LED_time();
