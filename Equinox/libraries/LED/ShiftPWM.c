@@ -115,7 +115,7 @@ volatile int32_t LED_Loop=0;		// Variables for Led Loop
 volatile int32_t LED_Loop_v1=0;		// Variables for inside Led Loops
 volatile int32_t LED_Loop_v2=0;		// Variables for inside Led Loops
 volatile int32_t LED_Loop_v3=0;		// Variables for inside Led Loops
-const uint8_t MAX_BRIGHTNESS = 0x7f;
+const uint8_t MAX_BRIGHTNESS = 0xff;
 
 void TIMER0_IRQHandler(void){
 //	xprintf("TIMER0_IRQ");
@@ -566,12 +566,12 @@ void SetRGB(int32_t group, uint8_t v0, uint8_t v1, uint8_t v2){
 	if(group==-6)
 		group = 54;
 */
-	LED_RAW[group*3]=v0 & 0x7F;
-	LED_RAW[group*3+1]=v1 & 0x7F;
-	LED_RAW[group*3+2]=v2 & 0x7F;
+	LED_RAW[group*3]=v0 & MAX_BRIGHTNESS;
+	LED_RAW[group*3+1]=v1 & MAX_BRIGHTNESS;
+	LED_RAW[group*3+2]=v2 & MAX_BRIGHTNESS;
 }
 void SetLED(uint8_t led, uint8_t v0){
-	LED_RAW[led]=v0 & 0x7F;
+	LED_RAW[led]=v0 & MAX_BRIGHTNESS;
 }
 
 void resetLeds(void){
@@ -641,7 +641,6 @@ void calulateLEDMIBAMBits(){
 
 void Set_LED_Pattern(uint8_t no, uint16_t delay, uint8_t bri){
 	LED_PATTERN = no;
-
 	if(delay!=0){
 		MILLI_DELAY = delay;
 		TIM_UpdateMatchValue(LPC_TIM2, 0, MILLI_DELAY);
