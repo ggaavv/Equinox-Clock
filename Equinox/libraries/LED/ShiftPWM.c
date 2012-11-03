@@ -61,8 +61,9 @@ const uint8_t BITORDER[] = { 0,1,2,3,4,5,6,7,7,6,5,4,3,2,1,0 };		// which of the
 
 //#define START_TIME 16384	// too high
 //#define START_TIME 8192	// slight flicker
-#define START_TIME 4096
+//#define START_TIME 4096
 //#define START_TIME 2048	// too low
+#define START_TIME 1024	// slowest working perfectly now
 
 //#define START_TIME 32 //smallest time inteval 33us
 //#define START_TIME 32/2 //fastest possible
@@ -672,6 +673,11 @@ uint8_t GetBrightness(void){
 }
 
 //LED Patterns
+void LED_off(void){
+	TIM_Cmd(LPC_TIM0,DISABLE);	// To start timer 0
+	resetLeds();
+	calulateLEDMIBAMBits();
+}
 void LED_time(){
 	resetLeds();
 	uint8_t HH = GetHH();
@@ -867,25 +873,31 @@ void LED_simple_all_colors(){ //simple all colors
 	TIM_Cmd(LPC_TIM0,ENABLE);	// To start timer 0
 	LED_PATTERN=0;
 }
-long colorshift=0;
-void LED_Rainbow(void) {
+void LED_rotating_rainbow(void) {
 	int hue;
 	unsigned char red, green, blue;
-	colorshift+=1;
-	if(colorshift==360)
-		colorshift=0;
+	LED_Loop++; // colour shift
+	if(LED_Loop==360)
+		LED_Loop=0;
 	for(int led=0;led<RGBS;led++){ // loop over all LED's
-		hue = ((led)*360/(RGBS-1)+colorshift)%360;
+		hue = ((led)*360/(RGBS-1)+LED_Loop)%360;
 		hsv2rgb(hue, 255, 255, &red, &green, &blue, MAX_BRIGHTNESS); // convert hsv to rgb values
 		SetRGB(led, red, green, blue); // write rgb values
 	}
 	calulateLEDMIBAMBits();
 }
-void LED_off(void){
-	TIM_Cmd(LPC_TIM0,DISABLE);	// To start timer 0
-	resetLeds();
+void LED_rainbow_all(void) {
+	unsigned char red, green, blue;
+	hsv2rgb(LED_Loop, 255, 255, &red, &green, &blue, MAX_BRIGHTNESS); // convert hsv to rgb values
+	for(int led=0;led<RGBS;led++){ // loop over all LED's
+		SetRGB(led, red, green, blue); // write rgb values
+	}
 	calulateLEDMIBAMBits();
+	LED_Loop++;
+	if(LED_Loop==360)
+		LED_Loop=0;
 }
+
 
 static uint32_t Led_loopp=0;
 static uint32_t count=0;
@@ -907,7 +919,7 @@ void LED_loop(void){
 				LED_one_by_one();
 				break;
 			case 3:
-				LED_Rainbow();
+				LED_rotating_rainbow();
 				break;
 			case 4:
 				LED_simple_all_colors();
@@ -920,6 +932,9 @@ void LED_loop(void){
 				break;
 			case 7:
 				LED_one_by_one_smooth_all_on_all_off(2);
+				break;
+			case 8:
+				LED_rainbow_all();
 				break;
 			default:
 				LED_time();

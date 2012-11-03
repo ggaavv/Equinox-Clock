@@ -9,7 +9,7 @@
 
 #define MAX_DELAY 1024 // delay uses number squared
 
-#define MAX_PATTERNS 8
+#define MAX_PATTERNS 9
 #define MAX_PATTERNS_LETTERS 40
 const char LED_PATTERN_NAME[MAX_PATTERNS][MAX_PATTERNS_LETTERS] = {
 	"All LED's Off",
@@ -19,7 +19,8 @@ const char LED_PATTERN_NAME[MAX_PATTERNS][MAX_PATTERNS_LETTERS] = {
 	"Simple all colors",
 	"One by one smooth all on all off red",
 	"One by one smooth all on all off green",
-	"One by one smooth all on all off blue"
+	"One by one smooth all on all off blue",
+	"Rainbow all LED's the same colour"
 };
 
 void TIMER0_IRQHandler(void);
