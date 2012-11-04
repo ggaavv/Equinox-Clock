@@ -79,7 +79,7 @@ class GETrequest
 		/*
 		 * Creates a new GETrequest with the provided IP, port, host name and URL
 		 */
-		GETrequest(uint8_t* ipAddr, int port, char* hostName, char* URL);
+		GETrequest(uint8* ipAddr, int port, char* hostName, char* URL);
 
 		/*
 		 * Submits the request and prevents further changes to the request until it has been
@@ -144,7 +144,7 @@ class POSTrequest : public GETrequest
 		/*
 		 * Creates a new POSTrequest with the provided IP, port, host name, URL and body function.
 		 */
-		POSTrequest(uint8_t* ipAddr, int port, char* hostName, char* URL, bodyFunction body);
+		POSTrequest(uint8* ipAddr, int port, char* hostName, char* URL, bodyFunction body);
 
 		void setBodyFunc(bodyFunction body);
 
@@ -180,17 +180,10 @@ class Server: public Print
 		 */
 		void init(pageServingFunction function);
 
-	    /*
-		 * Enables or disables verbose mode.  If verbose mode is true, then WiServer
-		 * will output log info via the Serial class.  Verbose mode is disabled by
-		 * default, but is automatically enabled if DEBUG is defined
-		 */
-		void enableVerboseMode(boolean enable);
-
 		/**
 		 * The server task method (must be called in the main loop to run the WiServer)
 		 */
-		void server_task(pageServingFunction function);
+		void server_task();
 
 		/**
 		 * Writes a single byte to the current connection buffer

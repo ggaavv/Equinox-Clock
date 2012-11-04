@@ -127,7 +127,7 @@ void WiFi_loop(){
 //	_DBG("WiFi_loop()");_DBG(" (");_DBG(__FILE__);_DBG(":");_DBD16(__LINE__);_DBG(")\r\n");
 //	stack_process();
 //	zg_drv_process();
-	WiServer.server_task(home_page);
+	WiServer.server_task();
 }
 
 // This is the webpage that is served up by the webserver

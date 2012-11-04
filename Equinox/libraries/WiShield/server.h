@@ -32,7 +32,7 @@
 #define __SERVER_H__
 
 //#include <avr/pgmspace.h>
-#include "uip-conf.h"
+#include <uip-conf.h>
 
 #ifdef APP_WISERVER
 
@@ -41,11 +41,11 @@
 // (it'll save a bunch of code size and a bit of RAM too!)
 //#define ENABLE_CLIENT_MODE
 
-// If DEBUG is defined, the Serial class is used to output lots of diagnostic data
-// (verbose mode is also enabled automatically)
+// DEBUG adds connection info out the Serial port
+// If DEBUG_VERBOSE is defined, additional more technical information is sent as well
 // Warning: this increases RAM usage and code size and will slow execution speed
 //#define DEBUG
-
+//#define DEBUG_VERBOSE
 
 // Declare the server's uip callback function
 void server_app_task();

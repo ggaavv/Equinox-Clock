@@ -37,19 +37,17 @@
 #define CONFIG_H_
 
 #include "witypes.h"
-//#include "wifi_config.h"
+
 
 extern U8 local_ip[];
 extern U8 gateway_ip[];
 extern U8 subnet_mask[];
-extern const char ssid[];
-extern U8 ssid_len;
-extern const char security_passphrase[];
-extern U8 security_passphrase_len;
+extern char ssid[];
+extern char security_data[];
 extern U8 security_type;
 extern U8 wireless_mode;
 
-extern const char wep_keys[];
+
 
 extern const char webpage[];
 extern const char twitter[];

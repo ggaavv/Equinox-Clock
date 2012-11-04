@@ -32,8 +32,9 @@ Description:	Stack process for the WiShield 1.0
 
  *****************************************************************************/
 
-//#include <stdio.h>
-//#include <stdlib.h>
+#include <stdio.h>
+#include <stdlib.h>
+//#include <avr/io.h>
 #include "timer.h"
 #include "global-conf.h"
 #include "uip_arp.h"
@@ -42,7 +43,7 @@ Description:	Stack process for the WiShield 1.0
 #include "config.h"
 #include "g2100.h"
 
-//#include <string.h>
+#include <string.h>
 #define BUF ((struct uip_eth_hdr *)&uip_buf[0])
 
 static struct timer periodic_timer, arp_timer, self_arp_timer;
@@ -62,9 +63,10 @@ void stack_init(void)
    mac.addr[4] = mac_addr[4];
    mac.addr[5] = mac_addr[5];
 
-   timer_set(&periodic_timer, CLOCK_SECOND / 2);
-   timer_set(&arp_timer, CLOCK_SECOND * 10);
-   timer_set(&self_arp_timer, CLOCK_SECOND * 30);
+//	timer_set(&periodic_timer, CLOCK_SECOND / UIP_CLOCK_DIV);
+	timer_set(&periodic_timer, CLOCK_SECOND / 2);
+	timer_set(&arp_timer, CLOCK_SECOND * 10);
+	timer_set(&self_arp_timer, CLOCK_SECOND * 30);
 
    uip_init();
 
@@ -78,12 +80,20 @@ void stack_init(void)
    webclient_init();
 #endif
 
+#ifdef APP_UDPAPP
+	udpapp_init();
+#endif
+
 #ifdef APP_SOCKAPP
    socket_app_init();
 #endif
 
-#ifdef APP_UDPAPP
-   udpapp_init();
+#ifdef UIP_DHCP
+	uip_dhcp_init(zg_get_mac(), 6);
+#endif
+
+#ifdef UIP_DNS
+	uip_dns_init();
 #endif
 
    uip_ipaddr(ipaddr, local_ip[0], local_ip[1], local_ip[2], local_ip[3]);

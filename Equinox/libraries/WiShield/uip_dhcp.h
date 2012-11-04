@@ -1,31 +1,5 @@
-/**
- * \defgroup timer Timer library
- *
- * The timer library provides functions for setting, resetting and
- * restarting timers, and for checking if a timer has expired. An
- * application must "manually" check if its timers have expired; this
- * is not done automatically.
- *
- * A timer is declared as a \c struct \c timer and all access to the
- * timer is made by a pointer to the declared timer.
- *
- * \note The timer library uses the \ref clock "Clock library" to
- * measure time. Intervals should be specified in the format used by
- * the clock library.
- *
- * @{
- */
-
-
-/**
- * \file
- * Timer library header file.
- * \author
- * Adam Dunkels <adam@sics.se>
- */
-
 /*
- * Copyright (c) 2004, Swedish Institute of Computer Science.
+ * Copyright (c) 2005, Swedish Institute of Computer Science
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,36 +28,40 @@
  *
  * This file is part of the uIP TCP/IP stack
  *
- * Author: Adam Dunkels <adam@sics.se>
- *
- * $Id: timer.h,v 1.3 2006/06/11 21:46:39 adam Exp $
+ * @(#)$Id: dhcpc.h,v 1.3 2006/06/11 21:46:37 adam Exp $
  */
-#ifndef __TIMER_H__
-#define __TIMER_H__
 
-//#include "clock.h"
-#include "lpc17xx_systick.h"
+#ifdef UIP_DHCP
+ 
+#ifndef __DHCP_H__
+#define __DHCP_H__
 
-#define CLOCK_SECOND 100
+#include "uipopt.h"
+#include "timer.h"
 
-/**
- * A timer.
- *
- * This structure is used for declaring a timer. The timer must be set
- * with timer_set() before it can be used.
- *
- * \hideinitializer
- */
-struct timer {
-	uint32_t start;
-	uint32_t interval;
+struct dhcp_state {
+  struct pt pt;
+  char state;
+  struct uip_udp_conn *conn;
+  struct timer timer;
+  u16_t ticks;
+  const void *mac_addr;
+  int mac_len;
+  u8_t serverid[4];
+  u16_t lease_time[2];
+  u16_t ipaddr[2];
+  u16_t netmask[2];
+  u16_t dnsaddr[2];
+  u16_t default_router[2];
 };
 
-void timer_set(struct timer *t, uint32_t interval);
-void timer_reset(struct timer *t);
-void timer_restart(struct timer *t);
-int timer_expired(struct timer *t);
 
-#endif /* __TIMER_H__ */
+void uip_dhcp_init(const void *mac_addr, int mac_len);
+void uip_dhcp_request(void);
+char uip_dhcp_run();
+void uip_dhcp_callback(const struct dhcp_state *s);
+void uip_dhcp_shutdown();
 
-/** @} */
+#endif /* __DHCP_H__ */
+
+#endif //UIP_DHCP

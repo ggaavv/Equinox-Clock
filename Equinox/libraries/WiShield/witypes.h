@@ -47,13 +47,17 @@
 typedef unsigned int size_t;
 #endif
 
+typedef char int8;
 typedef volatile char           vint8;
+typedef unsigned char uint8;
 typedef volatile unsigned char  vuint8;
 
 typedef volatile short          vint16;
+typedef unsigned int uint16;
 typedef volatile unsigned short vuint16;
-
+typedef long int32;
 typedef volatile int            vint32;
+typedef unsigned long uint32;
 typedef volatile unsigned int   vuint32;
 
 typedef unsigned char           u8;
