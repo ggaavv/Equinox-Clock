@@ -18,6 +18,8 @@ extern "C" {
 #include <stdlib.h>
 #include "comm.h"
 
+#include "jscolor_js.h"  //jscolor.js converted to .h (needs to be const)
+
 const char DOCTYPE[] = "<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/DTD/html4-strict.dtd\">\n";
 const char meta[] = "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\">\n";
 const char style_open[] = "<STYLE type=\"text/css\">\n";
@@ -58,6 +60,7 @@ const char form_close[] = "\n</form>";
 //bool home_page(char* URL_REQUESTED){
 bool home_page(char* URL){
 //	xprintf("URL:%s",URL);
+	xprintf(INFO "URL:%s",URL);FFL_();
 
 	// Check if the requested URL matches is enter date
 	// raw?l=1&h=123   (hue colour)
@@ -125,25 +128,6 @@ bool home_page(char* URL){
      	RTC_time_SetTime(ed_year, ed_month, ed_dom, ed_hh, ed_mm, ed_ss, ed_st);
 //needs to drop to page		return true;
 	}
-	// Check if the requested URL matches is enter date
-	// colour?hc=hsv&mc=hsv&sc=hsv   (hsv colour)
-	if (strncmp(URL,"/colour?",8) == 0){
-		uint32_t hc = 0, hc_set = 0, mc = 0, mc_set = 0, sc = 0, sc_set = 0;
-		for (uint8_t i=6;i<100;i++){
-			if (!hc_set && strncmp(URL+i,"hc",2)==0){
-				hc = strtoul (URL+i+3,NULL,10);
-				hc_set=1;
-			}else if (!mc_set && strncmp(URL+i,"mc",2)==0){
-				mc = strtoul (URL+i+3,NULL,10);
-				mc_set=1;
-			}else if (!sc_set && strncmp(URL+i,"sc",2)==0){
-				sc = strtoul (URL+i+3,NULL,10);
-				sc_set=1;
-			}
-//			if (unix_set)break;
-		}
-		return true;
-	}
 
 	// Check if the requested URL matches is enter date
 	// unix?uni=1351887087
@@ -183,6 +167,14 @@ bool home_page(char* URL){
      	Set_LED_Pattern(ed_no, ed_delay, ed_bri);
 //needs to drop to page		return true;
 	}
+
+	// Check if the requested URL matches is LED_Pattern
+	// LED?no=7&delay=7&bri=128
+	if (strncmp(URL,"/jscolor/jscolor.js",19) == 0){
+		WiServer.print(jscolor_js);
+		return true;
+	}
+
 
 	// Get all Date/Times
 	// Days of the Week
@@ -287,9 +279,14 @@ bool home_page(char* URL){
 		WiServer.print("<FORM METHOD=\"LINK\" ACTION=\"/setledpattern\">");
 		WiServer.print("<INPUT TYPE=\"submit\" VALUE=\"Set LED Pattern\">");
 		WiServer.print(form_close);
+		WiServer.print("<FORM METHOD=\"LINK\" ACTION=\"/setclockcolour\">");
+		WiServer.print("<INPUT TYPE=\"submit\" VALUE=\"Set Clock Colour\">");
+		WiServer.print(form_close);
 	}
 
-	if (strncmp(URL, "/setdatetime",6) == 0) {
+
+
+	if (strncmp(URL, "/setdatetime",13) == 0) {
 		// Date drop down selection box
 		WiServer.print(date_form_open);
 		WiServer.print(p_open);
@@ -424,6 +421,46 @@ bool home_page(char* URL){
 		WiServer.print(line_break);
 		// Save + Reset
 		WiServer.print(date_submit_reset_buttons);
+		WiServer.print(form_close);
+	}
+
+	if (strncmp(URL, "/setclockcolour",15) == 0) {
+		uint32_t hc = 0, hc_set = 0, mc = 0, mc_set = 0, sc = 0, sc_set = 0, bc = 0, bc_set = 0;
+		for (uint8_t i=6;i<100;i++){
+			if (!hc_set && strncmp(URL+i,"hc",2)==0){
+				hc = strtoul (URL+i+3,NULL,10);
+				hc_set=1;
+			}else if (!mc_set && strncmp(URL+i,"mc",2)==0){
+				mc = strtoul (URL+i+3,NULL,10);
+				mc_set=1;
+			}else if (!sc_set && strncmp(URL+i,"sc",2)==0){
+				sc = strtoul (URL+i+3,NULL,10);
+				sc_set=1;
+			}else if (!bc_set && strncmp(URL+i,"bc",2)==0){
+				bc = strtoul (URL+i+3,NULL,10);
+				bc_set=1;
+			}
+			if (hc_set&&mc_set&&sc_set&&bc_set)break;
+		}
+//		WiServer.print("<script type=\"text/javascript\" src=\"jscolor/jscolor.js\"></script>");
+		WiServer.print("<script type=\"text/javascript\" src=\"http://jscolor.com/jscolor/jscolor.js\"></script>");
+
+		WiServer.print("<form name=\"input\" action=\"colour\" method=\"get\">");
+		//Clock colour picker
+		WiServer.print("Hour: <input class=\"color {slider:false}\" value=\"");
+		WiServer.print("66ff00");WiServer.print("\" name=\"hc\">");
+		WiServer.print(line_break);
+		WiServer.print("Minute: <input class=\"color {slider:false}\" value=\"");
+		WiServer.print("66ff00");WiServer.print("\" name=\"mc\">");
+		WiServer.print(line_break);
+		WiServer.print("Second: <input class=\"color {slider:false}\" value=\"");
+		WiServer.print("66ff00");WiServer.print("\" name=\"sc\">");
+		WiServer.print(line_break);
+		WiServer.print("Background: <input class=\"color {slider:false}\" value=\"");
+		WiServer.print("66ff00");WiServer.print("\" name=\"bc\">");
+		WiServer.print(line_break);
+//		WiServer.print("<FORM METHOD=\"LINK\" ACTION=\"/colour?\">");
+		WiServer.print("<INPUT TYPE=\"submit\" VALUE=\"Set colours\">");
 		WiServer.print(form_close);
 	}
 

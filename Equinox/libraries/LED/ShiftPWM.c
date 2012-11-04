@@ -703,6 +703,18 @@ void LED_on(void){
 	calulateLEDMIBAMBits();
 }
 
+uint32_t HC_R = MAX_BRIGHTNESS;
+uint32_t HC_G = 0;
+uint32_t HC_B = 0;
+
+uint32_t MC_R = 0;
+uint32_t MC_G = MAX_BRIGHTNESS;
+uint32_t MC_B = 0;
+
+uint32_t SC_R = 0;
+uint32_t SC_G = 0;
+uint32_t SC_B = MAX_BRIGHTNESS;
+
 //LED Patterns
 void LED_time(){
 	resetLeds();
