@@ -34,9 +34,11 @@ Description:	Driver for the ZeroG Wireless G2100 series devices
  *****************************************************************************/
 
 //#include <string.h>
+//#include "witypes.h"
 #include "config.h"
-#include "g2100.h"
 #include "global-conf.h"
+#include "g2100.h"
+//#include "spi.h"
 //#include "debug_frmwrk.h"
 #include "wifi_config.h"
 #include "pinout.h"
@@ -44,34 +46,22 @@ Description:	Driver for the ZeroG Wireless G2100 series devices
 #include "lpc17xx_exti.h"
 #include "comm.h"
 
-//#include "libmaple.h"
-//#include "spi.h"
-//#include "gpio.h"
-//#include "nvic.h"
-
-//#define ZG2100_SPI_DBG 0
-//#define ZG2100_DBG 0
-
-//#if ZG2100_SPI_DBG
-//#define zg2100_spi_dbg(...) iprintf(__VA_ARGS__)
-//#else
-//#define zg2100_spi_dbg(...)
-//#endif
-
 static U8 mac[6];
+static U8 zg_conn_status;
 
 static U8 hdr[5];
-static volatile U8 zg_conn_status;
-static volatile U8 intr_occured;
-static volatile U8 intr_valid;
-static volatile U8 zg_drv_state;
-static volatile U8 tx_ready;
-static volatile U8 rx_ready;
-static volatile U8 cnf_pending;
+static U8 intr_occured;
+static U8 intr_valid;
+static U8 zg_drv_state;
+static U8 tx_ready;
+static U8 rx_ready;
+static U8 cnf_pending;
 static U8* zg_buf;
-static volatile U16 zg_buf_len;
-
-static U8 wpa_psk_key[32];
+static U16 zg_buf_len;
+static U16 lastRssi;
+static U8 scan_cnt;
+static U8 wpa_psk_key[ZG_MAX_PMK_LEN];
+static U8 ssid_len;
 
 /* D10  */
 //#define CS_PORT                         GPIOA_BASE
@@ -90,59 +80,50 @@ static U8 wpa_psk_key[32];
 
 void zg_init()
 {
-   intr_occured = 0;
-   intr_valid = 0;
-   zg_drv_state = DRV_STATE_INIT;
-   zg_conn_status = 0;
-   tx_ready = 0;
-   rx_ready = 0;
-   cnf_pending = 0;
-   zg_buf = uip_buf;
-   zg_buf_len = UIP_BUFSIZE;
+	intr_occured = 0;
+	intr_valid = 0;
+	lastRssi = 0;
+	zg_drv_state = DRV_STATE_INIT;
+	zg_conn_status = 0;
+	tx_ready = 0;
+	rx_ready = 0;
+	cnf_pending = 0;
+	zg_buf = uip_buf;
+	zg_buf_len = UIP_BUFSIZE;
 
-   zg_chip_reset();
-   zg_interrupt2_reg();
-   zg_interrupt_reg(0xff, 0);
-   zg_interrupt_reg(0x80|0x40, 1);
+	zg_chip_reset();
+	zg_interrupt2_reg();
+	zg_interrupt_reg(0xff, 0);
+	zg_interrupt_reg(0x80|0x40, 1);
 
-   ssid_len = (U8)strlen(ssid);
-   security_passphrase_len = (U8)strlen(security_passphrase);
+	ssid_len = (U8)strlen(ssid);
 }
 
 void spi_transfer(volatile U8* buf, U16 len, U8 toggle_cs)
 {
+	U16 i;
 
-   U8 i;
+//	ZG2100_CSoff();
+	FIO_ClearValue(WF_CS_PORT, WF_CS_BIT);
 
-   FIO_ClearValue(WF_CS_PORT, WF_CS_BIT);
+//	for (i = 0; i < len; i++) {
+//		ZG2100_SpiSendData(buf[i]);		// Start the transmission
+//		buf[i] = ZG2100_SpiRecvData();
+//	}
 
-   SSP_DATA_SETUP_Type xferConfig;
-   xferConfig.tx_data = buf;
-   xferConfig.rx_data = buf;
-   xferConfig.length = len;
+	SSP_DATA_SETUP_Type xferConfig;
+	xferConfig.tx_data = buf;
+	xferConfig.rx_data = buf;
+	xferConfig.length = len;
 
+	SSP_ReadWrite (WF_SPI_CHN, &xferConfig, SSP_TRANSFER_POLLING);
 
-//   uart_writestr("\nTx");
-//   for (i = 0; i < len; i++) {
-//	   uart_send_32_Hex(buf[i]);
-//	   uart_writestr(".");
-//   }
-//   uart_writestr("\n");
+	if (toggle_cs) {
+//		ZG2100_CSon();
+		FIO_SetValue(WF_CS_PORT, WF_CS_BIT);
+	}
 
-   SSP_ReadWrite (WF_SPI_CHN, &xferConfig, SSP_TRANSFER_POLLING);
-
-//   uart_writestr("Rx");
-//   for (i = 0; i < len; i++) {
-//	   uart_send_32_Hex(buf[i]);
-//	   uart_writestr(".");
-//   }
-//   uart_writestr("\n");
-
-   if (toggle_cs) {
-	   FIO_SetValue(WF_CS_PORT, WF_CS_BIT);
-   }
-
-   return;
+	return;
 }
 
 void zg_chip_reset()
@@ -279,6 +260,7 @@ void zg_process_isr()
          break;
       }
       case ZG_INTR_ST_WT_INTR_REG:
+			{
          hdr[0] = 0x40 | next_cmd;
          hdr[1] = 0x00;
          hdr[2] = 0x00;
@@ -286,8 +268,31 @@ void zg_process_isr()
 
          intr_state = ZG_INTR_ST_RD_CTRL_REG;
          break;
-      case ZG_INTR_ST_RD_CTRL_REG:
-      {
+			}
+			// *************************************************************************************
+			// Released version of WiShield library code (ZG_INTR_ST_RD_CTRL_REG)
+			// susceptible to "packet too large issue" but allows
+			// WiServer/WebServer to work.  Needs to be replaced with 
+			// good fix.
+			case ZG_INTR_ST_RD_CTRL_REG:
+			{
+				U16 rx_byte_cnt = (0x0000 | (hdr[1] << 8) | hdr[2]) & 0x0fff;
+
+				zg_buf[0] = ZG_CMD_RD_FIFO;
+				spi_transfer(zg_buf, rx_byte_cnt + 1, 1);
+
+				hdr[0] = ZG_CMD_RD_FIFO_DONE;
+				spi_transfer(hdr, 1, 1);
+
+				intr_valid = 1;
+
+				intr_state = 0;
+				break;
+			}
+			// Bad "packet too large" fix - killed WiServer WebServer
+			/*
+			case ZG_INTR_ST_RD_CTRL_REG:
+			{
             // Get the size of the incoming packet
          U16 rx_byte_cnt = (0x0000 | (hdr[1] << 8) | hdr[2]) & 0x0fff;
 
@@ -312,10 +317,23 @@ void zg_process_isr()
          intr_state = 0;
          break;
       }
+			*/
+			// *************************************************************************************
       }
-   } while (intr_state);
-
-   intr_occured = 0;
+	} while (intr_state);
+#ifdef USE_DIG8_INTR
+	// PCINT0 supports only edge triggered INT
+	if (PORTB & 0x01) {
+		intr_occured = 0;
+		ZG2100_ISR_ENABLE();
+	}
+	else {
+		intr_occured = 1;
+	}
+#else
+	intr_occured = 0;
+//	ZG2100_ISR_ENABLE();
+#endif
 }
 
 void zg_send(U8* buf, U16 len)
@@ -339,25 +357,25 @@ void zg_send(U8* buf, U16 len)
 
 void zg_recv(U8* buf, U16* len)
 {
-   zg_rx_data_ind_t* ptr = (zg_rx_data_ind_t*)&(zg_buf[3]);
-   *len = ZGSTOHS( ptr->dataLen );
-
-   memcpy(&zg_buf[0], &zg_buf[5], 6);
-   memcpy(&zg_buf[6], &zg_buf[11], 6);
-   memcpy(&zg_buf[12], &zg_buf[29], *len);
+	zg_rx_data_ind_t* ptr = (zg_rx_data_ind_t*)&(zg_buf[3]);
+	*len = ZGSTOHS( ptr->dataLen );
+	lastRssi = ZGSTOHS( ptr->rssi );
+	memcpy(&zg_buf[0], &zg_buf[5], 6);
+	memcpy(&zg_buf[6], &zg_buf[11], 6);
+	memcpy(&zg_buf[12], &zg_buf[29], *len);
 
    *len += 12;
 }
 
 U16 zg_get_rx_status()
 {
-   if (rx_ready) {
-      rx_ready = 0;
-      return zg_buf_len;
-   }
-   else {
-      return 0;
-   }
+	if (rx_ready) {
+		rx_ready = 0;
+		return zg_buf_len;
+	}
+	else {
+		return 0;
+	}
 }
 
 void zg_clear_rx_status()
@@ -390,45 +408,121 @@ void zg_write_wep_key(U8* cmd_buf)
 {
    zg_wep_key_req_t* cmd = (zg_wep_key_req_t*)cmd_buf;
 
-   cmd->slot = 3;                    // WEP key slot
-   cmd->keyLen = 13;    // Key length: 5 bytes (64-bit WEP); 13 bytes (128-bit WEP)
-   cmd->defID = 0; // Default key ID: Key 0, 1, 2, 3
-   cmd->ssidLen = ssid_len;
-   memset(cmd->ssid, 0x00, 32);
-   memcpy(cmd->ssid, ssid, ssid_len);
-   memcpy(cmd->key, wep_keys, ZG_MAX_ENCRYPTION_KEYS * ZG_MAX_ENCRYPTION_KEY_SIZE);
-
-   return;
+	cmd->slot = 3;                    // WEP key slot
+	cmd->keyLen = UIP_WEP_KEY_LEN;    // Key length: 5 bytes (64-bit WEP); 13 bytes (128-bit WEP)
+	cmd->defID = 0;
+	cmd->ssidLen = ssid_len;
+	strncpy(cmd->ssid, ssid, ZG_MAX_SSID_LENGTH);
+	// we only should copy 1 x ZG_MAX_ENCRYPTION_KEY_SIZE but it shouldn't hurt to copy more
+//	memcpy_P(cmd->key, security_data, ZG_MAX_ENCRYPTION_KEYS * ZG_MAX_ENCRYPTION_KEY_SIZE);
+	memcpy(cmd->key, security_data, ZG_MAX_ENCRYPTION_KEYS * ZG_MAX_ENCRYPTION_KEY_SIZE);
+	return;
 }
 
 static void zg_calc_psk_key(U8* cmd_buf)
 {
    zg_psk_calc_req_t* cmd = (zg_psk_calc_req_t*)cmd_buf;
 
-   cmd->configBits = 0;
-   cmd->phraseLen = security_passphrase_len;
-   cmd->ssidLen = ssid_len;
-   cmd->reserved = 0;
-   memset(cmd->ssid, 0x00, 32);
-   memcpy(cmd->ssid, ssid, ssid_len);
-   memset(cmd->passPhrase, 0x00, 64);
-   memcpy(cmd->passPhrase, security_passphrase, security_passphrase_len);
+	cmd->configBits = 0;
+//	cmd->phraseLen = (U8)strlen_P(security_data);
+	cmd->phraseLen = (U8)strlen(security_data);
+	cmd->ssidLen = ssid_len;
+	cmd->reserved = 0;
+	strncpy(cmd->ssid, ssid, ZG_MAX_SSID_LENGTH);
+//	strncpy_P(cmd->passPhrase, security_data, ZG_MAX_WPA_PASSPHRASE_LEN);
+	strncpy(cmd->passPhrase, security_data, ZG_MAX_WPA_PASSPHRASE_LEN);
 
    return;
 }
 
 static void zg_write_psk_key(U8* cmd_buf)
 {
-   zg_pmk_key_req_t* cmd = (zg_pmk_key_req_t*)cmd_buf;
+	zg_pmk_key_req_t* cmd = (zg_pmk_key_req_t*)cmd_buf;
 
-   cmd->slot = 0;       // WPA/WPA2 PSK slot
-   cmd->ssidLen = ssid_len;
-   memset(cmd->ssid, 0x00, 32);
-   memcpy(cmd->ssid, ssid, cmd->ssidLen);
-   memcpy(cmd->keyData, wpa_psk_key, ZG_MAX_PMK_LEN);
+	cmd->slot = 0;       // WPA/WPA2 PSK slot
+	cmd->ssidLen = ssid_len;
+	strncpy(cmd->ssid, ssid, ZG_MAX_SSID_LENGTH);
+	memcpy(cmd->keyData, wpa_psk_key, ZG_MAX_PMK_LEN);
 
-   return;
+	return;
 }
+
+U16 zg_get_rssi(){
+     return lastRssi;
+}
+
+// =================================================================================================
+#ifdef UIP_SCAN
+
+tZGScanResult* zg_scan_results(void)
+{
+    return &uip_buf[3];   
+}
+
+tZGBssDesc* zg_scan_desc(U8 item)
+{
+	return &uip_buf[7 + (item * sizeof(tZGBssDesc))];
+}
+
+U16 get_scan_cnt(){
+     return scan_cnt;
+}
+
+void zg_scan_start()
+{
+	scan_cnt = 0;
+    tZGScanReq* ptr = (tZGScanReq*)&zg_buf[3];
+     
+    zg_buf[0] = ZG_CMD_WT_FIFO_MGMT;
+    zg_buf[1] = ZG_MAC_TYPE_MGMT_REQ;
+    zg_buf[2] = ZG_MAC_SUBTYPE_MGMT_SCAN;
+    
+    // Number of usec to delay before transmitting a probe
+    // request following the channel change event
+    ptr->probeDelay = ( U16 ) HSTOZGS( ( U16 ) 20);
+    // the minimum time to spend on each channel in units
+    // of TU (1024 usec)
+    ptr->minChannelTime = ( U16 ) HSTOZGS(( U16 ) 400);
+    // Maximum time to spend on each channel in units
+    // of TU (1024 usec)
+    ptr->maxChannelTime = ( U16 ) HSTOZGS( ( U16 ) 800);
+    // Bssid to restrict the scan too. Or ff:ff:ff:ff:ff:ff
+    // to not restrict the scan by bssid
+    ptr->bssid[0] = 0xFF;
+    ptr->bssid[1] = 0xFF;
+    ptr->bssid[2] = 0xFF;
+    ptr->bssid[3] = 0xFF;
+    ptr->bssid[4] = 0xFF;
+    ptr->bssid[5] = 0xFF;
+    // Type of networks to be scanned. 1==Infrastructure, 2==Ad-hoc, 3==Any
+    ptr->bss = 3;
+    // Scan Type. 1==Active (probe requests), 2==Passive (just listens)
+    ptr->snType = 1;
+    // set ssid length to 0 to do discovery scan
+    ptr->ssidLen = 0;
+    // State based scan only scans a single channel at a time
+    ptr->chnlLen = 11;
+    // Zero-terminated list of channels to scan
+    //ptr->channelList[0] = 3;
+    //ptr->channelList[1] = 6;
+    //ptr->channelList[2] = 11;
+    //ptr->channelList[3] = 0;
+    U8 b;
+    for ( b=0; b<11; b++ ){
+        ptr->channelList[b] = b+1;
+    }
+    ptr->channelList[13] = 0;
+    // Actually send command to zg2100 over SPI
+    spi_transfer( zg_buf, 65, 1 );
+    
+    zg_buf[0] = ZG_CMD_WT_FIFO_DONE;
+    spi_transfer(zg_buf, 1, 1);
+    
+    //zg_drv_state = DRV_STATE_IDLE;
+}
+
+#endif // UIP_SCAN
+// =================================================================================================
 
 void zg_drv_process()
 {
@@ -455,89 +549,83 @@ void zg_drv_process()
 //   uart_send_32_Hex(zg_buf[2]);
 //   uart_writestr("\n");
 
-   if (intr_valid) {
-      switch (zg_buf[1]) {
-      case ZG_MAC_TYPE_TXDATA_CONFIRM:
-         cnf_pending = 0;
-         break;
-      case ZG_MAC_TYPE_MGMT_CONFIRM:
-         if (zg_buf[3] == ZG_RESULT_SUCCESS) {
-            switch (zg_buf[2]) {
-            case ZG_MAC_SUBTYPE_MGMT_REQ_GET_PARAM:
-//          	   uart_writestr("\ncase ZG_MAC_SUBTYPE_MGMT_REQ_GET_PARAM");
-               mac[0] = zg_buf[7];
-               mac[1] = zg_buf[8];
-               mac[2] = zg_buf[9];
-               mac[3] = zg_buf[10];
-               mac[4] = zg_buf[11];
-               mac[5] = zg_buf[12];
-               zg_drv_state = DRV_STATE_SETUP_SECURITY;
-               break;
-            case ZG_MAC_SUBTYPE_MGMT_REQ_WEP_KEY:
-//         	   uart_writestr("\ncase ZG_MAC_SUBTYPE_MGMT_REQ_WEP_KEY");
-               zg_drv_state = DRV_STATE_ENABLE_CONN_MANAGE;
-               break;
-            case ZG_MAC_SUBTYPE_MGMT_REQ_CALC_PSK:
-               memcpy(wpa_psk_key, ((zg_psk_calc_cnf_t*)&zg_buf[3])->psk, 32);
-               zg_drv_state = DRV_STATE_INSTALL_PSK;
-               break;
-            case ZG_MAC_SUBTYPE_MGMT_REQ_PMK_KEY:
-               zg_drv_state = DRV_STATE_ENABLE_CONN_MANAGE;
-               break;
-            case ZG_MAC_SUBTYPE_MGMT_REQ_CONNECT_MANAGE:
-               zg_drv_state = DRV_STATE_START_CONN;
-               break;
-            case ZG_MAC_SUBTYPE_MGMT_REQ_CONNECT:
- //              LEDConn_on();
-               zg_conn_status = 1;      // connected
-               break;
-            default:
-               break;
-            }
-         }
-         break;
-      case ZG_MAC_TYPE_RXDATA_INDICATE:
-         zg_drv_state = DRV_STATE_PROCESS_RX;
-         break;
-      case ZG_MAC_TYPE_MGMT_INDICATE:
-         switch (zg_buf[2]) {
-         case ZG_MAC_SUBTYPE_MGMT_IND_DISASSOC:
-         case ZG_MAC_SUBTYPE_MGMT_IND_DEAUTH:
-//            LEDConn_off();
-            zg_conn_status = 0; // lost connection
+	if (intr_valid) {
+		switch (zg_buf[1]) {
+		case ZG_MAC_TYPE_TXDATA_CONFIRM:
+			cnf_pending = 0;
+			break;
+		case ZG_MAC_TYPE_MGMT_CONFIRM:
+			if (zg_buf[3] == ZG_RESULT_SUCCESS) {
+				switch (zg_buf[2]) {
+                case ZG_MAC_SUBTYPE_MGMT_SCAN:
+                    scan_cnt = 1;
+                    break;
+				case ZG_MAC_SUBTYPE_MGMT_REQ_GET_PARAM:
+//          	   	uart_writestr("\ncase ZG_MAC_SUBTYPE_MGMT_REQ_GET_PARAM");
+					mac[0] = zg_buf[7];
+					mac[1] = zg_buf[8];
+					mac[2] = zg_buf[9];
+					mac[3] = zg_buf[10];
+					mac[4] = zg_buf[11];
+					mac[5] = zg_buf[12];
+					zg_drv_state = DRV_STATE_SETUP_SECURITY;
+					break;
+				case ZG_MAC_SUBTYPE_MGMT_REQ_WEP_KEY:
+//         	   		uart_writestr("\ncase ZG_MAC_SUBTYPE_MGMT_REQ_WEP_KEY");
+					zg_drv_state = DRV_STATE_ENABLE_CONN_MANAGE;
+					break;
+				case ZG_MAC_SUBTYPE_MGMT_REQ_CALC_PSK:
+					memcpy(wpa_psk_key, ((zg_psk_calc_cnf_t*)&zg_buf[3])->psk, ZG_MAX_PMK_LEN);
+					zg_drv_state = DRV_STATE_INSTALL_PSK;
+					break;
+				case ZG_MAC_SUBTYPE_MGMT_REQ_PMK_KEY:
+					zg_drv_state = DRV_STATE_ENABLE_CONN_MANAGE;
+					break;
+				case ZG_MAC_SUBTYPE_MGMT_REQ_CONNECT_MANAGE:
+					zg_drv_state = DRV_STATE_START_CONN;
+					break;
+				case ZG_MAC_SUBTYPE_MGMT_REQ_CONNECT:
+//					LEDConn_on();
+					zg_conn_status = 1;      // connected
+					break;
+				default:
+					break;
+				}
+			}
+			break;
+		case ZG_MAC_TYPE_RXDATA_INDICATE:
+			zg_drv_state = DRV_STATE_PROCESS_RX;
+			break;
+		case ZG_MAC_TYPE_MGMT_INDICATE:
+			switch (zg_buf[2]) {
+			case ZG_MAC_SUBTYPE_MGMT_IND_DISASSOC:
+			case ZG_MAC_SUBTYPE_MGMT_IND_DEAUTH:
+ //           	LEDConn_off();
+				zg_conn_status = 0; // lost connection
 
-            //try to reconnect
-            zg_drv_state = DRV_STATE_START_CONN;
-            break;
-         case ZG_MAC_SUBTYPE_MGMT_IND_CONN_STATUS:
-            {
-               U16 status = (((U16)(zg_buf[3]))<<8)|zg_buf[4];
+				//try to reconnect
+				zg_drv_state = DRV_STATE_START_CONN;
+				break;
+			case ZG_MAC_SUBTYPE_MGMT_IND_CONN_STATUS:
+				{
+					U16 status = (((U16)(zg_buf[3]))<<8)|zg_buf[4];
 
-               if (status == 1 || status == 5) {
- //                 LEDConn_off();
-                  zg_init();
-                  /* Block execution until reconnected  */
-                  while(zg_get_conn_state() != 1) {
-                      zg_drv_process();
-                  }
-               }
-               else if (status == 2 || status == 6) {
- //                 LEDConn_on();
-                  zg_conn_status = 1;   // connected
-               }
-            }
-            break;
-         }
-         break;
-      }
+					if (status == 1 || status == 5) {
+//						LEDConn_off();
+						zg_conn_status = 0;	// not connected
+					}
+					else if (status == 2 || status == 6) {
+//						LEDConn_on();
+						zg_conn_status = 1;   // connected
+					}
+				}
+				break;
+			}
+			break;
+		}
 
       intr_valid = 0;
    }
-
-
-//   uart_writestr("111111\n");
- //  uart_send_32_Hex(zg_drv_state);
-//   uart_writestr("\n222222\n");
 
    switch (zg_drv_state) {
    case DRV_STATE_INIT:
@@ -545,86 +633,89 @@ void zg_drv_process()
       break;
    case DRV_STATE_GET_MAC:
       // get MAC address
-	  xprintf(INFO "// get MAC address");FFL_();
-	  xprintf("[INFO]-if this is last printed wifi info, then the g2100 probably cannot be seen");FFL_();
-//	   uart_writestr("\n// get MAC address");
-      zg_buf[0] = ZG_CMD_WT_FIFO_MGMT;
-      zg_buf[1] = ZG_MAC_TYPE_MGMT_REQ;
-      zg_buf[2] = ZG_MAC_SUBTYPE_MGMT_REQ_GET_PARAM;
-      zg_buf[3] = 0;
-      zg_buf[4] = ZG_PARAM_MAC_ADDRESS;
-      spi_transfer(zg_buf, 5, 1);
-      zg_buf[0] = ZG_CMD_WT_FIFO_DONE;
+		xprintf(INFO "// get MAC address");FFL_();
+		xprintf("[INFO]-if this is last printed wifi info, then the g2100 probably cannot be seen");FFL_();
+//	   	uart_writestr("\n// get MAC address");
+		zg_buf[0] = ZG_CMD_WT_FIFO_MGMT;
+		zg_buf[1] = ZG_MAC_TYPE_MGMT_REQ;
+		zg_buf[2] = ZG_MAC_SUBTYPE_MGMT_REQ_GET_PARAM;
+		zg_buf[3] = 0;
+		zg_buf[4] = ZG_PARAM_MAC_ADDRESS;
+		spi_transfer(zg_buf, 5, 1);
+		zg_buf[0] = ZG_CMD_WT_FIFO_DONE;
       spi_transfer(zg_buf, 1, 1);
 
       zg_drv_state = DRV_STATE_IDLE;
       break;
-   case DRV_STATE_SETUP_SECURITY:
-      switch (security_type) {
-      case ZG_SECURITY_TYPE_NONE:
-         zg_drv_state = DRV_STATE_ENABLE_CONN_MANAGE;
-         break;
-      case ZG_SECURITY_TYPE_WEP:
-         // Install all four WEP keys on G2100
-    	  xprintf(INFO "// Install all four WEP keys on G2100");FFL_();
-//   	   uart_writestr("\n// Install all four WEP keys on G2100");
-         zg_buf[0] = ZG_CMD_WT_FIFO_MGMT;
-         zg_buf[1] = ZG_MAC_TYPE_MGMT_REQ;
-         zg_buf[2] = ZG_MAC_SUBTYPE_MGMT_REQ_WEP_KEY;
-         zg_write_wep_key(&zg_buf[3]);
-         spi_transfer(zg_buf, ZG_WEP_KEY_REQ_SIZE+3, 1);
+	case DRV_STATE_SETUP_SECURITY:
+		switch (security_type) {
+		case ZG_SECURITY_TYPE_NONE:
+			zg_drv_state = DRV_STATE_ENABLE_CONN_MANAGE;
+			break;
+		case ZG_SECURITY_TYPE_WEP:
+			// Install all four WEP keys on G2100
+			xprintf(INFO "// Install all four WEP keys on G2100");FFL_();
+//   	   	uart_writestr("\n// Install all four WEP keys on G2100");
+			zg_buf[0] = ZG_CMD_WT_FIFO_MGMT;
+			zg_buf[1] = ZG_MAC_TYPE_MGMT_REQ;
+			zg_buf[2] = ZG_MAC_SUBTYPE_MGMT_REQ_WEP_KEY;
+			zg_write_wep_key(&zg_buf[3]);
+			spi_transfer(zg_buf, ZG_WEP_KEY_REQ_SIZE+3, 1);
 
          zg_buf[0] = ZG_CMD_WT_FIFO_DONE;
          spi_transfer(zg_buf, 1, 1);
 
          zg_drv_state = DRV_STATE_IDLE;
          break;
-      case ZG_SECURITY_TYPE_WPA:
-      case ZG_SECURITY_TYPE_WPA2:
-         // Initiate PSK calculation on G2100
-//    	  RTC_print_time();
-    	  xprintf(INFO "// Initiate PSK calculation on G2100");FFL_();
-//      	 uart_writestr("\n// Initiate PSK calculation on G2100");
-         zg_buf[0] = ZG_CMD_WT_FIFO_MGMT;
-         zg_buf[1] = ZG_MAC_TYPE_MGMT_REQ;
-         zg_buf[2] = ZG_MAC_SUBTYPE_MGMT_REQ_CALC_PSK;
-         zg_calc_psk_key(&zg_buf[3]);
-         spi_transfer(zg_buf, ZG_PSK_CALC_REQ_SIZE+3, 1);
+		case ZG_SECURITY_TYPE_WPA:
+		case ZG_SECURITY_TYPE_WPA2:
+			// Initiate PSK calculation on G2100
+//    	  	RTC_print_time();
+			xprintf(INFO "// Initiate PSK calculation on G2100");FFL_();
+//      	uart_writestr("\n// Initiate PSK calculation on G2100");
+			zg_buf[0] = ZG_CMD_WT_FIFO_MGMT;
+			zg_buf[1] = ZG_MAC_TYPE_MGMT_REQ;
+			zg_buf[2] = ZG_MAC_SUBTYPE_MGMT_REQ_CALC_PSK;
+			zg_calc_psk_key(&zg_buf[3]);
+			spi_transfer(zg_buf, ZG_PSK_CALC_REQ_SIZE+3, 1);
 
-         zg_buf[0] = ZG_CMD_WT_FIFO_DONE;
-         spi_transfer(zg_buf, 1, 1);
+			zg_buf[0] = ZG_CMD_WT_FIFO_DONE;
+			spi_transfer(zg_buf, 1, 1);
 
-         zg_drv_state = DRV_STATE_IDLE;
-         break;
-      default:
-         break;
-      }
-      break;
-   case DRV_STATE_INSTALL_PSK:
-      // Install the PSK key on G2100
- 	  xprintf(INFO "// Install the PSK key on G2100");FFL_();
-//  	   uart_writestr("\n// Install the PSK key on G2100");
-      zg_buf[0] = ZG_CMD_WT_FIFO_MGMT;
-      zg_buf[1] = ZG_MAC_TYPE_MGMT_REQ;
-      zg_buf[2] = ZG_MAC_SUBTYPE_MGMT_REQ_PMK_KEY;
-      zg_write_psk_key(&zg_buf[3]);
-      spi_transfer(zg_buf, ZG_PMK_KEY_REQ_SIZE+3, 1);
+			zg_drv_state = DRV_STATE_IDLE;
+			break;
+		case ZG_SECURITY_TYPE_WPA_PRECALC:
+		case ZG_SECURITY_TYPE_WPA2_PRECALC:
+//			memcpy_P(wpa_psk_key, security_data, ZG_MAX_PMK_LEN);
+			memcpy(wpa_psk_key, security_data, ZG_MAX_PMK_LEN);
+			zg_drv_state = DRV_STATE_INSTALL_PSK;
+		default:
+			break;
+		}
+		break;
+	case DRV_STATE_INSTALL_PSK:
+		// Install the PSK key on G2100
+		xprintf(INFO "// Install the PSK key on G2100");FFL_();
+		zg_buf[0] = ZG_CMD_WT_FIFO_MGMT;
+		zg_buf[1] = ZG_MAC_TYPE_MGMT_REQ;
+		zg_buf[2] = ZG_MAC_SUBTYPE_MGMT_REQ_PMK_KEY;
+		zg_write_psk_key(&zg_buf[3]);
+		spi_transfer(zg_buf, ZG_PMK_KEY_REQ_SIZE+3, 1);
 
-      zg_buf[0] = ZG_CMD_WT_FIFO_DONE;
-      spi_transfer(zg_buf, 1, 1);
+		zg_buf[0] = ZG_CMD_WT_FIFO_DONE;
+		spi_transfer(zg_buf, 1, 1);
 
-      zg_drv_state = DRV_STATE_IDLE;
-      break;
-   case DRV_STATE_ENABLE_CONN_MANAGE:
-      // enable connection manager
-	  xprintf(INFO "// enable connection manager");FFL_();
-//  	   uart_writestr("\n// enable connection manager");
-      zg_buf[0] = ZG_CMD_WT_FIFO_MGMT;
-      zg_buf[1] = ZG_MAC_TYPE_MGMT_REQ;
-      zg_buf[2] = ZG_MAC_SUBTYPE_MGMT_REQ_CONNECT_MANAGE;
-      zg_buf[3] = 0x01; // 0x01 - enable; 0x00 - disable
-      zg_buf[4] = 10;           // num retries to reconnect
-      zg_buf[5] = 0x10 | 0x02 | 0x01;   // 0x10 -       enable start and stop indication messages
+		zg_drv_state = DRV_STATE_IDLE;
+		break;
+	case DRV_STATE_ENABLE_CONN_MANAGE:
+		// enable connection manager
+		xprintf(INFO "// enable connection manager");FFL_();
+		zg_buf[0] = ZG_CMD_WT_FIFO_MGMT;
+		zg_buf[1] = ZG_MAC_TYPE_MGMT_REQ;
+		zg_buf[2] = ZG_MAC_SUBTYPE_MGMT_REQ_CONNECT_MANAGE;
+		zg_buf[3] = 0x01; // 0x01 - enable; 0x00 - disable
+		zg_buf[4] = 10;           // num retries to reconnect
+		zg_buf[5] = 0x10 | 0x02 | 0x01;   // 0x10 -       enable start and stop indication messages
                               //                        from G2100 during reconnection
                               // 0x02 - start reconnection on receiving a deauthentication
                               //                        message from the AP
@@ -645,17 +736,18 @@ void zg_drv_process()
 
       // start connection to AP
 	  xprintf(INFO "// start connection to AP");FFL_();
-// 	   uart_writestr("\n// start connection to AP");
       zg_buf[0] = ZG_CMD_WT_FIFO_MGMT;
       zg_buf[1] = ZG_MAC_TYPE_MGMT_REQ;
       zg_buf[2] = ZG_MAC_SUBTYPE_MGMT_REQ_CONNECT;
 
-      cmd->secType = security_type;
+		// adjust security_type to mask the PRECALC types
+		if (security_type < ZG_SECURITY_TYPE_WPA_PRECALC)
+			cmd->secType = security_type;
+		else
+			cmd->secType = security_type - 2;
 
-      cmd->ssidLen = ssid_len;
-      memset(cmd->ssid, 0, 32);
-      memcpy(cmd->ssid, ssid, ssid_len);
-
+		cmd->ssidLen = ssid_len;
+		strncpy(cmd->ssid, ssid, ZG_MAX_SSID_LENGTH);
       // units of 100 milliseconds
       cmd->sleepDuration = 0;
 
@@ -672,16 +764,14 @@ void zg_drv_process()
       zg_drv_state = DRV_STATE_IDLE;
       break;
    }
-   case DRV_STATE_PROCESS_RX:
-      zg_recv(zg_buf, (U16*)&zg_buf_len);
-      rx_ready = 1;
+	case DRV_STATE_PROCESS_RX:
+		zg_recv(zg_buf, &zg_buf_len);
+		rx_ready = 1;
 
-      zg_drv_state = DRV_STATE_IDLE;
-      break;
-   case DRV_STATE_IDLE:
-      break;
-   }
+		zg_drv_state = DRV_STATE_IDLE;
+		break;
+	case DRV_STATE_IDLE:
+		break;
+	}
 //   xprintf("[END]-zg_drv_process()");FFL_();
 }
-
-// END

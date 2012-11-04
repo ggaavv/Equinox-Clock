@@ -37,8 +37,6 @@
 
 //#include "WProgram.h"
 #include "WiServer.h"
-#include <stdlib.h>
-#include <string.h>
 
 extern "C" {
     #include "g2100.h"
@@ -60,8 +58,8 @@ extern "C" {
 #define CR 13
 #define LF 10
 
-
 // Strings stored in program memory (defined in strings.c)
+extern const char httpGET[];
 extern const char httpOK[];
 extern const char httpNotFound[];
 extern const char http10[];
@@ -76,6 +74,8 @@ extern const char status[];
 extern const char base64Chars[];
 
 
+/* GregEigsti - jrwifi submitted WiServer stability fix */
+static char get_string_global[WISERVER_GET_STRING_MAX];
 
 /* Application's callback function for serving pages */
 pageServingFunction callbackFunc;
@@ -86,15 +86,24 @@ char txPin = -1;
 /* Digital output pin to indicate RX activity */
 char rxPin = -1;
 
-/* Enables basic log messages via Serial */
-bool verbose = false;
-
-
 void Server::init(pageServingFunction function) {
 
 	// WiShield init
 	zg_init();xprintf(OK "zg_init()");FFL_();
-#if 0
+
+#ifdef USE_DIG0_INTR
+	attachInterrupt(0, zg_isr, LOW);
+#endif
+
+#ifdef USE_DIG8_INTR
+	// set digital pin 8 on Arduino
+	// as ZG interrupt pin
+	PCICR |= (1<<PCIE0);
+	PCMSK0 |= (1<<PCINT0);
+#endif
+
+
+
 	while(zg_get_conn_state() != 1) {
 		zg_drv_process();
 	}
@@ -110,12 +119,11 @@ void Server::init(pageServingFunction function) {
 		// Listen for server requests on port 80
 		uip_listen(HTONS(80));
 	}
-#endif
-#ifdef DEBUG
-	verbose = true;
+
+#ifdef DEBUG_VERBOSE
 	xprintf(INFO "WiServer init called");FFL_();
-//	Serial.println("WiServer init called");
-#endif // DEBUG
+	Serial.println("WiServer init called");
+#endif // DEBUG_VERBOSE
 }
 
 #ifdef USE_DIG8_INTR
@@ -141,30 +149,25 @@ void Server::setIndicatorPins(int tx, int rx) {
  * Sets the TX pin (if enabled) to the specified value (HIGH or LOW)
  */
 void setTXPin(uint8_t value) {
-	if (value){
-//	GPIO_SetValue(LED_1_PORT, LED_1_BIT);
-	}else{
-//	GPIO_ClearValue(LED_1_PORT, LED_1_BIT);
-	}
 //	if (txPin != -1) digitalWrite(txPin, value);
+//	if (value)
+//		GPIO_SetValue(LED_1_PORT, LED_1_BIT);
+//	else
+//		GPIO_ClearValue(LED_1_PORT, LED_1_BIT);
 }
 
 /*
  * Sets the RX pin (if enabled) to the specified value (HIGH or LOW)
  */
 void setRXPin(uint8_t value) {
-	if (value){
-//	GPIO_SetValue(LED_2_PORT, LED_2_BIT);
-	}else{
-//	GPIO_ClearValue(LED_2_PORT, LED_2_BIT);
-	}
 //	if (rxPin != -1) digitalWrite(rxPin, value);
+//	if (value){
+//		GPIO_SetValue(LED_2_PORT, LED_2_BIT);
+//	else
+//		GPIO_ClearValue(LED_2_PORT, LED_2_BIT);
 }
 
 
-void Server::enableVerboseMode(boolean enable) {
-    verbose = enable;
-}
 
 
 
@@ -180,10 +183,13 @@ void Server::write_P(const char data[], int len) {
 
 void Server::print_P(const char s[]) {
 //	char c = pgm_read_byte(s);
-//	while (c) {
-//		this->print(c);
+	char c = *s;
+	while (c) {
+		this->print(c);
 //		c = pgm_read_byte(++s);
-//	}
+		c = *s;
+		s++;
+	}
 }
 
 
@@ -247,21 +253,20 @@ void send() {
 	len = len < 0 ? 0 : len;
 	len = len > (int)uip_conn->mss ? (int)uip_conn->mss : len;
 
-	if (verbose) {
-		xprintf(INFO "send_TX len=%d",len);FFL_();
-//		Serial.print("TX ");
-//		Serial.print(len);
-//		Serial.println(" bytes");
-	}
-
 #ifdef DEBUG
 	xprintf("%d - %d of %d",app->ackedCount,app->ackedCount + len - 1,(int)app->cursor);FFL_();
+//	Serial.print("TX ");
+//	Serial.print(len);
+//	Serial.println(" bytes");
+#endif // DEBUG
+
+#ifdef DEBUG_VERBOSE
 //	Serial.print(app->ackedCount);
 //	Serial.print(" - ");
 //	Serial.print(app->ackedCount + len - 1);
 //	Serial.print(" of ");
 //	Serial.println((int)app->cursor);
-#endif // DEBUG
+#endif // DEBUG_VERBOSE
 
 	// Send the real bytes from the virtual buffer and record how many were sent
 	uip_send(uip_appdata, len);
@@ -283,21 +288,26 @@ boolean processLine(char* data, int len) {
 //	xprintf("data=%s",data);FFL_();
 
 	// Check for a valid GET line
-	if ((uip_conn->appstate.request == NULL) && (strncmp(data, "GET /", 4) == 0)) {
+//	if ((uip_conn->appstate.request == NULL) && (strncmp_P(data, httpGET, 4) == 0)) {
+	if ((uip_conn->appstate.request == NULL) && (strncmp(data, httpGET, 4) == 0)) {
 		// URL starts at the '/'
 		char* start = data + 4;
 		// Find trailing space after the URL
 		data = start;
 		char* end = data + len;
 		while (++data < end) {
-			if (*data == ' ') {
+			if (' ' == *data) {
 				// Replace the space with a NULL to terminate it
-				*(data++) = 0;
-				// Compute length of the URL including the NULL
-				int len = data - start;
-				// Allocate space for the URL and copy the contents
-				uip_conn->appstate.request = malloc(len);
-				memcpy(uip_conn->appstate.request, start, len);
+				*(data++) = '\0';
+				
+				// copy the URL to the static storage
+				uip_conn->appstate.request = get_string_global;
+				strncpy(get_string_global, start, WISERVER_GET_STRING_MAX - 1);
+				// The following set is implicit. get_string_global is allocated in 
+				// the BSS so it starts with a NULL last char and it stays there
+				// as long as we never overwrite it
+				// get_string_global[WISERVER_GET_STRING_MAX - 1] = '\0';
+
 				return false;
 			}
 		}
@@ -368,10 +378,10 @@ void sendPage() {
 		uip_conn->appstate.cursor = 0;
 		WiServer.println_P(httpNotFound);
 		WiServer.println();
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 		xprintf("URL Not Found");FFL_();
 // 		Serial.println("URL Not Found");
-#endif // DEBUG
+#endif // DEBUG_VERBOSE
 	}
 	// Send the 'real' bytes in the buffer
 	send();
@@ -409,26 +419,25 @@ void server_task_impl() {
 
 	if (uip_connected()) {
 
-		if (verbose) {
-			xprintf(INFO "Server connected");FFL_();
-		}
+#ifdef DEBUG
+		xprintf(INFO "Server connected");FFL_();
+//		Serial.println("Server connected");
+#endif // DEBUG
 
 		// Initialize the server request data
 		app->ackedCount = 0;
 		app->request = NULL;
 	}
 
-//	xprintf("uip_newdata() - %d",uip_newdata());FFL_();
-
 	if (uip_newdata()) {
  		setRXPin(HIGH);
 		// Process the received packet and check if a valid GET request had been received
 		if (processPacket((char*)uip_appdata, uip_datalen()) && app->request) {
-			if (verbose) {
+#ifdef DEBUG
 				xprintf(INFO "Processing request for");FFL_();
 //				Serial.print("Processing request for ");
 //				Serial.println((char*)app->request);
-			}
+#endif // DEBUG
 			sendPage();
 		}
 	}
@@ -464,13 +473,14 @@ void server_task_impl() {
 
 		// Check if a URL was stored for this connection
 		if (app->request != NULL) {
-			if (verbose) {
-				xprintf(INFO "Server connection closed");FFL_();
-//				Serial.println("Server connection closed");
-			}
+#ifdef DEBUG
+			xprintf(INFO "Server connection closed");FFL_();
+//			Serial.println("Server connection closed");
+#endif // DEBUG
 
 			// Free RAM and clear the pointer
-			free(app->request);
+			// GregEigsti - jrwifi submitted WiServer stability fix
+			// free(app->request);
 			app->request = NULL;
 		}
 	}
@@ -596,11 +606,11 @@ void client_task_impl() {
 
 	if (uip_connected()) {
 
-		if (verbose) {
-			xprintf("Connected to ");FFL_();
-//			Serial.print("Connected to ");
-//			Serial.println(req->hostName);
-		}
+#ifdef DEBUG
+		xprintf("Connected to ");FFL_();
+//		Serial.print("Connected to ");
+//		Serial.println(req->hostName);
+#endif // DEBUG
 		app->ackedCount = 0;
 		sendRequest();
 	}
@@ -626,13 +636,13 @@ void client_task_impl() {
  	if (uip_newdata())  {
  		setRXPin(HIGH);
 
-		if (verbose) {
-			xprintf("RX %d bytes from %s",uip_datalen(),req->hostName);FFL_();
-//			Serial.print(uip_datalen());
-//			Serial.print(" bytes from ");
-//			Serial.println(req->hostName);
-		}
-
+#ifdef DEBUG
+		Serial.print("RX ");
+		xprintf("RX %d bytes from %s",uip_datalen(),req->hostName);FFL_();
+//		Serial.print(uip_datalen());
+//		Serial.print(" bytes from ");
+//		Serial.println(req->hostName);
+#endif // DEBUG
 		// Check if the sketch cares about the returned data
 	 	if ((req->returnFunc) && (uip_datalen() > 0)){
 			// Call the sketch's callback function
@@ -642,11 +652,11 @@ void client_task_impl() {
 
 	if (uip_aborted() || uip_timedout() || uip_closed()) {
 		if (req != NULL) {
-			if (verbose) {
-				xprintf("Ended connection with %s",req->hostName);FFL_();
-//				Serial.print("Ended connection with ");
-//				Serial.println(req->hostName);
-			}
+#ifdef DEBUG
+			xprintf("Ended connection with %s",req->hostName);FFL_();
+//			Serial.print("Ended connection with ");
+//			Serial.println(req->hostName);
+#endif // DEBUG
 
 			if (req->returnFunc) {
 				// Call the sketch's callback function with 0 bytes to indicate End Of Data
@@ -662,6 +672,7 @@ void client_task_impl() {
 
 
 char getChar(int nibble) {
+//	return pgm_read_byte(base64Chars + nibble);
 	return base64Chars + nibble;
 }
 
@@ -728,58 +739,8 @@ void server_app_task() {
 /*
  * Called by the sketch's main loop
  */
-void Server::server_task(pageServingFunction function) {
+void Server::server_task() {
 
-	uint32_t first_run=0;
-
-	if(zg_get_conn_state() != 1) {
-		zg_drv_process();
-		first_run=1;
-	}
-	if(first_run){
-		// Start the stack
-		stack_init();
-
-		// Store the callback function for serving pages
-		// and start listening for connections on port 80 if
-		// the function is non-null
-		callbackFunc = function;
-		if (callbackFunc) {
-			// Listen for server requests on port 80
-			uip_listen(HTONS(80));
-		}
-	}
-	else{
-		// Run the stack state machine
-		stack_process();
-
-		// Run the driver
-		zg_drv_process();
-
-#ifdef ENABLE_CLIENT_MODE
-		// Check if there is a pending client request
-		if (queue) {
-			// Attempt to connect to the server
-			struct uip_conn *conn = uip_connect(&(queue->ipAddr), queue->port);
-
-			if (conn != NULL) {
-#ifdef DEBUG
-				xprintf("Got connection for ",queue->hostName);FFL_();
-//				Serial.print("Got connection for ");
-//				Serial.println(queue->hostName);
-#endif // DEBUG
-
-				// Attach the request object to its connection
-				conn->appstate.request = queue;
-				// Move the head of the queue to the next request in the queue
-				queue = queue->next;
-				// Clear the next pointer of the connected request
-				((GETrequest*)conn->appstate.request)->next = NULL;
-			}
-		}
-#endif // ENABLE_CLIENT_MODE
-	}
-#if 0 //old
 	// Run the stack state machine
 	stack_process();
 
@@ -793,11 +754,11 @@ void Server::server_task(pageServingFunction function) {
 		struct uip_conn *conn = uip_connect(&(queue->ipAddr), queue->port);
 
 		if (conn != NULL) {
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 			xprintf("Got connection for ",queue->hostName);FFL_();
 //			Serial.print("Got connection for ");
 //			Serial.println(queue->hostName);
-#endif // DEBUG
+#endif // DEBUG_VERBOSE
 
 			// Attach the request object to its connection
 			conn->appstate.request = queue;
@@ -808,7 +769,6 @@ void Server::server_task(pageServingFunction function) {
 		}
 	}
 #endif // ENABLE_CLIENT_MODE
-#endif
 }
 
 // Single instance of the server

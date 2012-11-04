@@ -34,8 +34,9 @@
 
 // This file contains various strings used by the WiServer
 // They are stored in program memory to reduce RAM usage.
+// GET used to identify an incoming request
+const char httpGET[] = {"GET /"};
 
-/* Perry note: moved to ram for now  */
 // HTTP OK response
 const char httpOK[] = {"HTTP/1.0 200 OK"};
 

@@ -65,7 +65,6 @@ void
 timer_set(struct timer *t, uint32_t interval)
 {
   t->interval = interval;
-//  t->start = sys_millis();
   t->start = sys_millis();
 
 }

@@ -403,11 +403,17 @@ uip_udpchksum(void)
 void
 uip_init(void)
 {
+  uip_flags = 0;
+  uip_len = 0;
+  lastport = 4096;
+      
   for(c = 0; c < UIP_LISTENPORTS; ++c) {
     uip_listenports[c] = 0;
   }
   for(c = 0; c < UIP_CONNS; ++c) {
     uip_conns[c].tcpstateflags = UIP_CLOSED;
+    uip_conns[c].lport = 0;
+    uip_conns[c].rport = 0;
   }
 #if UIP_ACTIVE_OPEN
   lastport = 1024;
@@ -1136,8 +1142,8 @@ uip_process(u8_t flag)
        address of the packet is checked. */
     if(uip_udp_conn->lport != 0 &&
        UDPBUF->destport == uip_udp_conn->lport &&
-//       (uip_udp_conn->rport == 0 ||
-//        UDPBUF->srcport == uip_udp_conn->rport) &&
+       (uip_udp_conn->rport == 0 ||
+        UDPBUF->srcport == uip_udp_conn->rport) &&
        (uip_ipaddr_cmp(uip_udp_conn->ripaddr, all_zeroes_addr) ||
 	uip_ipaddr_cmp(uip_udp_conn->ripaddr, all_ones_addr) ||
 	uip_ipaddr_cmp(BUF->srcipaddr, uip_udp_conn->ripaddr))) {
@@ -1148,9 +1154,13 @@ uip_process(u8_t flag)
   goto drop;
 
  udp_found:
-  if (uip_udp_conn->rport == 0) {
-    uip_udp_conn->rport = UDPBUF->srcport;
-  }
+  // rryan UDP locked to port fix
+  //  matches fix found in updated version of original uIP stack - though I wonder if a better
+  //  fix would be changing the condition above on lines 1145 and 1146?  Regardless UDP is connectionless
+  //  so this should help at the expense of losing the rport data for the packet (not important IMO).
+  // if (uip_udp_conn->rport == 0) {
+  //   uip_udp_conn->rport = UDPBUF->srcport;
+  // }
   uip_conn = NULL;
   uip_flags = UIP_NEWDATA;
   uip_sappdata = uip_appdata = &uip_buf[UIP_LLH_LEN + UIP_IPUDPH_LEN];

@@ -65,9 +65,9 @@ unsigned short fill_buf(void* blk)
 {
 	unsigned short webpage_len;
 
-	webpage_len = (strlen(webpage)>uip_mss())?uip_mss():strlen(webpage);
+	webpage_len = (strlen_P(webpage)>uip_mss())?uip_mss():strlen(webpage);
 
-	memcpy(uip_appdata, webpage, webpage_len);
+	strlen_P(uip_appdata, webpage, webpage_len);
 	return webpage_len;
 }
 
