@@ -715,6 +715,10 @@ uint32_t SC_R = 0;
 uint32_t SC_G = 0;
 uint32_t SC_B = MAX_BRIGHTNESS;
 
+uint32_t BC_R = 0;
+uint32_t BC_G = 0;
+uint32_t BC_B = 0;
+
 //LED Patterns
 void LED_time(){
 	resetLeds();
@@ -723,6 +727,7 @@ void LED_time(){
 	uint8_t SS = GetSS();
 	HH>11 ? HH-=12 : 0;
 
+#ifdef SetLED
 	// Remove the tails
 	SS<5 ? SetLED((SS+60)*3-13,0) : SetLED(SS*3-13,0);
 	MM<4 ? SetLED((MM+60)*3-11,0) : SetLED(MM*3-11,0);
@@ -777,6 +782,40 @@ void LED_time(){
 //		HH<1 ? SetLED((HH+12)*3*5-9,0) : SetLED(HH*3*5-9,0);
 //		HH<1 ? SetLED((HH+12)*3*5-12,0) : SetLED(HH*3*5-12,0);
 //	}
+#endif //SetLED
+
+	// Remove the tails
+	SS<5 ? SetRGB((SS+60)-5,0,0,0) : SetRGB(SS-5,0,0,0);
+	MM<4 ? SetRGB((MM+60)-4,0,0,0) : SetRGB(MM-4,0,0,0);
+	HH<2 ? SetRGB((HH+11)*5,0,0,0) : SetRGB((HH-1)*5,0,0,0);
+	HH<2 ? SetRGB((HH+11)*5-2,0,0,0) : SetRGB((HH-1)*5-2,0,0,0);
+	HH<2 ? SetRGB((HH+11)*5-3,0,0,0) : SetRGB((HH-1)*5-3,0,0,0);
+
+	// Seconds Blue
+//	for (SS=0;SS<60;SS++){
+		SetRGB(SS,SC_R,SC_G,SC_B);
+		SS<1 ? SetRGB((SS+60)-1,SC_R/5*4,SC_G/5*4,SC_B/5*4) : SetRGB(SS-1,SC_R/5*4,SC_G/5*4,SC_B/5*4);
+		SS<2 ? SetRGB((SS+60)-2,SC_R/5*3,SC_G/5*3,SC_B/5*3) : SetRGB(SS-2,SC_R/5*3,SC_G/5*3,SC_B/5*3);
+		SS<3 ? SetRGB((SS+60)-3,SC_R/5*2,SC_G/5*2,SC_B/5*2) : SetRGB(SS-3,SC_R/5*2,SC_G/5*2,SC_B/5*2);
+		SS<4 ? SetRGB((SS+60)-4,SC_R/5*1,SC_G/5*1,SC_B/5*1) : SetRGB(SS-4,SC_R/5*1,SC_G/5*1,SC_B/5*1);
+//	}
+	// Minutes Green
+//	for (MM=0;MM<60;MM++){
+		SetRGB(MM,MC_R,MC_G,MC_B);
+		MM<1 ? SetRGB((MM+60)-1,MC_R/5*4,MC_G/5*4,MC_B/5*4) : SetRGB(MM-1,MC_R/5*4,MC_G/5*4,MC_B/5*4);
+		MM<2 ? SetRGB((MM+60)-2,MC_R/5*3,MC_G/5*3,MC_B/5*3) : SetRGB(MM-2,MC_R/5*3,MC_G/5*3,MC_B/5*3);
+		MM<3 ? SetRGB((MM+60)-3,MC_R/5*2,MC_G/5*2,MC_B/5*2) : SetRGB(MM-3,MC_R/5*2,MC_G/5*2,MC_B/5*2);
+//		MM<4 ? SetRGB((MM+60)-4,0,0x19/,05) : SetRGB(MM-4,0,0x19/5,0);
+//	}
+	//Hours red
+//	for (HH=0;HH<12;HH++){
+		SetRGB((HH+12)*5,HC_R,HC_G,HC_B);
+		HH<1 ? SetRGB((HH+12)*5-1,HC_R/5*4,HC_G/5*4,HC_B/5*4) : SetRGB(HH*5-1,HC_R/5*4,HC_G/5*4,HC_B/5*4);
+		HH<1 ? SetRGB((HH+12)*5-2,HC_R/5*3,HC_G/5*3,HC_B/5*3) : SetRGB(HH*5-2,HC_R/5*3,HC_G/5*3,HC_B/5*3);
+//		HH<1 ? SetRGB((HH+12)*5-3,0x33/5*2,0,0) : SetRGB(HH*5-3,0x33/5*2,0,0);
+//		HH<1 ? SetRGB((HH+12)*5-4,0x19/5,0,0) : SetRGB(HH*5-4,0x19/5,0,0);
+//	}
+
 	calulateLEDMIBAMBits();
 }
 void LED_one_by_one(){

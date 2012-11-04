@@ -57,18 +57,35 @@ const char date_form_open[] = "<form name=\"input\" action=\"/date\" method=\"ge
 const char LED_form_open[] = "<form name=\"input\" action=\"/LED\" method=\"get\" >\n";
 const char form_close[] = "\n</form>";
 
+extern uint32_t HC_R;
+extern uint32_t HC_G;
+extern uint32_t HC_B;
+
+extern uint32_t MC_R;
+extern uint32_t MC_G;
+extern uint32_t MC_B;
+
+extern uint32_t SC_R;
+extern uint32_t SC_G;
+extern uint32_t SC_B;
+
+extern uint32_t BC_R;
+extern uint32_t BC_G;
+extern uint32_t BC_B;
+
 //bool home_page(char* URL_REQUESTED){
 bool home_page(char* URL){
 //	xprintf("URL:%s",URL);
 	xprintf(INFO "URL:%s",URL);FFL_();
+	char tmp[20];
 
 	// Check if the requested URL matches is enter date
 	// raw?l=1&h=123   (hue colour)
 	if (strncmp(URL,"/raw?",5) == 0){
 		uint32_t l = 0, h = 0;
-		for (uint8_t i=6;i<100;i++){
+		for (uint8_t i=5;i<20;i++){
 			if (!h && strncmp(URL+i,"h",1)==0){
-				h = strtoul (URL+i+2,NULL,10);
+				h = strtoul (URL+i+3,NULL,10);
 			}else if (!l && strncmp(URL+i,"l",1)==0){
 				l = strtoul (URL+i+2,NULL,10);
 			}
@@ -424,40 +441,87 @@ bool home_page(char* URL){
 		WiServer.print(form_close);
 	}
 
-	if (strncmp(URL, "/setclockcolour",15) == 0) {
+	if (strncmp(URL, "/setclockcolour?",16) == 0) {
 		uint32_t hc = 0, hc_set = 0, mc = 0, mc_set = 0, sc = 0, sc_set = 0, bc = 0, bc_set = 0;
-		for (uint8_t i=6;i<100;i++){
+		for (uint8_t i=6;i<50;i++){
 			if (!hc_set && strncmp(URL+i,"hc",2)==0){
-				hc = strtoul (URL+i+3,NULL,10);
+				strncpy(tmp,URL+i+3,2);
+				HC_R = strtoul (tmp,NULL,16);
+				strncpy(tmp,URL+i+5,2);
+				HC_G = strtoul (tmp,NULL,16);
+				strncpy(tmp,URL+i+7,2);
+				HC_B = strtoul (tmp,NULL,16);
 				hc_set=1;
 			}else if (!mc_set && strncmp(URL+i,"mc",2)==0){
-				mc = strtoul (URL+i+3,NULL,10);
+				strncpy(tmp,URL+i+3,2);
+				MC_R = strtoul (tmp,NULL,16);
+				strncpy(tmp,URL+i+5,2);
+				MC_G = strtoul (tmp,NULL,16);
+				strncpy(tmp,URL+i+7,2);
+				MC_B = strtoul (tmp,NULL,16);
 				mc_set=1;
 			}else if (!sc_set && strncmp(URL+i,"sc",2)==0){
-				sc = strtoul (URL+i+3,NULL,10);
+				strncpy(tmp,URL+i+3,2);
+				SC_R = strtoul (tmp,NULL,16);
+				strncpy(tmp,URL+i+5,2);
+				SC_G = strtoul (tmp,NULL,16);
+				strncpy(tmp,URL+i+7,2);
+				SC_B = strtoul (tmp,NULL,16);
 				sc_set=1;
 			}else if (!bc_set && strncmp(URL+i,"bc",2)==0){
-				bc = strtoul (URL+i+3,NULL,10);
+				strncpy(tmp,URL+i+3,2);
+				BC_R = strtoul (tmp,NULL,16);
+				strncpy(tmp,URL+i+5,2);
+				BC_G = strtoul (tmp,NULL,16);
+				strncpy(tmp,URL+i+7,2);
+				BC_B = strtoul (tmp,NULL,16);
 				bc_set=1;
 			}
-			if (hc_set&&mc_set&&sc_set&&bc_set)break;
+			if (hc_set&&mc_set&&sc_set&&bc_set){
+				xprintf(INFO "SET");FFL_();
+				xprintf(INFO "HC_R=%x,HC_G=%x,HC_B=%x",HC_R,HC_G,HC_B);FFL_();
+				xprintf(INFO "MC_R=%x,MC_G=%x,MC_B=%x",MC_R,MC_G,MC_B);FFL_();
+				xprintf(INFO "SC_R=%x,SC_G=%x,SC_B=%x",SC_R,SC_G,SC_B);FFL_();
+				xprintf(INFO "BC_R=%x,BC_G=%x,BC_B=%x",BC_R,BC_G,BC_B);FFL_();
+				break;
+			}
 		}
+	}
+
+	if (strncmp(URL, "/setclockcolour",15) == 0) {
+
+		xprintf(INFO "READ");FFL_();
+		xprintf(INFO "HC_R=%x,HC_G=%x,HC_B=%x",HC_R,HC_G,HC_B);FFL_();
+		xprintf(INFO "MC_R=%x,MC_G=%x,MC_B=%x",MC_R,MC_G,MC_B);FFL_();
+		xprintf(INFO "SC_R=%x,SC_G=%x,SC_B=%x",SC_R,SC_G,SC_B);FFL_();
+		xprintf(INFO "BC_R=%x,BC_G=%x,BC_B=%x",BC_R,BC_G,BC_B);FFL_();
+
 //		WiServer.print("<script type=\"text/javascript\" src=\"jscolor/jscolor.js\"></script>");
 		WiServer.print("<script type=\"text/javascript\" src=\"http://jscolor.com/jscolor/jscolor.js\"></script>");
 
-		WiServer.print("<form name=\"input\" action=\"colour\" method=\"get\">");
+		WiServer.print("<form name=\"input\" action=\"setclockcolour\" method=\"get\">");
+		WiServer.print(line_break);
+
 		//Clock colour picker
-		WiServer.print("Hour: <input class=\"color {slider:false}\" value=\"");
-		WiServer.print("66ff00");WiServer.print("\" name=\"hc\">");
+		WiServer.print("Hour: <input class=\"color\" value=\"");
+		sprintf(tmp,"%02x%02x%02x",HC_R,HC_G,HC_B);WiServer.print(tmp);
+//		WiServer.print("66ff00");
+		WiServer.print("\" name=\"hc\">");
 		WiServer.print(line_break);
-		WiServer.print("Minute: <input class=\"color {slider:false}\" value=\"");
-		WiServer.print("66ff00");WiServer.print("\" name=\"mc\">");
+		WiServer.print("Minute: <input class=\"color\" value=\"");
+		sprintf(tmp,"%02x%02x%02x",MC_R,MC_G,MC_B);WiServer.print(tmp);
+//		WiServer.print("66ff00");
+		WiServer.print("\" name=\"mc\">");
 		WiServer.print(line_break);
-		WiServer.print("Second: <input class=\"color {slider:false}\" value=\"");
-		WiServer.print("66ff00");WiServer.print("\" name=\"sc\">");
+		WiServer.print("Second: <input class=\"color\" value=\"");
+		sprintf(tmp,"%02x%02x%02x",SC_R,SC_G,SC_B);WiServer.print(tmp);
+//		WiServer.print("66ff00");
+		WiServer.print("\" name=\"sc\">");
 		WiServer.print(line_break);
-		WiServer.print("Background: <input class=\"color {slider:false}\" value=\"");
-		WiServer.print("66ff00");WiServer.print("\" name=\"bc\">");
+		WiServer.print("Background: <input class=\"color\" value=\"");
+		sprintf(tmp,"%02x%02x%02x",BC_R,BC_G,BC_B);WiServer.print(tmp);
+//		WiServer.print("66ff00");
+		WiServer.print("\" name=\"bc\">");
 		WiServer.print(line_break);
 //		WiServer.print("<FORM METHOD=\"LINK\" ACTION=\"/colour?\">");
 		WiServer.print("<INPUT TYPE=\"submit\" VALUE=\"Set colours\">");
@@ -522,7 +586,7 @@ bool home_page(char* URL){
 		WiServer.print(form_close);
 	}
 
-	// Clost all web pages
+	// Close all web pages
 	if (strncmp(URL, "/",1) == 0) {
 		WiServer.print(body_close);
 		WiServer.print(html_close);
