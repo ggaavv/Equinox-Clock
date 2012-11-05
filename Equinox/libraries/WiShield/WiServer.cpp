@@ -49,9 +49,13 @@ extern "C" {
 	#include "pinout.h"
 	#include "lpc17xx_gpio.h"
 	#include "comm.h"
+	#include "sys_timer.h"
 	void stack_init(void);
 	void stack_process(void);
 }
+
+#define DEBUG
+#define DEBUG_VERBOSE
 
 #ifdef APP_WISERVER
 
@@ -86,6 +90,31 @@ char txPin = -1;
 /* Digital output pin to indicate RX activity */
 char rxPin = -1;
 
+/* Timestamp when last connection attempt was started */
+long connectTime = 0;
+#define DISCONNECTED 0
+#define CONNECTING 1
+#define CONNECTED 2
+
+#define CONNECTION_TIMEOUT 60
+// Current connection state
+char state = DISCONNECTED;
+
+/* Checks if the WiShield is currently connected */
+boolean isConnected() {
+	return (zg_get_conn_state() == 1);
+}
+
+void Server::init(pageServingFunction function) {
+    #ifdef DEBUG
+		xprintf(INFO "WiServer init called");FFL_();
+    #endif // DEBUG
+	// Store the callback function for serving pages
+	callbackFunc = function;
+}
+
+
+/*
 void Server::init(pageServingFunction function) {
 
 	// WiShield init
@@ -125,6 +154,8 @@ void Server::init(pageServingFunction function) {
 	Serial.println("WiServer init called");
 #endif // DEBUG_VERBOSE
 }
+*/
+
 
 #ifdef USE_DIG8_INTR
 // PCINT0 interrupt vector
@@ -735,7 +766,7 @@ void server_app_task() {
 	}
 }
 
-
+#ifdef old_server_task
 /*
  * Called by the sketch's main loop
  */
@@ -770,6 +801,111 @@ void Server::server_task() {
 	}
 #endif // ENABLE_CLIENT_MODE
 }
+#endif //old server_task
+
+
+//boolean Server::server_task() {
+void Server::server_task() {
+
+	// Run the driver
+	zg_drv_process();
+
+	if (state == CONNECTED) {
+
+		if (isConnected()) {
+			// Run the stack state machine
+			stack_process();
+
+            #ifdef ENABLE_CLIENT_MODE
+			// Check if there is a pending client request
+			if (queue) {
+				// Attempt to connect to the server
+				struct uip_conn *conn = uip_connect(&(queue->ipAddr), queue->port);
+
+				if (conn != NULL) {
+                    #ifdef DEBUG
+                        DebugPrintFO(f_gcf);
+                        Serial.println(queue->hostName);
+                    #endif // DEBUG
+
+					// Attach the request object to its connection
+					conn->appstate.request = queue;
+					// Move the head of the queue to the next request in the queue
+					queue = queue->next;
+					// Clear the next pointer of the connected request
+					((GETrequest*)conn->appstate.request)->next = NULL;
+				}
+			}
+            #endif // ENABLE_CLIENT_MODE
+		} else {
+			state = DISCONNECTED;
+            #ifdef DEBUG
+				xprintf(INFO "->Connection lost, aborting uIP");FFL_();
+            #endif
+			uip_abort();
+			stack_process();
+		}
+	}
+
+	// Check if we need to initiate a connection
+	if (state == DISCONNECTED) {
+        #ifdef DEBUG
+			xprintf(INFO "->Reinitializing WiShield");FFL_();
+        #endif
+
+		// WiShield init
+		zg_init();
+
+        #ifdef USE_DIG0_INTR
+            attachInterrupt(0, zg_isr, LOW);
+        #endif
+
+        #ifdef USE_DIG8_INTR
+            // set digital pin 8 on Arduino
+            // as ZG interrupt pin
+            PCICR |= (1<<PCIE0);
+            PCMSK0 |= (1<<PCINT0);
+        #endif
+
+		state = CONNECTING;
+		connectTime = sys_millis();
+        #ifdef DEBUG
+			xprintf(INFO "->Connecting...");FFL_();
+        #endif
+	}
+
+	// Check if we're waiting for the connection to be established
+	if (state == CONNECTING) {
+
+		// Move things along
+		zg_drv_process();
+
+		// Check if we got a connection
+		if (isConnected()) {
+			state = CONNECTED;
+            #ifdef DEBUG
+				xprintf(INFO "->Connected!");FFL_();
+            #endif
+
+			// Start the stack
+			stack_init();
+			// Listen for server requests on port 80 if appropriate
+			if (callbackFunc) {
+				uip_listen(HTONS(80));
+			}
+		} else if ((sys_millis() - connectTime) > (CONNECTION_TIMEOUT * 1000)) {
+
+			xprintf(ERR "sys_millis()="); //%d,connectTime=%d,CONNECTION_TIMEOUT=%d",sys_millis(),connectTime,CONNECTION_TIMEOUT);FFL_();
+			// No success, try restarting the WiShield
+			state = DISCONNECTED;
+            #ifdef DEBUG
+				xprintf(INFO "->Reinitializing failed. Reset hardware.");FFL_();
+			#endif
+		}
+	}
+//	return (state == CONNECTED);
+}
+
 
 // Single instance of the server
 Server WiServer;

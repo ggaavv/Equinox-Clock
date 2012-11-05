@@ -133,3 +133,97 @@ void WiFi_loop(){
 // This is the webpage that is served up by the webserver
 //const char webpage[] = {"HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<center><h1>Hello World!! I am WiShield</h1><form method=\"get\" action=\"0\">Toggle LED:<input type=\"submit\" name=\"0\" value=\"LED1\"></input></form></center>"};
 
+///*
+extern "C" {
+
+   boolean connectAndSendTCP = false;
+
+   // Process UDP UIP_APPCALL events
+   void udpapp_appcall(void)
+   {
+      uip_dhcp_run();
+   }
+
+   // DHCP query complete callback
+   void uip_dhcp_callback(const struct dhcp_state *s)
+   {
+      if(NULL != s) {
+         // Set the received IP addr data into the uIP stack
+         uip_sethostaddr(s->ipaddr);
+         uip_setdraddr(s->default_router);
+         uip_setnetmask(s->netmask);
+
+         // Print the received data - its quick and dirty but informative
+         xprintf(INFO "DHCP IP     : ");FFL_();
+         xprintf(INFO "%d.%d.%d.%d",uip_ipaddr1(s->ipaddr),uip_ipaddr2(s->ipaddr),uip_ipaddr3(s->ipaddr),uip_ipaddr4(s->ipaddr));FFL_();
+
+         xprintf(INFO "DHCP GATEWAY: ");FFL_();
+         xprintf(INFO "%d.%d.%d.%d",uip_ipaddr1(s->default_router),uip_ipaddr2(s->default_router),uip_ipaddr3(s->default_router),uip_ipaddr4(s->default_router));FFL_();
+
+         xprintf(INFO "DHCP NETMASK: ");FFL_();
+         xprintf(INFO "%d.%d.%d.%d",uip_ipaddr1(s->netmask),uip_ipaddr2(s->netmask),uip_ipaddr3(s->netmask),uip_ipaddr4(s->netmask));FFL_();
+
+         xprintf(INFO "DHCP DNS    : ");FFL_();
+         xprintf(INFO "%d.%d.%d.%d",uip_ipaddr1(s->dnsaddr),uip_ipaddr2(s->dnsaddr),uip_ipaddr3(s->dnsaddr),uip_ipaddr4(s->dnsaddr));FFL_();
+
+      }
+      else {
+    	  xprintf(INFO "DHCP NULL FALLBACK");FFL_();
+      }
+
+      // Shut down DHCP
+      uip_dhcp_shutdown();
+
+      connectAndSendTCP = true;
+   }
+
+/*
+   char packet[] = "SocketAppDHCP";
+
+   void socket_app_appcall(void)
+   {
+      if(uip_closed() || uip_timedout()) {
+         Serial.println("SA: closed / timedout");
+         uip_close();
+         return;
+      }
+      if(uip_poll()) {
+         Serial.println("SA: poll");
+      }
+      if(uip_aborted()) {
+         Serial.println("SA: aborted");
+      }
+      if(uip_connected()) {
+         Serial.println("SA: connected / send");
+         uip_send(packet, strlen(packet));
+      }
+      if(uip_acked()) {
+         Serial.println("SA: acked");
+         uip_close();
+      }
+      if(uip_newdata()) {
+         Serial.println("SA: newdata");
+      }
+      if(uip_rexmit()) {
+         Serial.println("SA: rexmit");
+         uip_send(packet, strlen(packet));
+      }
+   }
+*/
+   // These uIP callbacks are unused for the purposes of this simple DHCP example
+   // but they must exist.
+   void socket_app_init(void)
+   {
+   }
+
+   void udpapp_init(void)
+   {
+   }
+
+   void dummy_app_appcall(void)
+   {
+   }
+}
+
+//*/
+

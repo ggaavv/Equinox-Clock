@@ -158,6 +158,12 @@ void create_msg(register struct dhcp_msg *m)
   memset(&m->chaddr[s.mac_len], 0, sizeof(m->chaddr) - s.mac_len);
 #ifndef UIP_CONF_DHCP_LIGHT
   memset(m->sname, 0, sizeof(m->sname));
+  m->sname[0] = 'c';
+  m->sname[1] = 'l';
+  m->sname[2] = 'o';
+  m->sname[3] = 'c';
+  m->sname[4] = 'k';
+  m->sname[5] = '\0';
   memset(m->file, 0, sizeof(m->file));
 #endif // !UIP_CONF_DHCP_LIGHT
 

@@ -181,6 +181,8 @@ SRC = \
 	$(APPLIBDIR)/WiShield/uiplib.c \
 	$(APPLIBDIR)/WiShield/uip-neighbor.c \
 	$(APPLIBDIR)/WiShield/uip-split.c \
+	$(APPLIBDIR)/WiShield/uip_dhcp.c \
+	$(APPLIBDIR)/WiShield/uip_dns.c \
 	$(APPLIBDIR)/LED/ShiftPWM.c \
 	$(APPLIBDIR)/LED/hsv2rgb.c \
 	$(APPSRC) \
