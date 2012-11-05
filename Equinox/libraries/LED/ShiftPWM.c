@@ -111,6 +111,7 @@ volatile uint32_t BufferNo;
 //volatile uint32_t LED_UPDATE_REQUIRED;
 
 volatile uint8_t LED_PATTERN = 0;
+volatile uint8_t PREV_LED_PATTERN = 0;
 volatile uint16_t MILLI_DELAY = 121; //Milliseconds delay max=255
 volatile uint8_t BRIGHTNESS = 0;
 volatile uint8_t LED_INT_OCCURED = 1;
@@ -653,7 +654,12 @@ void calulateLEDMIBAMBits(){
 }
 
 void Set_LED_Pattern(uint8_t no, uint16_t delay, uint8_t bri){
-	LED_PATTERN = no;
+	if(no==9 || no==10){
+		PREV_LED_PATTERN = LED_PATTERN;
+		LED_PATTERN = no;
+	}else{
+		LED_PATTERN = no;
+	}
 	if(delay!=0){
 		MILLI_DELAY = delay;
 		TIM_UpdateMatchValue(LPC_TIM2, 0, MILLI_DELAY);
@@ -667,7 +673,6 @@ void Set_LED_Pattern(uint8_t no, uint16_t delay, uint8_t bri){
 	else{
 		xprintf(INFO "Brightness not changed");FFL_();
 	}
-
 //	TIM_Cmd(LPC_TIM2,DISABLE);
 //	xprintf(INFO "pattern=%d DELAY=%d Bri=%d",no,MILLI_DELAY,bri);FFL_();
 	resetLeds();
@@ -676,6 +681,7 @@ void Set_LED_Pattern(uint8_t no, uint16_t delay, uint8_t bri){
 	LED_Loop_v2=0;
 	LED_Loop_v3=0;
 	TIM_Cmd(LPC_TIM0,ENABLE);
+	TIM_Cmd(LPC_TIM2,ENABLE);
 }
 void Get_LED_Pattern(uint8_t * no, uint16_t * delay, uint8_t * bri){
 	*no = (uint32_t)LED_PATTERN;
@@ -693,20 +699,22 @@ uint8_t GetBrightness(void){
 }
 
 void LED_off(void){
-	TIM_Cmd(LPC_TIM0,DISABLE);	// To start timer 0
+	TIM_Cmd(LPC_TIM0,DISABLE);
 	resetLeds();
 	calulateLEDMIBAMBits();
 }
 void LED_on(void){
-	TIM_Cmd(LPC_TIM0,ENABLE);	// To start timer 0
 	resetLeds();
 	calulateLEDMIBAMBits();
+	TIM_Cmd(LPC_TIM0,ENABLE);
 }
 void Pause(void){
-	TIM_Cmd(LPC_TIM2,DISABLE);	// To start timer 0
+	LED_PATTERN = PREV_LED_PATTERN;
+	TIM_Cmd(LPC_TIM2,DISABLE);
 }
 void Play(void){
-	TIM_Cmd(LPC_TIM2,ENABLE);	// To start timer 0
+	LED_PATTERN = PREV_LED_PATTERN;
+	TIM_Cmd(LPC_TIM2,ENABLE);
 }
 uint32_t HC_R = MAX_BRIGHTNESS;
 uint32_t HC_G = 0;
@@ -1018,10 +1026,10 @@ void LED_loop(void){
 				LED_rainbow_all();
 				break;
 			case 9:
-				Pause();
+				Pause(); // dont rearange
 				break;
 			case 10:
-				Play();
+				Play(); // dont rearange
 				break;
 			case 255:
 				//raw  dont remove!!
