@@ -42,7 +42,7 @@
 extern const U8 local_ip[];
 extern const U8 gateway_ip[];
 extern const U8 subnet_mask[];
-extern const const char ssid[];
+extern const char ssid[];
 extern const char security_data[];
 extern const U8 security_type;
 extern const U8 wireless_mode;

@@ -702,7 +702,12 @@ void LED_on(void){
 	resetLeds();
 	calulateLEDMIBAMBits();
 }
-
+void Pause(void){
+	TIM_Cmd(LPC_TIM2,DISABLE);	// To start timer 0
+}
+void Play(void){
+	TIM_Cmd(LPC_TIM2,ENABLE);	// To start timer 0
+}
 uint32_t HC_R = MAX_BRIGHTNESS;
 uint32_t HC_G = 0;
 uint32_t HC_B = 0;
@@ -1011,6 +1016,12 @@ void LED_loop(void){
 				break;
 			case 8:
 				LED_rainbow_all();
+				break;
+			case 9:
+				Pause();
+				break;
+			case 10:
+				Play();
 				break;
 			case 255:
 				//raw  dont remove!!
