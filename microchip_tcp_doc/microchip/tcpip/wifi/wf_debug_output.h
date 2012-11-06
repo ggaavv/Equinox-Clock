@@ -39,7 +39,7 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 
 void OutputDemoHeader(void);
 void WF_DisplayModuleAssertInfo(void);
-void WF_OutputConnectionDebugMsg(uint8_t event, uint16_t eventInfo);
+void WF_OutputConnectionDebugMsg(uint8_t event, uint16_t eventInfo);
 #endif  // __WF_DEBUG_OUTPUT_H_
 
 

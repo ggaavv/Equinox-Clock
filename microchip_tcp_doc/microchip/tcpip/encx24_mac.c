@@ -345,7 +345,7 @@ static TCPIP_MAC_RES ENCX24_MACClose( TCPIP_MAC_HANDLE hMac )
   	
   Remarks:
 	none 
-*******************************************************************************/
+*******************************************************************************/
 static bool ENCX24_MACIsLinked(TCPIP_MAC_HANDLE hMac)
 {	 
 	 ENCX24_MAC_DCPT*	 pMacD = (ENCX24_MAC_DCPT*)hMac;
@@ -373,7 +373,7 @@ static bool ENCX24_MACIsLinked(TCPIP_MAC_HANDLE hMac)
 	
   Remarks:
 	The returned value could be 0 if currently there's no available TX buffer. 
-*******************************************************************************/
+*******************************************************************************/
 
 static PTR_BASE ENCX24_MACGetTxBaseAddr(TCPIP_MAC_HANDLE hMac)
 {
@@ -854,7 +854,7 @@ static PTR_BASE ENCX24_MACSetReadPtr(TCPIP_MAC_HANDLE hMac, PTR_BASE address)
 	A valid packet should have been obtained or the read pointer properly set.
 
   Parameters:
-	hMac - MAC handle
+	hMac - MAC handle
 	
   Returns:
 	Byte read from the current read pointer location
@@ -882,7 +882,7 @@ static uint8_t ENCX24_MACGet(TCPIP_MAC_HANDLE hMac)
 	A valid packet should have been obtained or the read pointer properly set.
 
   Parameters:
-	hMac - MAC handle
+	hMac - MAC handle
 	*val: Pointer to storage location
     len:  Number of bytes to read from the data buffer.
 	
@@ -912,7 +912,7 @@ static uint16_t ENCX24_MACGetArray(TCPIP_MAC_HANDLE hMac, uint8_t *val, uint16_t
 	A valid packet should have been obtained or the read pointer properly set.
 
   Parameters:
-	hMac - MAC handle
+	hMac - MAC handle
 	
   Returns:
 	Estimated free RX buffer space at the present time.
@@ -942,7 +942,7 @@ static uint16_t ENCX24_MACGetFreeRxSize(TCPIP_MAC_HANDLE hMac)
 	Read and write pointers properly set if using the current ponter values
 
   Parameters:
-	hMac - MAC handle
+	hMac - MAC handle
 	destAddr - Destination address in the memory to copy to.  If it equals -1,
               the current write pointer will be used.
 	sourceAddr - Source address to read from.  If it equals -1,
@@ -975,7 +975,7 @@ static void ENCX24_MACMemCopyAsync(TCPIP_MAC_HANDLE hMac, PTR_BASE destAddr, PTR
 	None
 
   Parameters:
-	hMac - MAC handle
+	hMac - MAC handle
 	
   Returns:
 	true
@@ -1005,7 +1005,7 @@ static bool ENCX24_MACIsMemCopyDone(TCPIP_MAC_HANDLE hMac)
 	Read buffer pointer set to starting of checksum data
 
   Parameters:
-	hMac - MAC handle
+	hMac - MAC handle
 	len: Total number of bytes to calculate the checksum over.
 	
   Returns:
@@ -1034,7 +1034,7 @@ static uint16_t ENCX24_MACCalcIPBufferChecksum(TCPIP_MAC_HANDLE hMac, uint16_t l
 	Read buffer pointer set to starting of checksum data
 
   Parameters:
-	hMac - MAC handle
+	hMac - MAC handle
 	offset  - Number of bytes beyond the beginning of the Ethernet data 
 			(first byte after the type field)nwhere the checksum should begin
     len     - Total number of bytes to include in the checksum
@@ -1067,7 +1067,7 @@ static uint16_t ENCX24_MACCalcRxChecksum(TCPIP_MAC_HANDLE hMac, uint16_t offset,
 	None
 	
   Parameters:
-	hMac - MAC handle
+	hMac - MAC handle
 	
   Returns:
 	None
@@ -1113,7 +1113,7 @@ static bool ENCX24_MACCheckLink(TCPIP_MAC_HANDLE hMac)
 	MACInitialize() should have been called.
 	
   Parameters:
-	hMac - MAC handle
+	hMac - MAC handle
 	DestMACAddr: 6 byte group destination MAC address to allow through the Hash
 			Table Filter.  If DestMACAddr is set to 00-00-00-00-00-00, then the 
 			hash table will be cleared of all entries and the filter will be 
