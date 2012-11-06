@@ -154,17 +154,10 @@ extern "C" {
          uip_setnetmask(s->netmask);
 
          // Print the received data - its quick and dirty but informative
-         xprintf(INFO "DHCP IP     : ");FFL_();
-         xprintf(INFO "%d.%d.%d.%d",uip_ipaddr1(s->ipaddr),uip_ipaddr2(s->ipaddr),uip_ipaddr3(s->ipaddr),uip_ipaddr4(s->ipaddr));FFL_();
-
-         xprintf(INFO "DHCP GATEWAY: ");FFL_();
-         xprintf(INFO "%d.%d.%d.%d",uip_ipaddr1(s->default_router),uip_ipaddr2(s->default_router),uip_ipaddr3(s->default_router),uip_ipaddr4(s->default_router));FFL_();
-
-         xprintf(INFO "DHCP NETMASK: ");FFL_();
-         xprintf(INFO "%d.%d.%d.%d",uip_ipaddr1(s->netmask),uip_ipaddr2(s->netmask),uip_ipaddr3(s->netmask),uip_ipaddr4(s->netmask));FFL_();
-
-         xprintf(INFO "DHCP DNS    : ");FFL_();
-         xprintf(INFO "%d.%d.%d.%d",uip_ipaddr1(s->dnsaddr),uip_ipaddr2(s->dnsaddr),uip_ipaddr3(s->dnsaddr),uip_ipaddr4(s->dnsaddr));FFL_();
+         xprintf(INFO "DHCP IP     : %d.%d.%d.%d",uip_ipaddr1(s->ipaddr),uip_ipaddr2(s->ipaddr),uip_ipaddr3(s->ipaddr),uip_ipaddr4(s->ipaddr));FFL_();
+         xprintf(INFO "DHCP GATEWAY: %d.%d.%d.%d",uip_ipaddr1(s->default_router),uip_ipaddr2(s->default_router),uip_ipaddr3(s->default_router),uip_ipaddr4(s->default_router));FFL_();
+         xprintf(INFO "DHCP NETMASK: %d.%d.%d.%d",uip_ipaddr1(s->netmask),uip_ipaddr2(s->netmask),uip_ipaddr3(s->netmask),uip_ipaddr4(s->netmask));FFL_();
+         xprintf(INFO "DHCP DNS    : %d.%d.%d.%d",uip_ipaddr1(s->dnsaddr),uip_ipaddr2(s->dnsaddr),uip_ipaddr3(s->dnsaddr),uip_ipaddr4(s->dnsaddr));FFL_();
 
       }
       else {

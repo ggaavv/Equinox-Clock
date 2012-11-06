@@ -91,6 +91,8 @@ bool home_page(char* URL){
 			}
 			if(l&&h)break;
 		}
+		resetLeds();
+		Set_LED_Pattern(255, 1 , 0); //raw
 		SetHue(l, h);
 		return true;
 	}
@@ -299,6 +301,9 @@ bool home_page(char* URL){
 		WiServer.print("<FORM METHOD=\"LINK\" ACTION=\"/setclockcolour\">");
 		WiServer.print("<INPUT TYPE=\"submit\" VALUE=\"Set Clock Colour\">");
 		WiServer.print(form_close);
+		WiServer.print("<FORM METHOD=\"LINK\" ACTION=\"/setallcolour\">");
+		WiServer.print("<INPUT TYPE=\"submit\" VALUE=\"Set All Colour\">");
+		WiServer.print(form_close);
 	}
 
 
@@ -487,7 +492,6 @@ bool home_page(char* URL){
 			}
 		}
 	}
-
 	if (strncmp(URL, "/setclockcolour",15) == 0) {
 
 		xprintf(INFO "READ");FFL_();
@@ -527,6 +531,48 @@ bool home_page(char* URL){
 		WiServer.print("<INPUT TYPE=\"submit\" VALUE=\"Set colours\">");
 		WiServer.print(form_close);
 	}
+
+
+	if (strncmp(URL, "/setallcolour?",14) == 0) {
+		uint32_t c = 0, r,g,b;
+		for (uint8_t i=6;i<50;i++){
+			if (strncmp(URL+i,"c",1)==0){
+				strncpy(tmp,URL+i+3,2);
+				r = strtoul (tmp,NULL,16);
+				strncpy(tmp,URL+i+5,2);
+				g = strtoul (tmp,NULL,16);
+				strncpy(tmp,URL+i+7,2);
+				b = strtoul (tmp,NULL,16);
+
+				Set_LED_Pattern(255, 1 , 0); //raw
+				resetLeds();
+				SetRGBALL(r, g, b);
+				calulateLEDMIBAMBits();
+
+				break;
+			}
+		}
+	}
+	if (strncmp(URL, "/setallcolour",13) == 0) {
+
+//		WiServer.print("<script type=\"text/javascript\" src=\"jscolor/jscolor.js\"></script>");
+		WiServer.print("<script type=\"text/javascript\" src=\"http://jscolor.com/jscolor/jscolor.js\"></script>");
+
+		WiServer.print("<form name=\"input\" action=\"setallcolour\" method=\"get\">");
+		WiServer.print(line_break);
+
+		//Clock colour picker
+		WiServer.print("Background: <input class=\"color\" value=\"");
+//		sprintf(tmp,"%02x%02x%02x",BC_R,BC_G,BC_B);WiServer.print(tmp);
+		WiServer.print("ffffff");
+		WiServer.print("\" name=\"c\">");
+		WiServer.print(line_break);
+//		WiServer.print("<FORM METHOD=\"LINK\" ACTION=\"/colour?\">");
+		WiServer.print("<INPUT TYPE=\"submit\" VALUE=\"Set all\">");
+		WiServer.print(form_close);
+	}
+
+
 
 	if (strncmp(URL, "/setledpattern",6) == 0) {
 		// Date drop down selection box

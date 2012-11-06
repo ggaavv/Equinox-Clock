@@ -548,7 +548,7 @@ void SetHue(uint32_t led, uint32_t hue){
 	SetRGB(led, red, green, blue); // write rgb values
 }
 
-void SetRGB(int32_t group, uint8_t v0, uint8_t v1, uint8_t v2){
+void SetRGB(int32_t group, uint8_t r, uint8_t g, uint8_t b){
 //	if(group<0)
 //		group = RGBS + group;
 /*
@@ -565,9 +565,14 @@ void SetRGB(int32_t group, uint8_t v0, uint8_t v1, uint8_t v2){
 	if(group==-6)
 		group = 54;
 */
-	LED_RAW[group*3]=v0 & MAX_BRIGHTNESS;
-	LED_RAW[group*3+1]=v1 & MAX_BRIGHTNESS;
-	LED_RAW[group*3+2]=v2 & MAX_BRIGHTNESS;
+	LED_RAW[group*3]=r & MAX_BRIGHTNESS;
+	LED_RAW[group*3+1]=g & MAX_BRIGHTNESS;
+	LED_RAW[group*3+2]=b & MAX_BRIGHTNESS;
+}
+void SetRGBALL(uint8_t r, uint8_t g, uint8_t b){
+	for(uint32_t t=0; t<RGBS; t++){
+		SetRGB(t, r, g, b);
+	}
 }
 void SetLED(uint8_t led, uint8_t v0){
 	LED_RAW[led]=v0 & MAX_BRIGHTNESS;
@@ -654,6 +659,7 @@ void calulateLEDMIBAMBits(){
 }
 
 void Set_LED_Pattern(uint8_t no, uint16_t delay, uint8_t bri){
+	xprintf(INFO "no=%d,delay=%d,bri=%d",no,delay,bri);FFL_();
 	if(no==9 || no==10){
 		PREV_LED_PATTERN = LED_PATTERN;
 		LED_PATTERN = no;
