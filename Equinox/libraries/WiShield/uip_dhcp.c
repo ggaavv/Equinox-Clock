@@ -32,6 +32,7 @@
  */
 
 #include "uip.h"
+#include "comm.h"
 
 #ifdef UIP_DHCP
 
@@ -84,6 +85,7 @@ struct dhcp_msg {
 #define DHCP_OPTION_SUBNET_MASK   1
 #define DHCP_OPTION_ROUTER        3
 #define DHCP_OPTION_DNS_SERVER    6
+#define DHCP_OPTION_HOST_NAME    12
 #define DHCP_OPTION_REQ_IPADDR   50
 #define DHCP_OPTION_LEASE_TIME   51
 #define DHCP_OPTION_MSG_TYPE     53
@@ -113,6 +115,15 @@ u8_t* add_server_id(u8_t *optptr)
 }
 /*---------------------------------------------------------------------------*/
 //static u8_t *
+u8_t* add_hostname(u8_t *optptr)
+{
+  *optptr++ = DHCP_OPTION_HOST_NAME;
+  *optptr++ = 11;
+  memcpy(optptr, s.hostname, 10);
+  return optptr + 4;
+}
+/*---------------------------------------------------------------------------*/
+//static u8_t *
 u8_t* add_req_ipaddr(u8_t *optptr)
 {
   *optptr++ = DHCP_OPTION_REQ_IPADDR;
@@ -129,6 +140,7 @@ u8_t* add_req_options(u8_t *optptr)
   *optptr++ = DHCP_OPTION_SUBNET_MASK;
   *optptr++ = DHCP_OPTION_ROUTER;
   *optptr++ = DHCP_OPTION_DNS_SERVER;
+  *optptr++ = DHCP_OPTION_HOST_NAME;
   return optptr;
 }
 /*---------------------------------------------------------------------------*/
@@ -158,12 +170,6 @@ void create_msg(register struct dhcp_msg *m)
   memset(&m->chaddr[s.mac_len], 0, sizeof(m->chaddr) - s.mac_len);
 #ifndef UIP_CONF_DHCP_LIGHT
   memset(m->sname, 0, sizeof(m->sname));
-  m->sname[0] = 'c';
-  m->sname[1] = 'l';
-  m->sname[2] = 'o';
-  m->sname[3] = 'c';
-  m->sname[4] = 'k';
-  m->sname[5] = '\0';
   memset(m->file, 0, sizeof(m->file));
 #endif // !UIP_CONF_DHCP_LIGHT
 
@@ -195,6 +201,7 @@ send_request(void)
   
   end = add_msg_type(&m->options[4], DHCPREQUEST);
   end = add_server_id(end);
+  end = add_hostname(end);
   end = add_req_ipaddr(end);
   end = add_end(end);
   
@@ -232,6 +239,10 @@ parse_options(u8_t *optptr, int len)
     case DHCP_OPTION_LEASE_TIME:
       //printx("parse_options DHCP_OPTION_LEASE_TIME");
       memcpy(s.lease_time, optptr + 2, 4);
+      break;
+    case DHCP_OPTION_HOST_NAME:
+      xprintf("parse_options DHCP_OPTION_LEASE_TIME hostname=%s",s.hostname);
+      memcpy(s.hostname, optptr + 2, 10);
       break;
     case DHCP_OPTION_END:
       //printx("parse_options DHCP_OPTION_END");
@@ -388,8 +399,14 @@ void
 uip_dhcp_init(const void *mac_addr, int mac_len)
 {
   uip_ipaddr_t addr;
-  
+
   s.mac_addr = mac_addr;
+  s.hostname[0] = 'c';
+  s.hostname[1] = 'l';
+  s.hostname[2] = 'o';
+  s.hostname[3] = 'c';
+  s.hostname[4] = 'k';
+  s.hostname[5] = '\0';
   s.mac_len  = mac_len;
 
   s.state = STATE_INITIAL;

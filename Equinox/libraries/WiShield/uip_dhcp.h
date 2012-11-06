@@ -48,6 +48,7 @@ struct dhcp_state {
   const void *mac_addr;
   int mac_len;
   u8_t serverid[4];
+  u8_t hostname[10];
   u16_t lease_time[2];
   u16_t ipaddr[2];
   u16_t netmask[2];

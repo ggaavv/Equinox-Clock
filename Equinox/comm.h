@@ -12,6 +12,8 @@
 	extern "C" {
 #endif
 
+void ScanWIFI(void);
+
 #include "lpc17xx_uart.h"
 #include "term_io.h"
 #include <stdio.h>

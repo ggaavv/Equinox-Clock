@@ -22,6 +22,13 @@
 #include "renault_stereo.h"
 #include "lpc17xx_i2c.h"
 
+//TODO move
+#define DISCONNECTED 0
+#define CONNECTING 1
+#define CONNECTED 2
+#define SCANNING 3
+//extern char state;
+
 
 #define USER_FLASH_START 0x3000 // For USB bootloader
 //#define USER_FLASH_START 0x0 // No USB bootloader
@@ -249,6 +256,10 @@ void exec_cmd(char *cmd){
 		WDT_Start(1);
 		while(1);//lockup, wdt will reset board
 		//WDT_ClrTimeOutFlag();
+	}
+	else if(stricmp(cmd,"scan")==0){
+		xprintf(INFO "Wifi Scanning");FFL_();
+		ScanWIFI();
 	}
 	else if(stricmp(cmd,"s")==0){
 		xprintf(INFO "send \"TEST\" to screen");FFL_();

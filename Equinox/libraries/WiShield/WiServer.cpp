@@ -95,10 +95,25 @@ long connectTime = 0;
 #define DISCONNECTED 0
 #define CONNECTING 1
 #define CONNECTED 2
+#define SCANNING 3
 
 #define CONNECTION_TIMEOUT 60
 // Current connection state
 char state = DISCONNECTED;
+
+boolean newScanData;
+U8 bestRSSI = 0;
+U8 bestIndex = 0;
+//unsigned int prevRssi = 0;
+unsigned long time_scan;
+tZGScanResult *scanResult;
+tZGBssDesc *bssDesc;
+char formatBuf[96];
+
+void ScanWIFI(void) {
+	state = SCANNING;
+}
+
 
 /* Checks if the WiShield is currently connected */
 boolean isConnected() {
@@ -803,6 +818,44 @@ void Server::server_task() {
 }
 #endif //old server_task
 
+void printDesc(void* desc)
+{
+  int i;
+
+  tZGBssDesc* pDesc = (tZGBssDesc*)desc;
+
+  if(0x10 & pDesc->capInfo[0]) {
+    xprintf("E ");
+  }
+  else {
+    xprintf("O ");
+  }
+
+  for(i = 0; i < pDesc->ssidLen; i++){
+    xprintf((unsigned char)pDesc->ssid[i]);
+  }
+  for(; i < 12; i++){
+    xprintf(" ");
+  }
+
+  sprintf(formatBuf, " bssid: %02X:%02X:%02X:%02X:%02X:%02X type: %d caps: %02X %02X ch: %2d rssi: %3d",
+    pDesc->bssid[0], pDesc->bssid[1], pDesc->bssid[2], pDesc->bssid[3], pDesc->bssid[4], pDesc->bssid[5],
+    pDesc->bssType,
+    pDesc->capInfo[0],
+    pDesc->capInfo[1],
+    pDesc->channel,
+    pDesc->rssi,
+    ZGSTOHS(pDesc->beaconPeriod));
+  xprintf(formatBuf);
+
+  /*
+  for(i = 0; i < pDesc->numRates ; i++){
+    Serial.print(pDesc->basicRateSet[i], DEC);
+    Serial.print(",");
+  }
+  Serial.println("M");
+  */
+}
 
 //boolean Server::server_task() {
 void Server::server_task() {
@@ -904,6 +957,54 @@ void Server::server_task() {
 		}
 	}
 //	return (state == CONNECTED);
+
+	if (state == SCANNING) {
+		if(sys_millis() >= time_scan) {
+			xprintf("SCANNING");FFL_();
+			time_scan = 10000 + sys_millis(); // Scan every 10 sec
+			newScanData = true;
+			zg_scan_start();
+	    }
+		if(true == newScanData && 0 != get_scan_cnt()) {
+			newScanData = false;
+			bestRSSI = 0;
+			bestIndex = 0;
+			scanResult = zg_scan_results();
+
+			for(U8 k = 0; k < (u8)scanResult->numBssDesc; k++) {
+				tZGBssDesc* pDesc = zg_scan_desc(k);
+				xprintf(" ");
+				printDesc(pDesc);
+
+				if(!(0x10 & pDesc->capInfo[0])) {
+					if(bestRSSI < pDesc->rssi /* && 112 < pDesc->rssi */ ) {
+						bestRSSI = pDesc->rssi;
+						bestIndex = k;
+					}
+				}
+			}
+
+			if(0 != bestRSSI) {
+				xprintf("*");
+				tZGBssDesc* pDesc = zg_scan_desc(bestIndex);
+				printDesc(pDesc);
+//				phase = PHASECONNECT;
+				memset(ssid, 0, 32);
+				memcpy(ssid, pDesc->ssid, pDesc->ssidLen);
+
+				sprintf(formatBuf, "%s,%02X,%02X,%02X,%02X,%02X,%02X,%02X,%02X,%2d,%d,47.629844,-122.038783",
+						ssid,
+						pDesc->bssid[0], pDesc->bssid[1], pDesc->bssid[2], pDesc->bssid[3], pDesc->bssid[4], pDesc->bssid[5],
+						pDesc->capInfo[0],
+						pDesc->capInfo[1],
+						pDesc->channel,
+						pDesc->rssi);
+
+				bestRSSI = 0;
+				bestIndex = 0;
+			}
+		}
+	}
 }
 
 

@@ -169,9 +169,12 @@ class TWEETrequest : public POSTrequest
 #endif // ENABLE_CLIENT_MODE
 
 
+
 class Server: public Print
 	{
 	public:
+
+		void ScanWIFI(void);
 
 		/**
 		 * Inits the server with the provided page serving function
@@ -260,6 +263,6 @@ class Server: public Print
 // Single instance of the Server
 extern Server WiServer;
 
-
+void printDesc(void* desc);
 
 #endif /* WISERVER_H_ */
