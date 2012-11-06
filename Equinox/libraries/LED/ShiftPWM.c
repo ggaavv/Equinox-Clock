@@ -804,11 +804,14 @@ void LED_time(){
 #endif //SetLED
 
 	// Remove the tails
-	SS<5 ? SetRGB((SS+60)-5,0,0,0) : SetRGB(SS-5,0,0,0);
-	MM<4 ? SetRGB((MM+60)-4,0,0,0) : SetRGB(MM-4,0,0,0);
-	HH<2 ? SetRGB((HH+11)*5,0,0,0) : SetRGB((HH-1)*5,0,0,0);
-	HH<2 ? SetRGB((HH+11)*5-2,0,0,0) : SetRGB((HH-1)*5-2,0,0,0);
-	HH<2 ? SetRGB((HH+11)*5-3,0,0,0) : SetRGB((HH-1)*5-3,0,0,0);
+//	SS<5 ? SetRGB((SS+60)-5,0,0,0) : SetRGB(SS-5,0,0,0);
+//	MM<4 ? SetRGB((MM+60)-4,0,0,0) : SetRGB(MM-4,0,0,0);
+//	HH<2 ? SetRGB((HH+11)*5,0,0,0) : SetRGB((HH-1)*5,0,0,0);
+//	HH<2 ? SetRGB((HH+11)*5-2,0,0,0) : SetRGB((HH-1)*5-2,0,0,0);
+//	HH<2 ? SetRGB((HH+11)*5-3,0,0,0) : SetRGB((HH-1)*5-3,0,0,0);
+
+	for(uint8_t i=0;i<RGBS;i++)
+		SetRGBALL(BC_R,BC_G,BC_B);
 
 	// Seconds Blue
 //	for (SS=0;SS<60;SS++){
