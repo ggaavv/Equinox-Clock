@@ -536,7 +536,7 @@ bool home_page(char* URL){
 	if (strncmp(URL, "/setallcolour?",14) == 0) {
 		uint32_t c = 0, r,g,b;
 		for (uint8_t i=6;i<50;i++){
-			if (strncmp(URL+i,"c",1)==0){
+			if (strncmp(URL+i,"?c",1)==0){
 				strncpy(tmp,URL+i+3,2);
 				r = strtoul (tmp,NULL,16);
 				strncpy(tmp,URL+i+5,2);
