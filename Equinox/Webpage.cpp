@@ -53,6 +53,7 @@ const char enter_DST_format[] = " Summertime (not yet implimented) \n";
 const char enter_UTC_format[] = " Timezone   Summertime \n";
 const char date_submit_reset_buttons[] = "<input type=\"submit\" value=\"Send Date\" />\n<input type=\"reset\" value=\"Reset\" />\n";
 const char LED_submit_reset_buttons[] = "<input type=\"submit\" value=\"Send LED\" />\n<input type=\"reset\" value=\"Reset\" />\n";
+const char COLOUR_submit_reset_buttons[] = "<input type=\"submit\" value=\"Send Colours\" />\n<input type=\"reset\" value=\"Reset\" />\n";
 const char date_form_open[] = "<form name=\"input\" action=\"/date\" method=\"get\" >\n";
 const char LED_form_open[] = "<form name=\"input\" action=\"/LED\" method=\"get\" >\n";
 const char form_close[] = "\n</form>";
@@ -493,13 +494,11 @@ bool home_page(char* URL){
 		}
 	}
 	if (strncmp(URL, "/setclockcolour",15) == 0) {
-
-		xprintf(INFO "READ");FFL_();
-		xprintf(INFO "HC_R=%x,HC_G=%x,HC_B=%x",HC_R,HC_G,HC_B);FFL_();
-		xprintf(INFO "MC_R=%x,MC_G=%x,MC_B=%x",MC_R,MC_G,MC_B);FFL_();
-		xprintf(INFO "SC_R=%x,SC_G=%x,SC_B=%x",SC_R,SC_G,SC_B);FFL_();
-		xprintf(INFO "BC_R=%x,BC_G=%x,BC_B=%x",BC_R,BC_G,BC_B);FFL_();
-
+//		xprintf(INFO "READ");FFL_();
+//		xprintf(INFO "HC_R=%x,HC_G=%x,HC_B=%x",HC_R,HC_G,HC_B);FFL_();
+//		xprintf(INFO "MC_R=%x,MC_G=%x,MC_B=%x",MC_R,MC_G,MC_B);FFL_();
+//		xprintf(INFO "SC_R=%x,SC_G=%x,SC_B=%x",SC_R,SC_G,SC_B);FFL_();
+//		xprintf(INFO "BC_R=%x,BC_G=%x,BC_B=%x",BC_R,BC_G,BC_B);FFL_();
 //		WiServer.print("<script type=\"text/javascript\" src=\"jscolor/jscolor.js\"></script>");
 		WiServer.print("<script type=\"text/javascript\" src=\"http://jscolor.com/jscolor/jscolor.js\"></script>");
 
@@ -527,8 +526,7 @@ bool home_page(char* URL){
 //		WiServer.print("66ff00");
 		WiServer.print("\" name=\"bc\">");
 		WiServer.print(line_break);
-//		WiServer.print("<FORM METHOD=\"LINK\" ACTION=\"/colour?\">");
-		WiServer.print("<INPUT TYPE=\"submit\" VALUE=\"Set colours\">");
+		WiServer.print(COLOUR_submit_reset_buttons);
 		WiServer.print(form_close);
 	}
 
