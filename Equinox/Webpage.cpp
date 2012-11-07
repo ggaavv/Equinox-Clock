@@ -52,26 +52,12 @@ const char enter_led_brightness[] = " Brightness: \n";
 const char enter_DST_format[] = " Summertime (not yet implimented) \n";
 const char enter_UTC_format[] = " Timezone   Summertime \n";
 const char iframe[] = "<iframe id=\"target_iframe\" name=\"target_iframe\" src=\"\" style=\"width:0;height:0;border:0px\"></iframe>";
-
-//const char java_send[] = "<script type=\"text/javascript\">function submitInputWOReload(){document.forms['input'].submit();}</script>";
-//const char java_send[] = "<script type=\"text/javascript\">function submitInputWOReload(){document.getElementById('idallled').onsubmit();document.getElementById('idallled').submit();return false;}</script>";
-//const char java_send[] = "<script type=\"text/javascript\">function submitInputWOReload(){document.getElementById('idallled').onsubmit=function();document.getElementById('idallled').target = 'target_iframe';}</script>";
 const char java_send[] = "<script type=\"text/javascript\">function submitInputWOReload(){document.getElementById('input').action =\"setallcolour\";document.getElementById('input').target=\"target_iframe\";document.getElementById('input').submit();}</script>";
-
-/*
-<script type="text/javascript">
-function changeText2(){
-	var userInput = document.getElementById('userInput').value;
-	document.getElementById('boldStuff2').innerHTML = userInput;
-}
-</script>"
-*/
-
 const char date_submit_reset_buttons[] = "<input type=\"submit\" value=\"Send Date\" />\n<input type=\"reset\" value=\"Reset\" />\n";
 const char LED_submit_reset_buttons[] = "<input type=\"submit\" value=\"Send LED\" />\n<input type=\"reset\" value=\"Reset\" />\n";
-const char COLOUR_submit_reset_buttons[] = "<input type=\"submit\" value=\"Send Colours\" />\n<input type=\"reset\" value=\"Reset\" />\n";
-const char date_form_open[] = "<form name=\"input\" id=\"iddate\" action=\"/date\" method=\"get\" >\n";
-const char LED_form_open[] = "<form name=\"input\" id=\"idled\" action=\"/LED\" method=\"get\" >\n";
+//const char COLOUR_submit_reset_buttons[] = "<input type=\"submit\" value=\"Send Colours\" />\n<input type=\"reset\" value=\"Reset\" />\n";
+const char date_form_open[] = "<form name=\"input\" id=\"input\" action=\"/date\" method=\"get\" >\n";
+const char LED_form_open[] = "<form name=\"input\" id=\"input\" action=\"/LED\" method=\"get\" >\n";
 const char form_close[] = "\n</form>";
 
 extern uint32_t HC_R;
@@ -535,11 +521,6 @@ bool home_page(char* URL){
 	}
 
 	if (strncmp(URL, "/setclockcolour",15) == 0) {
-//		xprintf(INFO "READ");FFL_();
-//		xprintf(INFO "HC_R=%x,HC_G=%x,HC_B=%x",HC_R,HC_G,HC_B);FFL_();
-//		xprintf(INFO "MC_R=%x,MC_G=%x,MC_B=%x",MC_R,MC_G,MC_B);FFL_();
-//		xprintf(INFO "SC_R=%x,SC_G=%x,SC_B=%x",SC_R,SC_G,SC_B);FFL_();
-//		xprintf(INFO "BC_R=%x,BC_G=%x,BC_B=%x",BC_R,BC_G,BC_B);FFL_();
 //		WiServer.print("<script type=\"text/javascript\" src=\"jscolor/jscolor.js\"></script>");
 		WiServer.print("<script type=\"text/javascript\" src=\"http://jscolor.com/jscolor/jscolor.js\"></script>");
 
@@ -578,26 +559,15 @@ bool home_page(char* URL){
 
 //		WiServer.print("<script type=\"text/javascript\" src=\"jscolor/jscolor.js\"></script>");
 		WiServer.print("<script type=\"text/javascript\" src=\"http://jscolor.com/jscolor/jscolor.js\"></script>");
-
-		WiServer.print(line_break);
 		WiServer.print(java_send);
-		WiServer.print(line_break);
-
 		WiServer.print("<form name=\"input\" id=\"input\" action=\"setallcolour\" method=\"get\">");
-		WiServer.print(line_break);
 
 		//Clock colour picker
 		WiServer.print("Background: <input class=\"color\" value=\"");
-//		sprintf(tmp,"%02x%02x%02x",BC_R,BC_G,BC_B);WiServer.print(tmp);
-//		WiServer.print("ffffff");
 		sprintf(tmp,"%02x%02x%02x",BC_R,BC_G,BC_B);WiServer.print(tmp);
-//		WiServer.print("\" name=\"bc\" onchange=\"document.forms['input'].submit();\">");
-//		WiServer.print("\" name=\"bc\" onchange=\"submitInputWOReload();return false;\">");
 		WiServer.print("\" name=\"bc\" onchange=\"submitInputWOReload();\">");
-//		WiServer.print(line_break);
 //		WiServer.print("<INPUT TYPE=\"submit\" VALUE=\"Set all\">");
 		WiServer.print(form_close);
-		WiServer.print(line_break);
 	}
 
 
