@@ -201,7 +201,7 @@ bool home_page(char* URL){
 				strncpy(tmp,URL+i+7,2);
 				BC_B = strtoul (tmp,NULL,16);
 
-				Set_LED_Pattern(255, 1 , 0); //raw
+				Set_LED_Pattern(LEDP_RAW, 1 , 0); //raw
 				resetLeds();
 				SetRGBALL(BC_R, BC_G, BC_B);
 				calulateLEDMIBAMBits();
@@ -261,6 +261,7 @@ bool home_page(char* URL){
 				break;
 			}
 		}
+		Set_LED_Pattern(LEDP_time, 0, 0); //clock
 		return true; // no page refresh needed
 	}
 

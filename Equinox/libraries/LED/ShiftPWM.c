@@ -1007,40 +1007,40 @@ void LED_loop(void){
 //		xprintf(INFO "LED_INT_OCCURED=%d LED_LOOP=%d",count,Led_loopp);FFL_();
 		Led_loopp=0;
 		switch(LED_PATTERN){
-			case 0:
+			case LEDP_off:
 				LED_off();
 				break;
-			case 1:
+			case LEDP_time:
 				LED_time();
 				break;
-			case 2:
+			case LEDP_one_by_one:
 				LED_one_by_one();
 				break;
-			case 3:
+			case LEDP_rotating_rainbow:
 				LED_rotating_rainbow();
 				break;
-			case 4:
+			case LEDP_simple_all_colors:
 				LED_simple_all_colors();
 				break;
-			case 5:
+			case LEDP_one_by_one_smooth_all_on_all_off0:
 				LED_one_by_one_smooth_all_on_all_off(0);
 				break;
-			case 6:
+			case LEDP_one_by_one_smooth_all_on_all_off1:
 				LED_one_by_one_smooth_all_on_all_off(1);
 				break;
-			case 7:
+			case LEDP_one_by_one_smooth_all_on_all_off2:
 				LED_one_by_one_smooth_all_on_all_off(2);
 				break;
-			case 8:
+			case LEDP_rainbow_all:
 				LED_rainbow_all();
 				break;
-			case 9:
+			case LEDP_Pause:
 				Pause(); // dont rearange
 				break;
-			case 10:
+			case LEDP_Play:
 				Play(); // dont rearange
 				break;
-			case 255:
+			case LEDP_RAW:
 				//raw  dont remove!!
 				break;
 			default:

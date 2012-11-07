@@ -25,6 +25,20 @@ const char LED_PATTERN_NAME[MAX_PATTERNS][MAX_PATTERNS_LETTERS] = {
 	"Play"
 };
 
+#define LEDP_off 1
+#define LEDP_time 2
+#define LEDP_one_by_one 3
+#define LEDP_rotating_rainbow 4
+#define LEDP_simple_all_colors 5
+#define LEDP_one_by_one_smooth_all_on_all_off0 6
+#define LEDP_one_by_one_smooth_all_on_all_off1 7
+#define LEDP_one_by_one_smooth_all_on_all_off2 8
+#define LEDP_rainbow_all 9
+#define LEDP_Pause 10
+#define LEDP_Play 11
+
+#define LEDP_RAW 99
+
 void TIMER0_IRQHandler(void);
 void TIMER1_IRQHandler(void);
 void TIMER2_IRQHandler(void);
