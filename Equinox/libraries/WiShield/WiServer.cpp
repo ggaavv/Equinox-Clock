@@ -114,6 +114,9 @@ void ScanWIFI(void) {
 	state = SCANNING;
 }
 
+void ScanWIFIEnd(void) {
+	state = DISCONNECTED;
+}
 
 /* Checks if the WiShield is currently connected */
 boolean isConnected() {
@@ -127,49 +130,6 @@ void Server::init(pageServingFunction function) {
 	// Store the callback function for serving pages
 	callbackFunc = function;
 }
-
-
-/*
-void Server::init(pageServingFunction function) {
-
-	// WiShield init
-	zg_init();xprintf(OK "zg_init()");FFL_();
-
-#ifdef USE_DIG0_INTR
-	attachInterrupt(0, zg_isr, LOW);
-#endif
-
-#ifdef USE_DIG8_INTR
-	// set digital pin 8 on Arduino
-	// as ZG interrupt pin
-	PCICR |= (1<<PCIE0);
-	PCMSK0 |= (1<<PCINT0);
-#endif
-
-
-
-	while(zg_get_conn_state() != 1) {
-		zg_drv_process();
-	}
-
-	// Start the stack
-	stack_init();
-
-	// Store the callback function for serving pages
-	// and start listening for connections on port 80 if
-	// the function is non-null
-	callbackFunc = function;
-	if (callbackFunc) {
-		// Listen for server requests on port 80
-		uip_listen(HTONS(80));
-	}
-
-#ifdef DEBUG_VERBOSE
-	xprintf(INFO "WiServer init called");FFL_();
-	Serial.println("WiServer init called");
-#endif // DEBUG_VERBOSE
-}
-*/
 
 
 #ifdef USE_DIG8_INTR
@@ -832,7 +792,7 @@ void printDesc(void* desc)
   }
 
   for(i = 0; i < pDesc->ssidLen; i++){
-    xprintf((unsigned char)pDesc->ssid[i]);
+	  xprintf("%c",(unsigned char)pDesc->ssid[i]);
   }
   for(; i < 12; i++){
     xprintf(" ");
@@ -848,13 +808,10 @@ void printDesc(void* desc)
     ZGSTOHS(pDesc->beaconPeriod));
   xprintf(formatBuf);
 
-  /*
   for(i = 0; i < pDesc->numRates ; i++){
-    Serial.print(pDesc->basicRateSet[i], DEC);
-    Serial.print(",");
+    xprintf("%d,",pDesc->basicRateSet[i]);
   }
-  Serial.println("M");
-  */
+  xprintf("M\r\n");
 }
 
 //boolean Server::server_task() {
@@ -948,7 +905,7 @@ void Server::server_task() {
 			}
 		} else if ((sys_millis() - connectTime) > (CONNECTION_TIMEOUT * 1000)) {
 
-			xprintf(ERR "sys_millis()="); //%d,connectTime=%d,CONNECTION_TIMEOUT=%d",sys_millis(),connectTime,CONNECTION_TIMEOUT);FFL_();
+			xprintf(ERR "sys_millis()=%d,connectTime=%d,CONNECTION_TIMEOUT=%d",sys_millis(),connectTime,CONNECTION_TIMEOUT);FFL_();
 			// No success, try restarting the WiShield
 			state = DISCONNECTED;
             #ifdef DEBUG
@@ -956,7 +913,6 @@ void Server::server_task() {
 			#endif
 		}
 	}
-//	return (state == CONNECTED);
 
 	if (state == SCANNING) {
 		if(sys_millis() >= time_scan) {
@@ -975,6 +931,7 @@ void Server::server_task() {
 				tZGBssDesc* pDesc = zg_scan_desc(k);
 				xprintf(" ");
 				printDesc(pDesc);
+				state = DISCONNECTED;
 
 				if(!(0x10 & pDesc->capInfo[0])) {
 					if(bestRSSI < pDesc->rssi /* && 112 < pDesc->rssi */ ) {
@@ -983,12 +940,12 @@ void Server::server_task() {
 					}
 				}
 			}
-
+#if 0//autoconnect to best
 			if(0 != bestRSSI) {
 				xprintf("*");
 				tZGBssDesc* pDesc = zg_scan_desc(bestIndex);
 				printDesc(pDesc);
-//				phase = PHASECONNECT;
+				state = DISCONNECTED;
 				memset(ssid, 0, 32);
 				memcpy(ssid, pDesc->ssid, pDesc->ssidLen);
 
@@ -1003,8 +960,10 @@ void Server::server_task() {
 				bestRSSI = 0;
 				bestIndex = 0;
 			}
+#endif //autoconnect to best
 		}
 	}
+//	return (state == CONNECTED);
 }
 
 
