@@ -52,7 +52,8 @@ const char enter_led_brightness[] = " Brightness: \n";
 const char enter_DST_format[] = " Summertime (not yet implimented) \n";
 const char enter_UTC_format[] = " Timezone   Summertime \n";
 const char iframe[] = "<iframe id=\"target_iframe\" name=\"target_iframe\" src=\"\" style=\"width:0;height:0;border:0px\"></iframe>";
-const char java_send[] = "<script type=\"text/javascript\">function submitInputWOReload(){document.getElementById('input').action =\"setallcolour\";document.getElementById('input').target=\"target_iframe\";document.getElementById('input').submit();}</script>";
+//const char java_send[] = "<script type=\"text/javascript\">function submitInputWOReload(){document.getElementById('input').action =\"setallcolour\";document.getElementById('input').target=\"target_iframe\";document.getElementById('input').submit();}</script>";
+const char java_send[] = "<script type=\"text/javascript\">function submitInputWOReload(){document.getElementById('input').target=\"target_iframe\";document.getElementById('input').submit();}</script>";
 const char date_submit_reset_buttons[] = "<input type=\"submit\" value=\"Send Date\" />\n<input type=\"reset\" value=\"Reset\" />\n";
 const char LED_submit_reset_buttons[] = "<input type=\"submit\" value=\"Send LED\" />\n<input type=\"reset\" value=\"Reset\" />\n";
 //const char COLOUR_submit_reset_buttons[] = "<input type=\"submit\" value=\"Send Colours\" />\n<input type=\"reset\" value=\"Reset\" />\n";
@@ -224,7 +225,6 @@ bool home_page(char* URL){
 				strncpy(tmp,URL+i+7,2);
 				HC_B = strtoul (tmp,NULL,16);
 				hc_set=1;
-				break;
 			}else if (!mc_set && strncmp(URL+i,"mc",2)==0){
 				strncpy(tmp,URL+i+3,2);
 				MC_R = strtoul (tmp,NULL,16);
@@ -232,7 +232,6 @@ bool home_page(char* URL){
 				MC_G = strtoul (tmp,NULL,16);
 				strncpy(tmp,URL+i+7,2);
 				MC_B = strtoul (tmp,NULL,16);
-				mc_set=1;
 			}else if (!sc_set && strncmp(URL+i,"sc",2)==0){
 				strncpy(tmp,URL+i+3,2);
 				SC_R = strtoul (tmp,NULL,16);
