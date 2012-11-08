@@ -52,7 +52,8 @@ const char enter_led_brightness[] = " Brightness: \n";
 const char enter_DST_format[] = " Summertime (not yet implimented) \n";
 const char enter_UTC_format[] = " Timezone   Summertime \n";
 const char iframe[] = "<iframe id=\"target_iframe\" name=\"target_iframe\" src=\"\" style=\"width:0;height:0;border:0px\"></iframe>";
-const char java_send[] = "<script type=\"text/javascript\">function submitInputWOReload(){document.getElementById('input').action =\"setallcolour\";document.getElementById('input').target=\"target_iframe\";document.getElementById('input').submit();}</script>";
+//const char java_send[] = "<script type=\"text/javascript\">function submitInputWOReload(){document.getElementById('input').action =\"setallcolour\";document.getElementById('input').target=\"target_iframe\";document.getElementById('input').submit();}</script>";
+const char java_send[] = "<script type=\"text/javascript\">function submitInputWOReload(){document.getElementById('input').target=\"target_iframe\";document.getElementById('input').submit();}</script>";
 const char clock_java_send[] = "<script type=\"text/javascript\">function submitInputWOReload(){document.getElementById('input').action =\"setclockcolour\";document.getElementById('input').target=\"target_iframe\";document.getElementById('input').submit();}</script>";
 const char date_submit_reset_buttons[] = "<input type=\"submit\" value=\"Send Date\" />\n<input type=\"reset\" value=\"Reset\" />\n";
 const char LED_submit_reset_buttons[] = "<input type=\"submit\" value=\"Send LED\" />\n<input type=\"reset\" value=\"Reset\" />\n";
@@ -527,7 +528,7 @@ bool home_page(char* URL){
 
 		WiServer.print("<form name=\"input\" id=\"input\" action=\"setclockcolour\" method=\"get\">");
 		WiServer.print(line_break);
-		WiServer.print(clock_java_send);
+		WiServer.print(java_send);
 		WiServer.print(line_break);
 
 		//Clock colour picker
