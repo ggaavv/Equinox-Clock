@@ -138,26 +138,21 @@ void TIMER0_IRQHandler(void){
 //		xprintf(INFO "RIT N=%d B=%x NXT_T=%d TX=%x\n",SENDSEQ,SEND_BIT,DELAY_TIME,LED_PRECALC[0][SEND_BIT]);
 
 		//Setup new timing for next Timer
-		NEXT_DELAY_TIME=SEQ_TIME[SENDSEQ];
-		NEXT_SEND_BIT=SEQ_BIT[SENDSEQ];
+		DELAY_TIME=SEQ_TIME[SENDSEQ];
+		SEND_BIT=SEQ_BIT[SENDSEQ];
 
 		//Retart sequence if required
 		SENDSEQ++;
 		SENDSEQ>=MAX_BAM_BITS ? SENDSEQ=0 : 0;
 
-		//Set next bit/time
-		DELAY_TIME=NEXT_DELAY_TIME;
-		SEND_BIT=NEXT_SEND_BIT;
-
 #ifdef DMA
 //		xprintf("SEND_BIT:%d\n",SEND_BIT);
-//		xprintf("NEXT_DELAY_TIME:%d\n",NEXT_DELAY_TIME);
+//		xprintf("DELAY_TIME:%d\n",DELAY_TIME);
 		GPDMACfg.DMALLI = (uint32_t) &LinkerList[0][SEND_BIT][BufferNo];
 		GPDMA_Setup(&GPDMACfg);
 		GPDMA_ChannelCmd(0, ENABLE);
 #endif
-
-		TIM_UpdateMatchValue(LPC_TIM0,0,NEXT_DELAY_TIME);
+		TIM_UpdateMatchValue(LPC_TIM0,0,DELAY_TIME);
 		FIO_SetValue(LED_OE_PORT, LED_OE_BIT);
 #ifdef RxDMA
 		GPDMA_ChannelCmd(1, ENABLE);
