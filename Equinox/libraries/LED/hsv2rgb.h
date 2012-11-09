@@ -4,5 +4,7 @@
 void hsv2rgb(unsigned int hue, unsigned int sat, unsigned int val, \
               unsigned char * r, unsigned char * g, unsigned char * b, unsigned char maxBrightness );
 
+void lookup_hsv2rgb(unsigned int hue, unsigned char * r, unsigned char * g, unsigned char * b, unsigned char maxBrightness );
+
 #endif
 

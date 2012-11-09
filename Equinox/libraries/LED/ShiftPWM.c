@@ -52,12 +52,14 @@
 #define LEDS_P_REG (LEDS/REGS)
 #define BITS 8
 #define MAX_BRIGHTNESS 0xff
-uint16_t SEQ_BIT[16];
-uint32_t SEQ_TIME[16];
+#define no_SEQ_BITS 16
+uint16_t SEQ_BIT[no_SEQ_BITS];
+uint32_t SEQ_TIME[no_SEQ_BITS];
 
 #define MAX_BAM_BITS BITS		// number of BITORDER bits to cycle through
 #define SSP_SPEED 30000000
-#define DelayLatchIn 350*(30000000/SSP_SPEED)	// delay before chip select is toggled
+#define LED_Latch_interupt_delay 500 // multiplied by 100 ticks
+//#define DelayLatchIn 350*(30000000/SSP_SPEED)	// delay before chip select is toggled
 uint32_t volatile ticks = 0;
 uint32_t volatile ticks_at_DMA_start = 0;
 uint32_t volatile ticks_after_DMA_finish = 0;
@@ -143,7 +145,7 @@ void TIMER0_IRQHandler(void){
 
 		//Retart sequence if required
 		SENDSEQ++;
-		SENDSEQ>=MAX_BAM_BITS ? SENDSEQ=0 : 0;
+		SENDSEQ>=no_SEQ_BITS ? SENDSEQ=0 : 0;
 
 #ifdef DMA
 //		xprintf("SEND_BIT:%d\n",SEND_BIT);
@@ -292,16 +294,6 @@ inline void WaitForSend(void){
 
 void LED_init(){
 
-	SENDSEQ=0;
-	DELAY_TIME=1; //so RIT ms is not set to 0
-	NEXT_DELAY_TIME=1; //so RIT ms is not set to 0
-	SEND_BIT=0;
-	NEXT_SEND_BIT=0;
-	BufferNo = 0;
-//	UPDATE_COUNT=0;
-//	LED_UPDATE_REQUIRED=0;
-//	LED_SEND=0;
-
 	GPIO_SetDir(LED_OE_PORT, LED_OE_BIT, 1);
 	GPIO_SetValue(LED_OE_PORT, LED_OE_BIT);//turn off leds active low
 	LatchIn();//reset
@@ -309,20 +301,11 @@ void LED_init(){
 	GPIO_ClearValue(LED_LE_PORT, LED_LE_BIT);
 
 	//reset all arrays
-	for (uint8_t tmp=0;tmp<MAX_BAM_BITS;tmp++){
+	for (uint8_t tmp=0;tmp<no_SEQ_BITS;tmp++){
 		SEQ_BIT[tmp] = BITORDER[tmp];
 		SEQ_TIME[tmp] = BITTIME[BITORDER[tmp]];
 	}
-	for(uint8_t l=0; l<LEDS; l++){
-		LED_RAW[l]=0;
-	}
-	for(uint8_t rbuf=0; rbuf<BUFFERS; rbuf++){
-		for (uint8_t bit=0;bit<BITS;bit++){
-			for(uint8_t r=0; r<REGS; r++){
-				LED_PRECALC[r][bit][rbuf]=0;
-			}
-		}
-	}
+
 	resetLeds();
 	calulateLEDMIBAMBits();
 
@@ -387,7 +370,7 @@ void LED_init(){
 	TIM0_MatchConfigStruct.ResetOnMatch = TRUE;	//Enable reset on MR0: TIMER will reset if MR0 matches it
 	TIM0_MatchConfigStruct.StopOnMatch  = FALSE;	//Stop on MR0 if MR0 matches it
 	TIM0_MatchConfigStruct.ExtMatchOutputType = TIM_EXTMATCH_NOTHING;
-	TIM0_MatchConfigStruct.MatchValue   = BITTIME[MAX_BAM_BITS-1];		// Set Match value, count value of 1000000 (1000000 * 1uS = 1000000us = 1s --> 1 Hz)
+	TIM0_MatchConfigStruct.MatchValue   = BITTIME[0];		// Set Match value, count value of 1000000 (1000000 * 1uS = 1000000us = 1s --> 1 Hz)
 	TIM_Init(LPC_TIM0, TIM_TIMER_MODE,&TIM0_ConfigStruct);	// Set configuration for Tim_config and Tim_MatchConfig
 	TIM_ConfigMatch(LPC_TIM0,&TIM0_MatchConfigStruct);
 	NVIC_SetPriority(TIMER0_IRQn, 0);
@@ -405,7 +388,7 @@ void LED_init(){
 	TIM1_MatchConfigStruct.ResetOnMatch = TRUE;	//Enable reset on MR0: TIMER will reset if MR0 matches it
 	TIM1_MatchConfigStruct.StopOnMatch  = TRUE;	//Stop on MR0 if MR0 matches it
 	TIM1_MatchConfigStruct.ExtMatchOutputType = TIM_EXTMATCH_NOTHING;
-	TIM1_MatchConfigStruct.MatchValue   = DelayLatchIn;		// Set Match value, count value of 1000000 (1000000 * 1uS = 1000000us = 1s --> 1 Hz)
+	TIM1_MatchConfigStruct.MatchValue   = LED_Latch_interupt_delay;		// Set Match value, count value of 1000000 (1000000 * 1uS = 1000000us = 1s --> 1 Hz)
 	TIM_Init(LPC_TIM1, TIM_TIMER_MODE,&TIM1_ConfigStruct);	// Set configuration for Tim_config and Tim_MatchConfig
 	TIM_ConfigMatch(LPC_TIM1,&TIM1_MatchConfigStruct);
 	NVIC_SetPriority(TIMER1_IRQn, 0);
@@ -539,7 +522,8 @@ void LED_init(){
 
 void SetHue(uint32_t led, uint32_t hue){
 	unsigned char red, green, blue;
-	hsv2rgb(hue, 255, 255, &red, &green, &blue, MAX_BRIGHTNESS); // convert hsv to rgb values
+//	hsv2rgb(hue, 255, 255, &red, &green, &blue, MAX_BRIGHTNESS); // convert hsv to rgb values
+	lookup_hsv2rgb(hue, &red, &green, &blue, MAX_BRIGHTNESS); // convert hsv to rgb values
 	SetRGB(led, red, green, blue); // write rgb values
 }
 
@@ -975,14 +959,16 @@ void LED_rotating_rainbow(void) {
 		LED_Loop=0;
 	for(int led=0;led<RGBS;led++){ // loop over all LED's
 		hue = ((led)*360/(RGBS-1)+LED_Loop)%360;
-		hsv2rgb(hue, 255, 255, &red, &green, &blue, MAX_BRIGHTNESS); // convert hsv to rgb values
+//		hsv2rgb(hue, 255, 255, &red, &green, &blue, MAX_BRIGHTNESS); // convert hsv to rgb values
+		lookup_hsv2rgb(hue, &red, &green, &blue, MAX_BRIGHTNESS); // convert hsv to rgb values
 		SetRGB(led, red, green, blue); // write rgb values
 	}
 	calulateLEDMIBAMBits();
 }
 void LED_rainbow_all(void) {
 	unsigned char red, green, blue;
-	hsv2rgb(LED_Loop, 255, 255, &red, &green, &blue, MAX_BRIGHTNESS); // convert hsv to rgb values
+//	hsv2rgb(LED_Loop, 255, 255, &red, &green, &blue, MAX_BRIGHTNESS); // convert hsv to rgb values
+	lookup_hsv2rgb(LED_Loop, &red, &green, &blue, MAX_BRIGHTNESS); // convert hsv to rgb values
 	for(int led=0;led<RGBS;led++){ // loop over all LED's
 		SetRGB(led, red, green, blue); // write rgb values
 	}
