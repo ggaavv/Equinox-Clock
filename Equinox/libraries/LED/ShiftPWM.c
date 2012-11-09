@@ -58,7 +58,7 @@ uint32_t SEQ_TIME[no_SEQ_BITS];
 
 #define MAX_BAM_BITS BITS		// number of BITORDER bits to cycle through
 #define SSP_SPEED 30000000
-#define LED_Latch_interupt_delay 500 // multiplied by 100 ticks
+#define LED_Latch_interupt_delay 380 // multiplied by 100 ticks
 //#define DelayLatchIn 350*(30000000/SSP_SPEED)	// delay before chip select is toggled
 uint32_t volatile ticks = 0;
 uint32_t volatile ticks_at_DMA_start = 0;

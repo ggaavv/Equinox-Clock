@@ -35,8 +35,8 @@
 // R = ---------
 //		  If
 #define RED_REDUCTION 255		// (255/Vs)*(Vs-RED_Vf) = 153
-#define GREEN_REDUCTION	((RED_REDUCTION/136)*255)		// (255/Vs)*(Vs-GREEN_Vf) = 81.6 // (255/153)*81.6 = 136
-#define BLUE_REDUCTION ((RED_REDUCTION/136)*255)		// (255/Vs)*(Vs-BLUE_Vf) = 81.6
+#define GREEN_REDUCTION	((RED_REDUCTION/136)*255*3)		// (255/Vs)*(Vs-GREEN_Vf) = 81.6 // (255/153)*81.6 = 136
+#define BLUE_REDUCTION ((RED_REDUCTION/136)*255*3)		// (255/Vs)*(Vs-BLUE_Vf) = 81.6
 
 const uint8_t RGB_LOOKUP[360][3] = {
 		{	255	,	0	,	0	}	,
